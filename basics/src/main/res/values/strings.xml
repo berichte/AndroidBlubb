@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Alubb</string>
+    <string name="hello_world">Hello Guapa!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_single_thread">SingleThreadActivity</string>
+    <string name="title_activity_thread_overview">ThreadOverview</string>
+    <string name="title_activity_blubb_com_test">BlubbComTest</string>
+
+</resources>

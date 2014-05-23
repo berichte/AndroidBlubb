@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="json_beap_status">BeapStatus</string>
+    <string name="json_beap_status_desc">StatusDescr</string>
+    <string name="json_session_info">sessInfo</string>
+    <string name="json_session_id">sessId</string>
+    <string name="json_session_user">sessUser</string>
+    <string name="json_session_role">sessRole</string>
+    <string name="json_session_active">sessActive</string>
+    <string name="json_expires">expires</string>
+</resources>

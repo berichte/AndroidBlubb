@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="InvalidParameterException">The given parameter is not valid.</string>
+    <string name="BlubbException">There went something terribly wrong. Run, run as fast as you can! 8(</string>
+    <string name="BlubbNullException">A parameter must not be null.</string>
+    <string name="unknown_blubb_user_role">Unknown blubb user role.</string>
+
+</resources>

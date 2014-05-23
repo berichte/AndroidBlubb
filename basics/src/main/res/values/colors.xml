@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="beap_light_yellow">#FFEE00</color>
+    <color name="beap_medium_yellow">#FFBB00</color>
+    <color name="beap_dark_yellow">#DDAA00</color>
+    <color name="beap_red">#881100</color>
+    <color name="beap_green">#227700</color>
+    <color name="beap_blue">#336699</color>
+    <color name="beap_dark_blue">#223366</color>
+</resources>

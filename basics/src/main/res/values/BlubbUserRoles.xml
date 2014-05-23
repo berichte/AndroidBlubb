@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ur_user">user</string>
+    <string name="ur_admin">admin</string>
+    <string name="ur_project_manager">pl</string>
+</resources>
