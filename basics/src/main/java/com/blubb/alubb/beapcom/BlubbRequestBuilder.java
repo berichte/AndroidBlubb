@@ -66,7 +66,7 @@ public class BlubbRequestBuilder {
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&sessId=a634cca33cc52b1252ba9&Action=query&queryStr=tree.functions.getAllThreads(self)
 
     public static String buildGetAllThreads() {
-
+        return "";
     }
 
     private static String buildQuery(String query) {
