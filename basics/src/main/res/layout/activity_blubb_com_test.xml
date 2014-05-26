@@ -8,15 +8,28 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/blubb_com_test_edit"
-        android:text="@string/blubb_test"
+        android:id="@+id/blubb_com_test_username"
+        android:text="@string/blubb_test_username"
+        android:layout_alignParentBottom="true"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/blubb_com_test_password"
+        android:text="@string/blubb_test_password"
+        android:password="true"
         android:layout_alignParentBottom="true"/>
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="runTest"
-        android:id="@+id/blubb_com_test_button"
+        android:text="login"
+        android:id="@+id/blubb_com_test_button_login"
+        android:layout_alignParentTop="true" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="get all threads"
+        android:id="@+id/blubb_com_test_button_getAllThreads"
         android:layout_alignParentTop="true" />
 
     <TextView

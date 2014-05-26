@@ -5,22 +5,10 @@
     android:orientation="vertical"
     tools:context="com.blubb.alubb.blubbbasics.ThreadOverview">
 
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/title_activity_thread_overview"
-        android:id="@+id/textView"
-        android:background="@color/beap_dark_yellow"/>
-
     <ListView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/listView"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="92dp" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/thread_list"/>
 
 
 </LinearLayout>

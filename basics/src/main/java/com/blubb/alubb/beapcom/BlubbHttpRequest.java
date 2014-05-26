@@ -22,7 +22,7 @@ public class BlubbHttpRequest {
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response;
         String responseString = null;
-        Log.i("httpRequest", "Starting request.");
+        Log.i("BlubbHttpRequest", "Starting request:\n" + url);
         try {
             response = httpclient.execute(new HttpGet(url));
             StatusLine statusLine = response.getStatusLine();

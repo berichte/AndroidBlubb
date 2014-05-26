@@ -6,5 +6,8 @@ package com.blubb.alubb.blubexceptions;
  * from the BlubbDB.(BEAP-DB).
  */
 public class BlubbDBException extends Exception {
+    public BlubbDBException(String message) {
+        super(message);
+    }
 
 }

@@ -20,11 +20,15 @@ public class SessionManager {
         return instance;
     }
 
-    public SessionInfo getSessionId() {
+    public SessionInfo getSession() {
         return session;
     }
 
-    public void setSessionId(SessionInfo session) {
+    public void setSession(SessionInfo session) {
         this.session = session;
+    }
+
+    public String getSessionID() {
+        return this.session.getSessionId();
     }
 }

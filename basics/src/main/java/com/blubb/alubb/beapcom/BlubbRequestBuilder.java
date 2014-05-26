@@ -63,19 +63,16 @@ public class BlubbRequestBuilder {
     }
 
 
-    //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&sessId=a634cca33cc52b1252ba9&Action=query&queryStr=tree.functions.getAllThreads(self)
+    //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&sessId=a634cca33cc52b1252ba9&Action=query
+    // &queryStr=tree.functions.getAllThreads(self)
 
-    public static String buildGetAllThreads() {
-        return "";
-    }
-
-    private static String buildQuery(String query) {
+    public static String buildQuery(String query) {
         return URL
                 + BEAP_ID   + BEAP_ID_DB + BLUBB_AND
                 + getSessionPara()
                 + BEAP_ACTION + BEAP_ACTION_QUERY + BLUBB_AND
                 + BEAP_QUERY_STR
-                + encode(BEAP_QUERY_PREFIX + query + BEAP_QUERY_SELF_SUFIX) + BLUBB_AND;
+                + encode(query) + BLUBB_AND;
     }
 
     private static String getSessionPara() {

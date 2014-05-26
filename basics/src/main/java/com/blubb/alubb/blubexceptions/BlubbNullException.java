@@ -1,6 +1,6 @@
 package com.blubb.alubb.blubexceptions;
 
-import com.blubb.alubb.blubbbasics.R;
+import com.blubb.alubb.R;
 
 /**
  * Created by Benjamin Richter on 17.05.2014.

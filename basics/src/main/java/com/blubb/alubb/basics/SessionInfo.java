@@ -1,6 +1,6 @@
 package com.blubb.alubb.basics;
 
-import com.blubb.alubb.blubbbasics.R;
+import com.blubb.alubb.R;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 
 import org.json.JSONException;
@@ -46,7 +46,7 @@ public class SessionInfo {
         if (role.equals("admin")) {
             return BlubbUserRole.BLUBB_ADMIN;
         }
-        if (role.equals("pl")) {
+        if (role.equals("PL")) {
             return BlubbUserRole.BLUBB_MANAGER;
         }
         throw new InvalidParameterException();

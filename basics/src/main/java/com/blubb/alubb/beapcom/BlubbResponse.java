@@ -1,20 +1,17 @@
 package com.blubb.alubb.beapcom;
 
-import android.util.JsonReader;
+import android.util.Log;
 
 import com.blubb.alubb.basics.SessionInfo;
-import com.blubb.alubb.blubbbasics.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.blubb.alubb.basics.RA;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
-
-import java.util.List;
 
 /**
  * Created by Benjamin Richter on 22.05.2014.
+ * General Response object
  */
 public class BlubbResponse {
 
@@ -26,13 +23,14 @@ public class BlubbResponse {
         return statusDescr;
     }
 
-    public Object getResponseObj() {
-        return responseObj;
+    public Object getResultObj() {
+        return resultObj;
     }
 
     private BlubbDBReplyStatus status;
     private String statusDescr;
-    private Object responseObj;
+    private Object resultObj;
+    private SessionInfo sessionInfo;
 
 
     public BlubbResponse(String jsonResponse) throws InvalidParameterException {
@@ -43,9 +41,9 @@ public class BlubbResponse {
                    // RA.getString(R.string.json_beap_status)));
             this.statusDescr = response.getString("StatusDescr");
                     //RA.getString(R.string.json_beap_status_desc));
-            this.responseObj = this.parseResponseObject(response);
+            this.resultObj = this.parseResponseObject(response);
         } catch (JSONException e) {
-
+            Log.e("json exception", e.getMessage());
         }
     }
 
@@ -77,9 +75,36 @@ public class BlubbResponse {
     }
 
     private Object parseResponseObject(JSONObject json)
-            throws InvalidParameterException, JSONException {
-        JSONObject obj = json.getJSONObject("sessInfo");
-                //RA.getString(R.string.json_session_info));
-        return new SessionInfo(obj);
+            throws InvalidParameterException {
+        try {
+            JSONObject obj = json.getJSONObject("sessInfo");
+            this.sessionInfo =  new SessionInfo(obj);
+        } catch (JSONException e) {
+            Log.i("parsing json", "there's no sessioninfo.");
+        }
+      /*  try {
+            JSONObject obj = json.getJSONObject("Result");
+            String jsonType = obj.getString("tType");
+            if(jsonType.equals("Thread")) {
+
+            }
+            return new SessionInfo(obj);
+        } catch (JSONException e) {
+            Log.i("parsing json", "it's not a session");
+        } */
+
+        try {
+            if(json.has("Result")){
+                return json.getJSONArray("Result");
+            }
+
+        } catch (JSONException e) {
+            Log.i("parsing json", "it's not a even an array. oO");
+        }
+        return null;
+    }
+
+    public SessionInfo getSessionInfo() {
+        return sessionInfo;
     }
 }

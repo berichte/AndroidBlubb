@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="blubb_url">http://blubb.traeumtgerade.de:9980/?</string>
-    <string name="blubb_test">http://blubb.traeumtgerade.de:9980/?BeapId=BeapSession&amp;Action=login&amp;appVers=1.5.0rc1&amp;uName=Der-Praktikant&amp;uPwd=test</string>
+    <string name="blubb_test_username">B-Richter</string>
+    <string name="blubb_test_password">carolina</string>
     <string name="blubb_beap_session">BeapId=BeapSession</string>
     <string name="beap_action_login">Action=login</string>
     <string name="beap_app_version">appVers=1.5.0rc1</string>
