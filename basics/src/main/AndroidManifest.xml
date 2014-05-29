@@ -10,7 +10,6 @@
         <activity
             android:name="com.blubb.alubb.beapcom.BlubbComTest"
             android:label="@string/title_activity_blubb_com_test" >
-
         </activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.Blubb_login"
@@ -24,12 +23,15 @@
         <activity
             android:name="com.blubb.alubb.blubbbasics.ThreadOverview"
             android:label="@string/title_activity_thread_overview" >
-
-            </activity>
-        <activity android:name="com.blubb.alubb.blubbbasics.SingleThreadActivity"
-            android:label="@string/title_activity_single_thread">
-
-            </activity>
+        </activity>
+        <activity
+            android:name="com.blubb.alubb.blubbbasics.SingleThreadActivity"
+            android:label="@string/title_activity_single_thread" >
+        </activity>
+        <activity
+            android:name="com.blubb.alubb.blubbbasics.WriteMessageActivity"
+            android:label="@string/title_activity_write_message" >
+        </activity>
     </application>
     <!-- To access Google+ APIs: -->
     <uses-permission android:name="android.permission.INTERNET" />

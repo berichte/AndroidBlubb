@@ -33,7 +33,7 @@ public class BlubbResponse {
     private SessionInfo sessionInfo;
 
 
-    public BlubbResponse(String jsonResponse) throws InvalidParameterException {
+    public BlubbResponse(String jsonResponse) {
         JSONObject response;
         try {
             response = new JSONObject(jsonResponse );
@@ -74,32 +74,22 @@ public class BlubbResponse {
         }
     }
 
-    private Object parseResponseObject(JSONObject json)
-            throws InvalidParameterException {
+    private Object parseResponseObject(JSONObject json) {
         try {
             JSONObject obj = json.getJSONObject("sessInfo");
             this.sessionInfo =  new SessionInfo(obj);
         } catch (JSONException e) {
-            Log.i("parsing json", "there's no sessioninfo.");
+            Log.e("parsing json", "there's no session info.");
         }
-      /*  try {
-            JSONObject obj = json.getJSONObject("Result");
-            String jsonType = obj.getString("tType");
-            if(jsonType.equals("Thread")) {
-
-            }
-            return new SessionInfo(obj);
-        } catch (JSONException e) {
-            Log.i("parsing json", "it's not a session");
-        } */
 
         try {
             if(json.has("Result")){
-                return json.getJSONArray("Result");
+                Object o = json.getJSONArray("Result");
+                if(o == null) o = json.getJSONObject("Result");
+                return o;
             }
-
         } catch (JSONException e) {
-            Log.i("parsing json", "it's not a even an array. oO");
+            Log.e("parsing json", "Threre's no \"Result\". oO");
         }
         return null;
     }

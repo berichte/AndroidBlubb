@@ -24,11 +24,7 @@ public class BlubbRequest extends AsyncTask <String, Integer, String> {
      @Override
      protected void onPostExecute(String result) {
          super.onPostExecute(result);
-         try {
-             BlubbResponse response = new BlubbResponse(result);
-             receiver.receiveResponse(response);
-         } catch (InvalidParameterException e) {
-             receiver.receiveException(e);
-         }
+         BlubbResponse response = new BlubbResponse(result);
+         receiver.receiveResponse(response);
      }
 }

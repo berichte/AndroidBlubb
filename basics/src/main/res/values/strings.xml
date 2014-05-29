@@ -18,5 +18,14 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="single_thread_new_message_button_text">newMessage</string>
+    <string name="title_activity_write_message">WriteMessage</string>
+    <string name="single_thread_new_message_send_button_text">Send</string>
+    <string name="thread_overview_new_thread_button_text">create a new thread</string>
+    <string name="thread_new_title_hint">here goes the thread title</string>
+    <string name="thread_new_descr_hint">put in a simple description for your thread</string>
+    <string name="thread_new_send_button_text">create</string>
+    <string name="thread_new_cancel_button_text">cancel</string>
+    <string name="thread_new_mb_title">Create a new thread</string>
 
 </resources>

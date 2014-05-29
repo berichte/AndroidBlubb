@@ -26,7 +26,7 @@ public class SessionInfo {
     }
 
     public SessionInfo(JSONObject jsonObject)
-            throws InvalidParameterException, JSONException {
+            throws JSONException {
         this.sessionId = jsonObject.getString(
                 "sessId");//RA.getString(R.string.json_session_id));
         this.blubbUser = jsonObject.getString(
@@ -39,7 +39,7 @@ public class SessionInfo {
                 "sessRole"));//RA.getString(R.string.json_session_role)));
     }
 
-    private BlubbUserRole getUserRoleViaString(String role) throws InvalidParameterException {
+    private BlubbUserRole getUserRoleViaString(String role) {
         if (role.equals("user")) {
             return BlubbUserRole.BLUBB_USER;
         }
@@ -49,7 +49,7 @@ public class SessionInfo {
         if (role.equals("PL")) {
             return BlubbUserRole.BLUBB_MANAGER;
         }
-        throw new InvalidParameterException();
+        return BlubbUserRole.UNDEFINED;
     }
 
     public String getSessionId() {

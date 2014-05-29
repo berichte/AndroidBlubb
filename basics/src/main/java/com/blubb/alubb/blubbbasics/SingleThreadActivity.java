@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -31,17 +32,34 @@ import java.util.List;
 
 public class SingleThreadActivity extends Activity {
     public static final String EXTRA_THREAD_ID = "threadId";
+    public static final String EXTRA_THREAD_TITLE = "threadTitle";
 
+    private String threadId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_thread);
 
         Intent intent = getIntent();
-        String threadId = intent.getStringExtra(EXTRA_THREAD_ID);
-        Log.i("SingleThreadActivity", "Requesting Mmessages for Thread " + threadId);
+        this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
+        Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
         AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
+
+        this.addNewMessageButtonListener();
         asyncTask.execute();
+    }
+
+    private void addNewMessageButtonListener() {
+        Button nMessageButton = (Button) findViewById(R.id.single_thread_new_message_button);
+        nMessageButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(SingleThreadActivity.this, WriteMessageActivity.class);
+                intent.putExtra(EXTRA_THREAD_ID, SingleThreadActivity.this.threadId);
+                SingleThreadActivity.this.startActivity(intent);
+            }
+        });
     }
 
     private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, BlubbMessage[]> {
@@ -71,6 +89,7 @@ public class SingleThreadActivity extends Activity {
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
                     SingleThreadActivity.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
+
             final List<BlubbMessage> list = new ArrayList<BlubbMessage>(Arrays.asList(response));
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {

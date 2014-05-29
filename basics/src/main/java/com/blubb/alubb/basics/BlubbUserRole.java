@@ -11,5 +11,8 @@ public enum BlubbUserRole {
     /** Blubb administrator. */
     BLUBB_ADMIN,
     /** Manager of a project. */
-    BLUBB_MANAGER
+    BLUBB_MANAGER,
+    /** undefined if there is no role*/
+     UNDEFINED
+
 }

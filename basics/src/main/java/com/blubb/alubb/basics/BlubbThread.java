@@ -1,7 +1,5 @@
 package com.blubb.alubb.basics;
 
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,14 +33,14 @@ public class BlubbThread {
             */
 
     public BlubbThread(JSONObject jsonObject) throws JSONException {
-        this.creator        = jsonObject.getString("tCreator");
-        this.creatorRole    = jsonObject.getString("tCreatorRole");
-        this.date           = jsonObject.getString("tDate");
-        this.title          = jsonObject.getString("tTitle");
-        this.description    = jsonObject.getString("tDescr");
-        this.msgCount       = jsonObject.getInt("tMsgCount");
-        this.id             = jsonObject.getString("tId");
-        this.threadType     = findThreadType(jsonObject.getString("tType"));
+        this.creator        = BPC.findStringInJsonObj(jsonObject, "tCreator");
+        this.creatorRole    = BPC.findStringInJsonObj(jsonObject, "tCreatorRole");
+        this.date           = BPC.findStringInJsonObj(jsonObject, "tDate");
+        this.title          = BPC.findStringInJsonObj(jsonObject, "tTitle");
+        this.description    = BPC.findStringInJsonObj(jsonObject, "tDescr");
+        if(jsonObject.has("tMsgCount")) this.msgCount = jsonObject.getInt("tMsgCount");
+        this.id             = BPC.findStringInJsonObj(jsonObject, "tId");
+        this.threadType     = findThreadType(BPC.findStringInJsonObj(jsonObject, "tType"));
     }
 
     private ThreadType findThreadType(String tType) {
