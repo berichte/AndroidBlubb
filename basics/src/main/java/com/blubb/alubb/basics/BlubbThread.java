@@ -9,18 +9,18 @@ import org.json.JSONObject;
  * can post massages.
  */
 public class BlubbThread {
-    /** title of the Thread.*/
-    private String title;
+    /** tTitle of the Thread.*/
+    private String tTitle;
     /** Description for this Thread. */
-    private String description;
-    /** The creator of the Thread. */
-    private String creator;
-    private String creatorRole;
-    private String date;
-    private String id;
-    private int msgCount;
+    private String tDesc;
+    /** The tCreator of the Thread. */
+    private String tCreator;
+    private String tCreatorRole;
+    private String tDate;
+    private String tId;
+    private int tMsgCount;
     /** Type of this thread, e.g. Chatthread, pollThread, taskThread.*/
-    private ThreadType threadType;
+    private ThreadType tType;
  /*
  "tId" : "t2014-05-17_150000_S-Gross",
             "tType" : "Thread",
@@ -33,14 +33,27 @@ public class BlubbThread {
             */
 
     public BlubbThread(JSONObject jsonObject) throws JSONException {
-        this.creator        = BPC.findStringInJsonObj(jsonObject, "tCreator");
-        this.creatorRole    = BPC.findStringInJsonObj(jsonObject, "tCreatorRole");
-        this.date           = BPC.findStringInJsonObj(jsonObject, "tDate");
-        this.title          = BPC.findStringInJsonObj(jsonObject, "tTitle");
-        this.description    = BPC.findStringInJsonObj(jsonObject, "tDescr");
-        if(jsonObject.has("tMsgCount")) this.msgCount = jsonObject.getInt("tMsgCount");
-        this.id             = BPC.findStringInJsonObj(jsonObject, "tId");
-        this.threadType     = findThreadType(BPC.findStringInJsonObj(jsonObject, "tType"));
+        this.tCreator = BPC.findStringInJsonObj(jsonObject, "tCreator");
+        this.tCreatorRole = BPC.findStringInJsonObj(jsonObject, "tCreatorRole");
+        this.tDate = BPC.findStringInJsonObj(jsonObject, "tDate");
+        this.tTitle = BPC.findStringInJsonObj(jsonObject, "tTitle");
+        this.tDesc = BPC.findStringInJsonObj(jsonObject, "tDescr");
+        if(jsonObject.has("tMsgCount")) this.tMsgCount = jsonObject.getInt("tMsgCount");
+        this.tId = BPC.findStringInJsonObj(jsonObject, "tId");
+        this.tType = findThreadType(BPC.findStringInJsonObj(jsonObject, "tType"));
+    }
+
+    public BlubbThread (String tId, String tTitle, String tDesc,
+                        String tCreator, String tCRole,
+                    String tDate, int tMsgCount, String tType) {
+        this.tId = tId;
+        this.tTitle = tTitle;
+        this.tDesc = tDesc;
+        this.tCreator = tCreator;
+        this.tCreatorRole = tCRole;
+        this.tDate = tDate;
+        this.tMsgCount = tMsgCount;
+        this.tType = findThreadType(tType);
     }
 
     private ThreadType findThreadType(String tType) {
@@ -50,38 +63,38 @@ public class BlubbThread {
     }
 
     public String toString() {
-        return "Thread name:\t\t" + this.title;
+        return "Thread name:\t\t" + this.tTitle;
     }
 
-    public String getDescription() {
-        return description;
+    public String gettDesc() {
+        return tDesc;
     }
 
-    public String getCreator() {
-        return creator;
+    public String gettCreator() {
+        return tCreator;
     }
 
-    public String getCreatorRole() {
-        return creatorRole;
+    public String gettCreatorRole() {
+        return tCreatorRole;
     }
 
-    public String getDate() {
-        return date;
+    public String gettDate() {
+        return tDate;
     }
 
-    public int getMsgCount() {
-        return msgCount;
+    public int gettMsgCount() {
+        return tMsgCount;
     }
 
-    public String getId() {
-        return id;
+    public String gettId() {
+        return tId;
     }
 
-    public ThreadType getThreadType() {
-        return threadType;
+    public ThreadType gettType() {
+        return tType;
     }
 
     public String getThreadTitle() {
-        return this.title;
+        return this.tTitle;
     }
 }

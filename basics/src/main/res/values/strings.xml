@@ -27,5 +27,9 @@
     <string name="thread_new_send_button_text">create</string>
     <string name="thread_new_cancel_button_text">cancel</string>
     <string name="thread_new_mb_title">Create a new thread</string>
+    <string name="new_message_text">new message</string>
+    <string name="blubb_message_pull_prefab_rate">Message Pull</string>
+    <string name="blubb_message_pull_prefab_title">Message Pull</string>
+    <string name="title_activity_main">MainActivity</string>
 
 </resources>

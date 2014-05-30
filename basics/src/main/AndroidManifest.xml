@@ -23,6 +23,7 @@
         <activity
             android:name="com.blubb.alubb.blubbbasics.ThreadOverview"
             android:label="@string/title_activity_thread_overview" >
+
         </activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.SingleThreadActivity"
@@ -31,6 +32,14 @@
         <activity
             android:name="com.blubb.alubb.blubbbasics.WriteMessageActivity"
             android:label="@string/title_activity_write_message" >
+        </activity>
+        <activity
+            android:name="com.blubb.alubb.blubbbasics.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
+        <activity
+            android:name="com.blubb.alubb.blubbbasics.MainActivity"
+            android:label="@string/title_activity_main" >
         </activity>
     </application>
     <!-- To access Google+ APIs: -->

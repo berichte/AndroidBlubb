@@ -1,15 +1,15 @@
 package com.blubb.alubb.blubbbasics;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -36,6 +36,7 @@ import java.util.List;
 
 public class ThreadOverview extends Activity {
 
+    private static final int RESULT_SETTINGS = 1;
     final Context context = this;
 
     @Override
@@ -50,6 +51,26 @@ public class ThreadOverview extends Activity {
         asyncGetAllThreads.execute();
         addNewThreadButtonListener();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.settings, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.blubb_settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivityForResult(i, RESULT_SETTINGS);
+                break;
+        }
+        return true;
+    }
+
+
 
     private void addNewThreadButtonListener() {
         Button nMessageButton = (Button) findViewById(R.id.thread_overview_new_thread_button);
@@ -173,8 +194,11 @@ public class ThreadOverview extends Activity {
                                         int position, long id) {
                     Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
                     assert ((BlubbThread) parent.getItemAtPosition(position)) != null;
-                    String threadId = ((BlubbThread) parent.getItemAtPosition(position)).getId();
+                    BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
+                    String threadId = bThread.gettId();
                     intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
+                    String tTitle = bThread.getThreadTitle();
+                    intent.putExtra(SingleThreadActivity.EXTRA_THREAD_TITLE, tTitle);
                     ThreadOverview.this.startActivity(intent);
 
                 }
@@ -205,7 +229,7 @@ public class ThreadOverview extends Activity {
                 description = (TextView) rowView.findViewById(R.id.thread_list_item_body);
             BlubbThread blubbThread = getItem(position);
             title.setText(blubbThread.getThreadTitle());
-            description.setText(blubbThread.getDescription());
+            description.setText(blubbThread.gettDesc());
 
             return rowView;
         }

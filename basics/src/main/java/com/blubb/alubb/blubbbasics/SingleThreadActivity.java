@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -45,12 +46,16 @@ public class SingleThreadActivity extends Activity {
         Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
         AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
 
+        String tTitle = intent.getStringExtra(EXTRA_THREAD_TITLE);
+        setTitle(tTitle);
+
         this.addNewMessageButtonListener();
         asyncTask.execute();
     }
 
     private void addNewMessageButtonListener() {
-        Button nMessageButton = (Button) findViewById(R.id.single_thread_new_message_button);
+        ImageButton nMessageButton = (ImageButton)
+                findViewById(R.id.single_thread_new_message_button);
         nMessageButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -98,7 +103,7 @@ public class SingleThreadActivity extends Activity {
                                         int position, long id) {
                     /*Intent intent = new Intent(SingleThreadActivity.this, SingleThreadActivity.class);
                     assert ((BlubbThread) parent.getItemAtPosition(position)) != null;
-                    String threadId = ((BlubbThread) parent.getItemAtPosition(position)).getId();
+                    String threadId = ((BlubbThread) parent.getItemAtPosition(position)).gettId();
                     intent.putExtra("Thread", threadId);
                     SingleThreadActivity.this.startActivity(intent);
 */
@@ -144,12 +149,19 @@ public class SingleThreadActivity extends Activity {
             LayoutInflater inflater = (LayoutInflater) super.getContext()
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View rowView = inflater.inflate(R.layout.message_layout, parent, false);
-            TextView title = (TextView) rowView.findViewById(R.id.message_author_textView),
-                    description = (TextView) rowView.findViewById(R.id.message_body);
+
+            TextView mTitle = (TextView) rowView.findViewById(R.id.message_title_tv),
+                    mContent= (TextView) rowView.findViewById(R.id.message_content_tv),
+                    mCreator = (TextView) rowView.findViewById(R.id.message_creator_tv),
+                    mDate = (TextView) rowView.findViewById(R.id.message_date_tv),
+                    mRole = (TextView) rowView.findViewById(R.id.message_role_tv);
             BlubbMessage blubbMessage = getItem(position);
 
-            title.setText(blubbMessage.getmCreator());
-            description.setText(blubbMessage.getmContent());
+            mTitle.setText(blubbMessage.getmTitle());
+            mContent.setText(blubbMessage.getmContent());
+            mCreator.setText(blubbMessage.getmCreator());
+            mDate.setText(blubbMessage.getmDate());
+            mRole.setText(blubbMessage.getmCreatorRole());
 
             return rowView;
         }

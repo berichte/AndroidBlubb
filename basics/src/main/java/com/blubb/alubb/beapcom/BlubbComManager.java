@@ -12,6 +12,7 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 
 /**
@@ -43,12 +44,14 @@ public class BlubbComManager {
         // if the response is empty return an empty array of Messages
         if(response.getStatus() == BlubbDBReplyStatus.NO_CONTENT){
             BlubbMessage m = new BlubbMessage("no-thread-for-this",
-                    "It's empty oO", "Quick be the first who posts here.");
+                    "It's empty o.O", "Quick be the first who posts here.");
             return new BlubbMessage[] {m};
 
         }
-        // Check whether the response is an array
-        if(response.getResultObj().getClass().getName().equals(
+        Object resObj = response.getResultObj();
+        if (resObj == null) throw new BlubbDBException("Did't get any Result.");
+         // Check whether the response is an array
+        if(resObj.getClass().getName().equals(
                 JSONArray.class.getName())) {
             // fill the array
             JSONArray jsonArray = (JSONArray) response.getResultObj();
@@ -125,13 +128,19 @@ public class BlubbComManager {
         return response.getStatus();
     }
 
+    private String username, password;
+
     public boolean login(String username, String password)
             throws InvalidParameterException, BlubbDBException {
         //check the parameter
-        username = BPC.parseStringToDB(username);
-        password = BPC.parseStringToDB(password);
+        this.username = BPC.parseStringToDB(username);
+        this.password = BPC.parseStringToDB(password);
         // get a valid request string
-        String requestString = BlubbRequestBuilder.buildLogin(username, password);
+        return doLogin();
+    }
+
+    private boolean doLogin() throws BlubbDBException {
+        String requestString = BlubbRequestBuilder.buildLogin(this.username, this.password);
 
         BlubbResponse responseObj = executeRequest(requestString);
         // check whether the response is ok or there is some error
@@ -144,11 +153,15 @@ public class BlubbComManager {
         }
     }
 
-    private BlubbResponse executeRequest(String url) {
+    private BlubbResponse executeRequest(String url) throws BlubbDBException {
         Log.i("BlubbComManager", "Executing http-request:\n" + url);
         // request via http
         String httpResponse = BlubbHttpRequest.request(url);
         //parse the response to an object
+        BlubbResponse blubbResponse = new BlubbResponse(httpResponse);
+        if(blubbResponse.getStatus() == BlubbDBReplyStatus.LOGIN_REQUIRED) {
+            doLogin();
+        }
         return new BlubbResponse(httpResponse);
     }
 }

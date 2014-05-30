@@ -32,7 +32,7 @@ public class ThreadManager {
 
     public BlubbThread getThreadByID(String tId) {
         for(BlubbThread t: this.blubbThreads) {
-            if(t.getId().equals(tId)) {
+            if(t.gettId().equals(tId)) {
                 return t;
             }
         }

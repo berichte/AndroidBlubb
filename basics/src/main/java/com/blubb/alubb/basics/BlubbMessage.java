@@ -22,6 +22,18 @@ public class BlubbMessage {
        this.fillFieldsViaJson(object);
     }
 
+    public BlubbMessage(String mId, String mTitle, String mContent, String mCreatorRole,
+                        String mCreator, String mDate, String mType, String mThread  ) {
+        this.mId = mId;
+        this.mType = mType;
+        this.mCreator = mCreator;
+        this.mCreatorRole = mCreatorRole;
+        this.mDate = mDate;
+        this.mThread = mThread;
+        this.mTitle = mTitle;
+        this.mContent = mContent;
+    }
+
     public BlubbMessage(String threadId, String title, String content) {
         this.mThread = threadId;
         this.mTitle = title;

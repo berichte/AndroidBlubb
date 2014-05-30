@@ -2,8 +2,10 @@ package com.blubb.alubb.blubbbasics;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +25,12 @@ public class Blubb_login extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blubb_login);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String un = sharedPreferences.getString("username_prefab", "NULL"),
+                pw = sharedPreferences.getString("password_prefab", "NULL");
+        if(!un.equals("NULL") && !pw.equals("NULL")) {
+            login(un, pw);
+        }
         addLoginButtonListener();
     }
 
@@ -32,17 +40,21 @@ public class Blubb_login extends Activity {
             @Override
             public void onClick(View v) {
 
-                String[] params = new String[2];
                 EditText un = (EditText) findViewById(R.id.blubb_login_username);
-                params[0] = un.getText().toString();
                 EditText pw = (EditText) findViewById(R.id.blubb_login_password);
-                params[1] = pw.getText().toString();
-                new AsyncLogin().execute(params);
+                login(un.getText().toString(), pw.getText().toString());
             }
         });
     }
 
-    private class AsyncLogin extends AsyncTask<String, Void, String> {
+    private void login(String username, String password) {
+        String[] params = new String[2];
+        params[0] = username;
+        params[1] = password;
+        new AsyncLogin().execute(params);
+    }
+
+    public class AsyncLogin extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {

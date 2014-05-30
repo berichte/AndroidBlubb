@@ -1,23 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/message_layout_back"
+    android:padding="@dimen/message_padding"
+    android:id="@+id/message_layout">
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_gravity="left">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/message_profile_pic"
+                android:src="@drawable/alubb"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/message_role_tv"
+                android:text="mRole"/>
+            </LinearLayout>
+        <LinearLayout
+            android:layout_gravity="right"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/message_padding_left"
+            android:paddingTop="@dimen/message_padding_top">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="mCreator"
+                android:id="@+id/message_creator_tv"
+                android:textAppearance="@android:style/TextAppearance.Large" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/message_date_tv"
+                android:text="mDate"/>
+        </LinearLayout>
+        </LinearLayout>
+
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
 
-        android:text="Blubbi von Blubb"
-        android:id="@+id/message_author_textView"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/beap_light_yellow" />
+        android:text="mTitle"
+        android:id="@+id/message_title_tv"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:padding="10dp"
+        android:singleLine="false" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:id="@+id/message_body" />
+        android:text="mContent"
+        android:id="@+id/message_content_tv" />
 </LinearLayout>
