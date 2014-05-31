@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
+import com.blubb.alubb.basics.MessageManager;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
@@ -69,7 +70,7 @@ public class SingleThreadActivity extends Activity {
         });
     }
 
-    private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, BlubbMessage[]> {
+    private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
 
         private Exception exception;
         private String threadId;
@@ -79,24 +80,19 @@ public class SingleThreadActivity extends Activity {
         }
 
         @Override
-        protected BlubbMessage[] doInBackground(Void... voids) {
-            try {
-                return BlubbComManager.getMessages(SingleThreadActivity.this, this.threadId);
-            } catch (BlubbDBException e) {
-                this.exception = e;
-                Log.e("getAllMessages", e.getMessage());
-            }
-            return null;
+        protected List<BlubbMessage> doInBackground(Void... voids) {
+                return MessageManager.getMessagesForThread(
+                        SingleThreadActivity.this, this.threadId);
         }
 
         @Override
-        protected void onPostExecute(final BlubbMessage[] response) {
+        protected void onPostExecute(final List<BlubbMessage> response) {
             ListView lv = (ListView) findViewById(R.id.single_thread_listview);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
                     SingleThreadActivity.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
 
-            final List<BlubbMessage> list = new ArrayList<BlubbMessage>(Arrays.asList(response));
+            final List<BlubbMessage> list = new ArrayList<BlubbMessage>(response);
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
                 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -139,10 +135,10 @@ public class SingleThreadActivity extends Activity {
         HashMap<BlubbMessage, Integer> mIdMap = new HashMap<BlubbMessage, Integer>();
 
         public MessageArrayAdapter(Context context, int textViewResourceId,
-                                   BlubbMessage[] objects) {
+                                   List<BlubbMessage> objects) {
             super(context, textViewResourceId, objects);
-            for (int i = 0; i < objects.length; ++i) {
-                mIdMap.put(objects[i], i);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
             }
         }
 

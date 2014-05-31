@@ -32,5 +32,6 @@
     <string name="blubb_message_pull_prefab_title">Message Pull</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="service_message_pull_name">BlubbService</string>
+    <string name="alarm_service_started">MessagePull</string>
 
 </resources>

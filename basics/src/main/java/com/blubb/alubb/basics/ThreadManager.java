@@ -15,6 +15,28 @@ import java.util.List;
  */
 public class ThreadManager {
 
+    private static int threadsAtBeap = 0;
+
+    public boolean newThreadsAvailable(Context context) {
+        int quickCheckThreads = 0;
+        try {
+            quickCheckThreads = BlubbComManager.quickCheck(context)[0];
+        } catch (BlubbDBException e) {
+            Log.e("ThreadManager", e.getMessage());
+            return false;
+        }
+        if(threadsAtBeap < quickCheckThreads) {
+            return true;
+        } else {
+            Log.i("ThreadManager", "getting Threads only from the sqlite DB.");
+            return false;
+        }
+    }
+
+    public static int getThreadsAtBeap() {
+        return threadsAtBeap;
+    }
+
     public static BlubbThread getThread(Context context, String tId) {
         DatabaseHandler databaseHandler = new DatabaseHandler(context);
         return  databaseHandler.getThread(tId);
@@ -37,7 +59,27 @@ public class ThreadManager {
         return list;
     }
 
-    public static List<BlubbThread> getAllThreads(Context context)  {
+    public static List<BlubbThread> getAllThreads(Context context) {
+        int quickCheckThreads = 0;
+        try {
+            quickCheckThreads = BlubbComManager.quickCheck(context)[0];
+        } catch (BlubbDBException e) {
+            Log.e("ThreadManager", e.getMessage());
+            DatabaseHandler databaseHandler = new DatabaseHandler(context);
+            return databaseHandler.getAllThreads();
+        }
+        if(threadsAtBeap < quickCheckThreads) {
+            threadsAtBeap = quickCheckThreads;
+            return getThreads(context);
+        } else {
+            Log.i("ThreadManager", "getting Threads only from the sqlite DB.");
+            DatabaseHandler databaseHandler = new DatabaseHandler(context);
+            return databaseHandler.getAllThreads();
+        }
+    }
+
+    private static List<BlubbThread> getThreads(Context context)  {
+        Log.i("ThreadManager", "getting threads from beap and db.");
         BlubbThread[] beapThreads = new BlubbThread[0];
         try {
             beapThreads = BlubbComManager.getAllThreads(context);
@@ -59,8 +101,8 @@ public class ThreadManager {
             } else {
                 if(bt.gettMsgCount()>dbT.gettMsgCount()) {
                     dbT.setHasNewMsgs(true);
-                    addThreadToList(dbThreads, dbT);
                 }
+                dbThreads = addThreadToList(dbThreads, dbT);
             }
             dbT = null;
         }

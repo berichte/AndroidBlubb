@@ -54,7 +54,7 @@ public class BlubbRequestBuilder {
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=check&sessId=a634cca33cc52b1252ba9
     public static String buildCheckSession() {
         String url = URL
-                + BEAP_ID + BEAP_ID_DB + BLUBB_AND
+                + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_CHECK + BLUBB_AND
                 + getSessionPara();
         Log.i("BuildSessionCheck", url);
@@ -64,7 +64,7 @@ public class BlubbRequestBuilder {
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=refresh&sessId=a634cca33cc52b1252ba9
     public static String buildSessionRefresh() {
         String url = URL
-                + BEAP_ID   + BEAP_ID_DB + BLUBB_AND
+                + BEAP_ID   + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
                 + getSessionPara();
         Log.i("BuildSessionRefresh", url);

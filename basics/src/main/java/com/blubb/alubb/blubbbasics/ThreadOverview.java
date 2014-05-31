@@ -1,11 +1,14 @@
 package com.blubb.alubb.blubbbasics;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,6 +28,7 @@ import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
+import com.blubb.alubb.beapcom.MessagePullService;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
@@ -39,6 +43,7 @@ public class ThreadOverview extends Activity {
 
     private static final int RESULT_SETTINGS = 1;
     final Context context = this;
+    private PendingIntent mAlarmSender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -51,6 +56,17 @@ public class ThreadOverview extends Activity {
         AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
         asyncGetAllThreads.execute();
         addNewThreadButtonListener();
+        setAlarm();
+
+    }
+
+    private void setAlarm() {
+        mAlarmSender = PendingIntent.getService(ThreadOverview.this,
+                0, new Intent(ThreadOverview.this, MessagePullService.class), 0);
+        long firstTime = SystemClock.elapsedRealtime();
+
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 3*1000, mAlarmSender);
     }
 
     @Override
@@ -99,24 +115,6 @@ public class ThreadOverview extends Activity {
                         asyncNewThread.execute();
                     }
                 });
-
-
-                /*
-                // set the custom dialog components - text, image and button
-                TextView text = (TextView) dialog.findViewById(R.id.text);
-                text.setText("Android custom dialog example!");
-                ImageView image = (ImageView) dialog.findViewById(R.id.image);
-                image.setImageResource(R.drawable.ic_launcher);
-
-                Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-                // if button is clicked, close the custom dialog
-                dialogButton.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-*/
                 dialog.show();
 
             }
