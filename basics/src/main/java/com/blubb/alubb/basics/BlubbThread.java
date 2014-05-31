@@ -19,6 +19,9 @@ public class BlubbThread {
     private String tDate;
     private String tId;
     private int tMsgCount;
+    private boolean isNew;
+    private boolean hasNewMsgs;
+
     /** Type of this thread, e.g. Chatthread, pollThread, taskThread.*/
     private ThreadType tType;
  /*
@@ -45,7 +48,7 @@ public class BlubbThread {
 
     public BlubbThread (String tId, String tTitle, String tDesc,
                         String tCreator, String tCRole,
-                    String tDate, int tMsgCount, String tType) {
+                    String tDate, int tMsgCount, String tType, int isNew, int hasNewMsg) {
         this.tId = tId;
         this.tTitle = tTitle;
         this.tDesc = tDesc;
@@ -54,6 +57,8 @@ public class BlubbThread {
         this.tDate = tDate;
         this.tMsgCount = tMsgCount;
         this.tType = findThreadType(tType);
+        this.isNew = (isNew == 1)? true : false;
+        this.hasNewMsgs = (hasNewMsg == 1)? true : false;
     }
 
     private ThreadType findThreadType(String tType) {
@@ -96,5 +101,21 @@ public class BlubbThread {
 
     public String getThreadTitle() {
         return this.tTitle;
+    }
+
+    public void setNew(boolean isNew) {
+        this.isNew = isNew;
+    }
+
+    public void setHasNewMsgs(boolean hasNewMsgs) {
+        this.hasNewMsgs = hasNewMsgs;
+    }
+
+    public boolean isNew() {
+        return this.isNew;
+    }
+
+    public boolean hasNewMsgs() {
+        return this.hasNewMsgs;
     }
 }

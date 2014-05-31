@@ -8,6 +8,8 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,28 +46,35 @@ public class BPC {
     private static final Map<String, String> ESC_MAP;
     static {
         Map<String, String> aMap = new HashMap<String, String>();
-        aMap.put("\n", "\\n");
-        aMap.put("\t", "\\t");
+        aMap.put("\n", "\\\n");
+        aMap.put("\t", "\\\t");
         ESC_MAP = Collections.unmodifiableMap(aMap);
     }
 
     /**
      * Function to parse Escape character to the DB.
-     * @param s String from Android
+     * @param parameter String from Android
      * @return String for the BEAP-DB
      * @throws InvalidParameterException if s is empty or null.
      */
-    public static String parseStringToDB(String s) throws InvalidParameterException {
-        checkString(s);
-        Set keys = ESC_MAP.keySet();
-        for(Iterator<String> it = keys.iterator(); it.hasNext(); ) {
-            String key = it.next();
-            if(s.contains(key)) {
-                Log.i("BPC-parse to DB", "parsing: " + key + " -> " + ESC_MAP.get(key));
-                s.replace(key, ESC_MAP.get(key));
+    public static String parseStringToDB(String parameter) throws InvalidParameterException {
+        checkString(parameter);
+        final StringBuilder result = new StringBuilder();
+        final StringCharacterIterator iterator = new StringCharacterIterator(parameter);
+        char character = iterator.current();
+        while (character != CharacterIterator.DONE) {
+            if (character == '\n') {
+                result.append("\\n");
+            } else if (character == '\t') {
+                result.append("\\t");
+            } else {
+                //the char is not a special one
+                //add it to the result as is
+                result.append(character);
             }
+            character = iterator.next();
         }
-        return s;
+        return result.toString();
     }
 
     /**

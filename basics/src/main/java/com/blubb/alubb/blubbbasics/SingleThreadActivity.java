@@ -1,9 +1,11 @@
 package com.blubb.alubb.blubbbasics;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -78,9 +80,8 @@ public class SingleThreadActivity extends Activity {
 
         @Override
         protected BlubbMessage[] doInBackground(Void... voids) {
-            BlubbComManager manager = new BlubbComManager();
             try {
-                return manager.getMessages(this.threadId);
+                return BlubbComManager.getMessages(SingleThreadActivity.this, this.threadId);
             } catch (BlubbDBException e) {
                 this.exception = e;
                 Log.e("getAllMessages", e.getMessage());
@@ -98,6 +99,7 @@ public class SingleThreadActivity extends Activity {
             final List<BlubbMessage> list = new ArrayList<BlubbMessage>(Arrays.asList(response));
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {

@@ -75,9 +75,10 @@ public class WriteMessageActivity extends Activity {
         @Override
         protected BlubbDBReplyStatus doInBackground(Void... blubbs) {
 
-            BlubbComManager manager = new BlubbComManager();
+
             try {
-                return manager.sendMessage(tId, mTitle, mContent);
+                return BlubbComManager.sendMessage(
+                        WriteMessageActivity.this, tId, mTitle, mContent);
 
             } catch (BlubbDBException e) {
                 this.exception = e;

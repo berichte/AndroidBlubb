@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbThread;
+import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
@@ -131,9 +132,10 @@ public class ThreadOverview extends Activity {
         }
         @Override
         protected BlubbDBReplyStatus doInBackground(Void... voids) {
-            BlubbComManager manager = new BlubbComManager();
+
             try {
-                return manager.openNewBlubbThread (title, descr);
+                return BlubbComManager.openNewBlubbThread(
+                        ThreadOverview.this, title, descr);
             } catch (BlubbDBException e) {
                 Context context = getApplicationContext();
                 CharSequence text = "something went terribly wrong: " + e.getMessage();
@@ -161,32 +163,22 @@ public class ThreadOverview extends Activity {
         }
     }
 
-    private class AsyncGetAllThreads extends AsyncTask<Void, Void, BlubbThread[]> {
+    private class AsyncGetAllThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
 
         private Exception exception;
 
         @Override
-        protected BlubbThread[] doInBackground(Void... voids) {
-            BlubbComManager manager = new BlubbComManager();
-            try {
-                return manager.getAllThreads();
-            } catch (BlubbDBException e) {
-                this.exception = e;
-                Log.e("getAllThreads", e.getMessage());
-            } catch (BlubbDBConnectionException e) {
-                this.exception = e;
-                Log.e("getAllThreads", e.getMessage());
-            }
-            return null;
+        protected List<BlubbThread> doInBackground(Void... voids) {
+            return ThreadManager.getAllThreads(ThreadOverview.this);
         }
 
         @Override
-        protected void onPostExecute(final BlubbThread[] response) {
+        protected void onPostExecute(final List<BlubbThread> response) {
             ListView lv = (ListView) findViewById(R.id.thread_list);
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
                     ThreadOverview.this, R.layout.thread_list_entry, response);
             lv.setAdapter(adapter);
-            final List<BlubbThread> list = new ArrayList<BlubbThread>(Arrays.asList(response));
+            final List<BlubbThread> list = new ArrayList<BlubbThread>(response);
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
                 @Override
@@ -213,10 +205,10 @@ public class ThreadOverview extends Activity {
         HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
 
         public ThreadArrayAdapter(Context context, int textViewResourceId,
-                                  BlubbThread[] objects) {
+                                  List<BlubbThread> objects) {
             super(context, textViewResourceId, objects);
-            for (int i = 0; i < objects.length; ++i) {
-                mIdMap.put(objects[i], i);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
             }
         }
 

@@ -21,13 +21,15 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 
 public class Blubb_login extends Activity {
 
+    public static final String  USERNAME_PREFAB = "username_prefab",
+                                PASSWORD_PREFAB = "password_prefab";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blubb_login);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String un = sharedPreferences.getString("username_prefab", "NULL"),
-                pw = sharedPreferences.getString("password_prefab", "NULL");
+        String un = sharedPreferences.getString(USERNAME_PREFAB, "NULL"),
+                pw = sharedPreferences.getString(PASSWORD_PREFAB, "NULL");
         if(!un.equals("NULL") && !pw.equals("NULL")) {
             login(un, pw);
         }
@@ -60,9 +62,8 @@ public class Blubb_login extends Activity {
         protected String doInBackground(String... params) {
             String username = params[0],
                     password = params[1];
-            BlubbComManager manager = new BlubbComManager();
             try {
-                if (manager.login(username, password)){
+                if (BlubbComManager.login(Blubb_login.this, username, password)){
                     return SessionManager.getInstance().getSession().toString();
                 }
             } catch (InvalidParameterException e) {

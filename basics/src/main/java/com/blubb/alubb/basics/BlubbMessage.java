@@ -17,13 +17,14 @@ public class BlubbMessage {
     mThread,
     mTitle,
     mContent;
+    private boolean isNew;
 
     public BlubbMessage(JSONObject object) {
        this.fillFieldsViaJson(object);
     }
 
     public BlubbMessage(String mId, String mTitle, String mContent, String mCreatorRole,
-                        String mCreator, String mDate, String mType, String mThread  ) {
+                        String mCreator, String mDate, String mType, String mThread, int isNew) {
         this.mId = mId;
         this.mType = mType;
         this.mCreator = mCreator;
@@ -32,6 +33,7 @@ public class BlubbMessage {
         this.mThread = mThread;
         this.mTitle = mTitle;
         this.mContent = mContent;
+        this.isNew = (isNew == 1)? true : false;
     }
 
     public BlubbMessage(String threadId, String title, String content) {
@@ -90,5 +92,13 @@ public class BlubbMessage {
         return "mThread: " + mThread +
                 "mTitle: " + mTitle +
                 "mContent: " + mContent;
+    }
+
+    public void setNew(boolean isNew) {
+        this.isNew = isNew;
+    }
+
+    public boolean isNew() {
+        return isNew;
     }
 }

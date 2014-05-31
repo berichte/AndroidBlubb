@@ -17,13 +17,15 @@ public class BlubbRequestBuilder {
                                 BEAP_ACTION             = "Action=",
                                 BEAP_APP_VERSION        = "appVers=",
                                 BEAP_SESSION_ID         = "sessId=",
+
                                 BEAP_ACTION_LOGIN       = "login",
                                 BEAP_ACTION_REFRESH     = "refresh",
                                 BEAP_ACTION_LOGOUT      = "logout",
+                                BEAP_ACTION_CHECK       = "check",
                                 BEAP_ACTION_QUERY       = "query",
+
                                 BEAP_QUERY_STR          = "queryStr=",
-                                BEAP_QUERY_PREFIX       = "tree.functions.",
-                                BEAP_QUERY_SELF_SUFIX = "(self)",
+
                                 BEAP_ID_SESSION         = "BeapSession",
                                 BEAP_ID_DB              = "BeapDB",
                                 BEAP_VERSION            = "1.5.0rc1",
@@ -39,27 +41,43 @@ public class BlubbRequestBuilder {
     // uPwd=test
 
     public static String buildLogin(String username, String password){
-        return URL
-               + BEAP_ID           + BEAP_ID_SESSION + BLUBB_AND
-               + BEAP_ACTION       + BEAP_ACTION_LOGIN     + BLUBB_AND
-               + getParameter(BEAP_APP_VERSION, BEAP_VERSION)
-               + getParameter(BLUBB_USERNAME, username)
-               + getParameter(BLUBB_PASSWORD, password);
+        String url = URL
+                + BEAP_ID           + BEAP_ID_SESSION + BLUBB_AND
+                + BEAP_ACTION       + BEAP_ACTION_LOGIN     + BLUBB_AND
+                + getParameter(BEAP_APP_VERSION, BEAP_VERSION)
+                + getParameter(BLUBB_USERNAME, username)
+                + getParameter(BLUBB_PASSWORD, password);
+        Log.i("BuildLogin", "url");
+        return url;
+    }
+
+    //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=check&sessId=a634cca33cc52b1252ba9
+    public static String buildCheckSession() {
+        String url = URL
+                + BEAP_ID + BEAP_ID_DB + BLUBB_AND
+                + BEAP_ACTION + BEAP_ACTION_CHECK + BLUBB_AND
+                + getSessionPara();
+        Log.i("BuildSessionCheck", url);
+        return url;
     }
 
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=refresh&sessId=a634cca33cc52b1252ba9
     public static String buildSessionRefresh() {
-        return URL
+        String url = URL
                 + BEAP_ID   + BEAP_ID_DB + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
                 + getSessionPara();
+        Log.i("BuildSessionRefresh", url);
+        return url;
     }
 
     public static String buildLogout() {
-        return URL
+        String url = URL
                 + BEAP_ID   + BEAP_ID_DB    + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
                 + getSessionPara();
+        Log.i("BuildLogout", url);
+        return url;
     }
 
 
@@ -67,12 +85,14 @@ public class BlubbRequestBuilder {
     // &queryStr=tree.functions.getAllThreads(self)
 
     public static String buildQuery(String query) {
-        return URL
+        String url = URL
                 + BEAP_ID   + BEAP_ID_DB + BLUBB_AND
                 + getSessionPara()
                 + BEAP_ACTION + BEAP_ACTION_QUERY + BLUBB_AND
                 + BEAP_QUERY_STR
-                + encode(query) + BLUBB_AND;
+                + query + BLUBB_AND;
+        Log.i("BuildQuery", "\nBuild " + query + " to\n" + url);
+        return url;
     }
 
     private static String getSessionPara() {
@@ -84,9 +104,11 @@ public class BlubbRequestBuilder {
         return para + encode(value) + BLUBB_AND;
     }
 
-    private static String encode(String s) {
+    public static String encode(String s) {
         try {
-            return URLEncoder.encode(s, ENCODING);
+            String enc = URLEncoder.encode(s, ENCODING);
+            Log.i("urlEncoding", "Encoding " + s + " to\n" + enc);
+            return enc;
         } catch (UnsupportedEncodingException e) {
             Log.e(NAME, e.getMessage());
             return e.getMessage();

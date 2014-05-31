@@ -59,9 +59,8 @@ public class BlubbComTest extends Activity {
 
         @Override
         protected BlubbThread[] doInBackground(Void... voids) {
-            BlubbComManager manager = new BlubbComManager();
             try {
-                return manager.getAllThreads();
+                return BlubbComManager.getAllThreads(BlubbComTest.this);
             } catch (BlubbDBException e) {
                 this.exception = e;
                 Log.e("getAllThreads", e.getMessage());
@@ -92,9 +91,9 @@ public class BlubbComTest extends Activity {
         protected String doInBackground(String... params) {
             String username = params[0],
                     password = params[1];
-            BlubbComManager manager = new BlubbComManager();
+
             try {
-                if (manager.login(username, password)){
+                if (BlubbComManager.login(BlubbComTest.this, username, password)){
                     return SessionManager.getInstance().getSession().toString();
                 }
             } catch (InvalidParameterException e) {
