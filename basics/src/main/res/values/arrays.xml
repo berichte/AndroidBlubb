@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="blubb_message_pull_entries">
+        <item>off</item>
         <item>10 sek</item>
         <item>20 sek</item>
         <item>30 sek</item>
@@ -12,6 +13,7 @@
         <item>1 h</item>
     </string-array>
     <string-array name="blubb_message_pull_values">
+        <item>0</item>
         <item>10</item>
         <item>20</item>
         <item>30</item>

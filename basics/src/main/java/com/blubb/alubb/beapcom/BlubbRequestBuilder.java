@@ -96,8 +96,7 @@ public class BlubbRequestBuilder {
     }
 
     private static String getSessionPara() {
-        return getParameter(BEAP_SESSION_ID,
-                getInstance().getSessionID());
+        return getParameter(BEAP_SESSION_ID, SessionManager.getInstance().getSessionID());
     }
 
     private static String getParameter(String para, String value) {

@@ -6,9 +6,12 @@ import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 
 public class ThreadOverview extends Activity {
@@ -56,17 +60,28 @@ public class ThreadOverview extends Activity {
         AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
         asyncGetAllThreads.execute();
         addNewThreadButtonListener();
-        setAlarm();
+        //startMessagePullService();
 
     }
 
-    private void setAlarm() {
+    private void startMessagePullService() {
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mAlarmSender = PendingIntent.getService(ThreadOverview.this,
                 0, new Intent(ThreadOverview.this, MessagePullService.class), 0);
+        am.cancel(mAlarmSender);
+        SharedPreferences sharedPrefs =
+                PreferenceManager.getDefaultSharedPreferences(this);
+
+        String intName = this.getString(R.string.pref_message_pull_interval);
+        String intervalStr = sharedPrefs.getString(intName, "0");
+
+        int interval = Integer.parseInt(intervalStr);
+        if(interval==0) return;
+
         long firstTime = SystemClock.elapsedRealtime();
 
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 3*1000, mAlarmSender);
+        am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                firstTime, interval*1000, mAlarmSender);
     }
 
     @Override

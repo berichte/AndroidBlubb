@@ -8,8 +8,11 @@ import com.blubb.alubb.basics.SessionInfo;
 public class SessionManager {
     private SessionInfo session;
     private static SessionManager instance;
+    private long timeWhenSessionExpires;
+
 
     private SessionManager() {
+
 
     }
 
@@ -30,5 +33,19 @@ public class SessionManager {
 
     public String getSessionID() {
         return this.session.getSessionId();
+    }
+
+    public void setTimeTillSessionExpires(int time) {
+        long now = System.currentTimeMillis();
+        now += (time-1)*60*1000;
+        this.timeWhenSessionExpires = now;
+    }
+
+    public boolean hasSession() {
+        if(this.session != null) return true;
+        return false;
+    }
+    public long timeWhenSessionExpires() {
+        return timeWhenSessionExpires;
     }
 }

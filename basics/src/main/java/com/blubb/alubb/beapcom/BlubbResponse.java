@@ -82,14 +82,30 @@ public class BlubbResponse {
             Log.e("parsing json", "there's no session info.");
         }
 
-        try {
+
+            Object o = null;
             if(json.has("Result")){
-                Object o = json.getJSONArray("Result");
-                if(o == null) o = json.getJSONObject("Result");
+                try {
+                    o = json.getJSONArray("Result");
+                } catch (JSONException e) {
+                    Log.i("parsing json", "There's no \"Result\" for JsonArray.");
+                }
+                if(o == null) {
+                    try {
+                        o = json.getJSONObject("Result");
+                    } catch (JSONException e) {
+                        Log.i("parsing json", "Threre's no \"Result\" for JsonObject. o.O");
+                    }
+                }
+                if(o == null) {
+                    try {
+                        o = json.getInt("Result");
+                    } catch (JSONException e) {
+                        Log.i("parsing json", "Threre's no \"Result\" for int. o.O");
+                    }
+                }
                 return o;
-            }
-        } catch (JSONException e) {
-            Log.e("parsing json", "Threre's no \"Result\". oO");
+
         }
         return null;
     }

@@ -100,6 +100,9 @@ public class MessagePullService extends Service {
         @Override
         public void onPostExecute(Boolean newMsgs) {
             if(newMsgs) showNotification();
+
+
+            MessagePullService.this.stopSelf();
         }
     }
 

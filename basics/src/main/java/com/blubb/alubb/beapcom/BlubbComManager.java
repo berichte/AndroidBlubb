@@ -18,22 +18,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Objects;
+import java.util.TimeZone;
 
 
 /**
  * Created by Benjamin Richter on 22.05.2014.
  */
 public class BlubbComManager {
+    private static final String N = BlubbComManager.class.getName();
     private static final String F_SELF = "(self,",
                                  F_SEP = ",",
                                 F_END = ")";
-
-    public static BlubbMessage[] getLatestMessages(
-            BlubbThread blubbThread, int messageCounter)
-            throws BlubbDBException, BlubbDBConnectionException {
-        return new BlubbMessage[0];
-    }
 
     public static BlubbMessage[] getMessages(Context context, String blubbThreadId) throws BlubbDBException {
         // Build the request for the BeapDB
@@ -146,11 +144,13 @@ public class BlubbComManager {
             throws BlubbDBException {
         String requestString = BlubbRequestBuilder.buildLogin(username, password);
 
-        BlubbResponse responseObj = executeRequest(context, requestString);
+        BlubbResponse responseObj = executeSessionRequest(context, requestString);
         // check whether the response is ok or there is some error
         if (responseObj.getStatus() == BlubbDBReplyStatus.OK) {
             SessionInfo info = responseObj.getSessionInfo();
             SessionManager.getInstance().setSession(info);
+            int lifeTime = sessionCheck(context);
+            if(lifeTime>0) SessionManager.getInstance().setTimeTillSessionExpires(lifeTime);
             return true;
         } else {
             throw new BlubbDBException(responseObj.getStatusDescr());
@@ -186,10 +186,10 @@ public class BlubbComManager {
                 response.getStatus().toString() );
     }
 
-    private static int tryRefresh(Context context) {
+    public static int tryRefresh(Context context) {
         String url = BlubbRequestBuilder.buildSessionRefresh();
         try {
-            BlubbResponse response = executeRequest(context, url);
+            BlubbResponse response = executeSessionRequest(context, url);
             if(response.getStatus().equals(BlubbDBReplyStatus.LOGIN_REQUIRED)) {
                 return 0;
             } else if (!response.getStatus().equals(BlubbDBReplyStatus.OK)){
@@ -197,7 +197,7 @@ public class BlubbComManager {
             }
             Object result = response.getResultObj();
             if(result != null) {
-                if(result.getClass().equals(int.class)) {
+                if(result.getClass().equals(Integer.class)) {
                     return (Integer) result;
                 }
             }
@@ -211,10 +211,11 @@ public class BlubbComManager {
     public static int sessionCheck(Context context) {
         String validUrl = BlubbRequestBuilder.buildCheckSession();
         try {
-            BlubbResponse response = executeRequest(context, validUrl);
+            BlubbResponse response = executeSessionRequest(context, validUrl);
             Object result = response.getResultObj();
             if(result != null) {
-                if(result.getClass().equals(int.class)) {
+
+                if(result.getClass().equals(Integer.class)) {
 
                     return (Integer) result;
                 }
@@ -227,7 +228,43 @@ public class BlubbComManager {
         return 0;
     }
 
-    private static BlubbResponse executeRequest(Context context, String url) throws BlubbDBException {
+    private static void sessionRefresh(Context context) {
+        // Don't try to refresh a not existing session.
+        if(!SessionManager.getInstance().hasSession()) return;
+
+        long now = System.currentTimeMillis();
+        // sessiontime - one minute
+        long sT = SessionManager.getInstance().timeWhenSessionExpires();
+
+        Date dateNow = new Date();
+        Date dateSt = new Date(sT);
+        Log.i(N, "Need to refresh the session. " +
+                "\nnow:\t" + dateNow.getMinutes() + ":" + dateNow.getSeconds() + "" +
+                "\nSession:\t" + dateSt.getMinutes() + ":" + dateSt.getSeconds());
+
+        if(sT<now) {
+
+            int refresh = tryRefresh(context);
+            if(refresh>0) SessionManager.getInstance().setTimeTillSessionExpires(refresh);
+        }
+    }
+
+    private static BlubbResponse executeSessionRequest(Context context, String url)
+            throws BlubbDBException {
+        Log.i("BlubbComManager", "Executing http-session-request:\n" + url);
+        // request via http
+        String httpResponse = BlubbHttpRequest.request(url);
+        //parse the response to an object
+        BlubbResponse blubbResponse = new BlubbResponse(httpResponse);
+        if(blubbResponse.getStatus() == BlubbDBReplyStatus.LOGIN_REQUIRED) {
+            doLogin(context);
+        }
+        return new BlubbResponse(httpResponse);
+    }
+
+    private static BlubbResponse executeRequest(Context context, String url)
+            throws BlubbDBException {
+        sessionRefresh(context);
         Log.i("BlubbComManager", "Executing http-request:\n" + url);
         // request via http
         String httpResponse = BlubbHttpRequest.request(url);

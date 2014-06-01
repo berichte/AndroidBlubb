@@ -28,8 +28,10 @@ public class Blubb_login extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blubb_login);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String un = sharedPreferences.getString(USERNAME_PREFAB, "NULL"),
-                pw = sharedPreferences.getString(PASSWORD_PREFAB, "NULL");
+        String unPref = this.getString(R.string.pref_username),
+                pwPref = this.getString(R.string.pref_password);
+        String un = sharedPreferences.getString(unPref, "NULL"),
+                pw = sharedPreferences.getString(pwPref, "NULL");
         if(!un.equals("NULL") && !pw.equals("NULL")) {
             login(un, pw);
         }
