@@ -1,5 +1,7 @@
 package com.blubb.alubb.basics;
 
+import com.blubb.alubb.beapcom.BPC;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

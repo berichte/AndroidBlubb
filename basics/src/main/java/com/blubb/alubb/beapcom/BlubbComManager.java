@@ -1,27 +1,9 @@
 package com.blubb.alubb.beapcom;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.util.Log;
 
-import com.blubb.alubb.basics.BPC;
-import com.blubb.alubb.basics.BlubbMessage;
-import com.blubb.alubb.basics.BlubbThread;
-import com.blubb.alubb.basics.SessionInfo;
-import com.blubb.alubb.blubbbasics.Blubb_login;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Objects;
-import java.util.TimeZone;
 
 
 /**
@@ -33,11 +15,14 @@ public class BlubbComManager {
                                  F_SEP = ",",
                                 F_END = ")";
 
+/*
+
     public static BlubbMessage[] getMessages(Context context, String blubbThreadId) throws BlubbDBException {
         // Build the request for the BeapDB
-        String url = BlubbRequestBuilder.buildQuery(
-                "tree.functions.getMsgsForThread"   + F_SELF +
-                encPara(blubbThreadId)              + F_END);
+        String url = BlubbRequestManager.buildQuery(
+                "tree.functions.getMsgsForThread" + F_SELF +
+                        encPara(blubbThreadId) + F_END
+        );
         BlubbMessage[] messages;
         // execute the request
         BlubbResponse response = executeRequest(context, url);
@@ -84,11 +69,12 @@ public class BlubbComManager {
     public static BlubbDBReplyStatus sendMessage(Context context, String tId, String mTitle, String mContent)
             throws BlubbDBException, BlubbDBConnectionException, InvalidParameterException {
         // Build the request for the BeapDB .createMsg(self, "tID", "mTitle", "mContent")
-        String url = BlubbRequestBuilder.buildQuery(
-                "tree.functions.createMsg"          + F_SELF +
-                encPara(tId)                             + F_SEP +
-                encPara(BPC.parseStringToDB(mTitle))     + F_SEP +
-                encPara(BPC.parseStringToDB(mContent))   + F_END);
+        String url = BlubbRequestManager.buildQuery(
+                "tree.functions.createMsg" + F_SELF +
+                        encPara(tId) + F_SEP +
+                        encPara(BPC.parseStringParameterToDB(mTitle)) + F_SEP +
+                        encPara(BPC.parseStringParameterToDB(mContent)) + F_END
+        );
 
         // execute the request
         BlubbResponse response = executeRequest(context, url);
@@ -98,7 +84,7 @@ public class BlubbComManager {
 
     public static BlubbThread[] getAllThreads(Context context) throws BlubbDBException, BlubbDBConnectionException {
         //get valid query request string
-        String url = BlubbRequestBuilder.buildQuery("tree.functions.getAllThreads(self)");
+        String url = BlubbRequestManager.buildQuery("tree.functions.getAllThreads(self)");
         BlubbThread[] threads = null;
         BlubbResponse response = executeRequest(context, url);
         if(response.getResultObj().getClass().getName().equals(
@@ -121,53 +107,58 @@ public class BlubbComManager {
     public static BlubbDBReplyStatus openNewBlubbThread(
             Context context, String tTitle, String tDescr)
             throws BlubbDBException, InvalidParameterException {
-        tTitle = encPara(BPC.parseStringToDB(tTitle));
-        tDescr = encPara(BPC.parseStringToDB(tDescr));
-        String url = BlubbRequestBuilder.buildQuery(
-                "tree.functions.createThread "+ F_SELF + tTitle + F_SEP + tDescr + F_END);
+        tTitle = encPara(BPC.parseStringParameterToDB(tTitle));
+        tDescr = encPara(BPC.parseStringParameterToDB(tDescr));
+        String url = BlubbRequestManager.buildQuery(
+                "tree.functions.createThread " + F_SELF + tTitle + F_SEP + tDescr + F_END);
         BlubbResponse response = executeRequest(context, url);
         return response.getStatus();
     }
 
     private static String username, password;
 
-    public static boolean login(Context context, String username, String password)
+    public static SessionInfo login(Context context, String username, String password)
             throws InvalidParameterException, BlubbDBException {
         //check the parameter
-        username = BPC.parseStringToDB(username);
-        password = BPC.parseStringToDB(password);
+        username = BPC.parseStringParameterToDB(username);
+        password = BPC.parseStringParameterToDB(password);
         // get a valid request string
         return doLogin(context, username, password);
     }
 
-    private static boolean doLogin(Context context, String username, String password)
+    private static SessionInfo doLogin(Context context, String username, String password)
             throws BlubbDBException {
-        String requestString = BlubbRequestBuilder.buildLogin(username, password);
+        String requestString = BlubbRequestManager.buildLogin(username, password);
 
         BlubbResponse responseObj = executeSessionRequest(context, requestString);
         // check whether the response is ok or there is some error
         if (responseObj.getStatus() == BlubbDBReplyStatus.OK) {
-            SessionInfo info = responseObj.getSessionInfo();
-            SessionManager.getInstance().setSession(info);
-            int lifeTime = sessionCheck(context);
-            if(lifeTime>0) SessionManager.getInstance().setTimeTillSessionExpires(lifeTime);
-            return true;
+            return responseObj.getSessionInfo();
         } else {
             throw new BlubbDBException(responseObj.getStatusDescr());
         }
     }
-
-    private static boolean doLogin(Context context) throws BlubbDBException {
+/*
+    private static SessionInfo doLogin(Context context) throws BlubbDBException {
 
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
         String username = prefs.getString(Blubb_login.USERNAME_PREFAB, "NULL"),
                 password = prefs.getString(Blubb_login.PASSWORD_PREFAB, "NULL");
+        if(username.equals("NULL") || password.equals("NULL")) return false;
         return doLogin(context, username, password);
     }
 
+    //TODO Rewrite whole method!
+    @Deprecated
     public static int[] quickCheck(Context context) throws BlubbDBException {
-        String url = BlubbRequestBuilder.buildQuery("tree.functions.quickCheck(self)");
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        String username = prefs.getString(Blubb_login.USERNAME_PREFAB, "NULL"),
+                password = prefs.getString(Blubb_login.PASSWORD_PREFAB, "NULL");
+        if(username.equals("NULL") || password.equals("NULL")) return new int[]{};
+
+        String url = BlubbRequestManager.buildQuery("tree.functions.quickCheck(self)");
         BlubbResponse response = executeRequest(context, url);
         if(response.getStatus().equals(BlubbDBReplyStatus.OK)) {
             if(response.getResultObj().getClass().getName().equals(
@@ -182,12 +173,20 @@ public class BlubbComManager {
                     throw new BlubbDBException(e.getMessage());
                 }
             }else throw new BlubbDBException("could not execute quick check, no array returned" );
+        } else if (response.getStatus().equals(BlubbDBReplyStatus.LOGIN_REQUIRED)
+                || response.getStatus().equals(BlubbDBReplyStatus.REQUEST_FAILURE)) {
+            if(doLogin(context)){
+                return quickCheck(context);
+            }
+            throw new BlubbDBException("could not execute quick check.  Status: " +
+                    response.getStatus().toString() );
         } else throw new BlubbDBException("could not execute quick check. :( Status: " +
                 response.getStatus().toString() );
     }
 
+    @Deprecated
     public static int tryRefresh(Context context) {
-        String url = BlubbRequestBuilder.buildSessionRefresh();
+        String url = BlubbRequestManager.buildSessionRefresh();
         try {
             BlubbResponse response = executeSessionRequest(context, url);
             if(response.getStatus().equals(BlubbDBReplyStatus.LOGIN_REQUIRED)) {
@@ -208,8 +207,9 @@ public class BlubbComManager {
         return 0;
     }
 
-    public static int sessionCheck(Context context) {
-        String validUrl = BlubbRequestBuilder.buildCheckSession();
+    @Deprecated
+    public static int sessionCheck(Context context, String sessionId) {
+        String validUrl = BlubbRequestManager.buildCheckSession();
         try {
             BlubbResponse response = executeSessionRequest(context, validUrl);
             Object result = response.getResultObj();
@@ -228,6 +228,7 @@ public class BlubbComManager {
         return 0;
     }
 
+    @Deprecated
     private static void sessionRefresh(Context context) {
         // Don't try to refresh a not existing session.
         if(!SessionManager.getInstance().hasSession()) return;
@@ -278,6 +279,17 @@ public class BlubbComManager {
 
     private static String encPara(String para) {
         String p = " \"" + para + "\"";
-        return BlubbRequestBuilder.encode(p);
+        return BlubbRequestManager.encode(p);
     }
+
+    public static int checkSession(Context context, String sessionId) {
+        //TODO check Session
+        return 0;
+    }
+
+    public static int refreshSession(Context context, String sessionId) {
+        //TODO refresh Session
+        return 0;
+    }
+    */
 }

@@ -1,4 +1,4 @@
-package com.blubb.alubb.basics;
+package com.blubb.alubb.beapcom;
 
 import android.util.Log;
 
@@ -8,6 +8,8 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Collections;
@@ -20,7 +22,9 @@ import java.util.Set;
  * Created by Benjamin Richter on 17.05.2014.
  */
 public class BPC {
+    private static final String NAME = "BPC";
     private static final String UNDEFINED = "undefined";
+    public static final String ENCODING   = "UTF-8";
 
     /**
      * Checks whether a string is null or empty and throws an Exception if though.
@@ -57,7 +61,7 @@ public class BPC {
      * @return String for the BEAP-DB
      * @throws InvalidParameterException if s is empty or null.
      */
-    public static String parseStringToDB(String parameter) throws InvalidParameterException {
+    public static String parseStringParameterToDB(String parameter) throws InvalidParameterException {
         checkString(parameter);
         final StringBuilder result = new StringBuilder();
         final StringCharacterIterator iterator = new StringCharacterIterator(parameter);
@@ -74,7 +78,18 @@ public class BPC {
             }
             character = iterator.next();
         }
-        return result.toString();
+        return encode("\"" + result.toString() + "\"");
+    }
+
+    private static String encode(String s) {
+        try {
+            String enc = URLEncoder.encode(s, ENCODING);
+            Log.i("urlEncoding", "Encoding " + s + " to\n" + enc);
+            return enc;
+        } catch (UnsupportedEncodingException e) {
+            Log.e(NAME, e.getMessage());
+            return e.getMessage();
+        }
     }
 
     /**

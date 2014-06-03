@@ -7,7 +7,7 @@ package com.blubb.alubb.beapcom;
 public enum BlubbDBReplyStatus {
     /** 200 - all right reply. */
     OK,
-    /** 203 - request was ok but empty. */
+    /** 203 - request was ok but is empty. */
     NO_CONTENT,
     /** 204 - in case of a double logout. */
     SESSION_ALREADY_DELETED,

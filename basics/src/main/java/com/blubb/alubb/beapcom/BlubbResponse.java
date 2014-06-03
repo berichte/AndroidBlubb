@@ -41,10 +41,15 @@ public class BlubbResponse {
                    // RA.getString(R.string.json_beap_status)));
             this.statusDescr = response.getString("StatusDescr");
                     //RA.getString(R.string.json_beap_status_desc));
-            this.resultObj = this.parseResponseObject(response);
+            if(status.equals(BlubbDBReplyStatus.OK)){
+                this.resultObj = this.parseResponseObject(response);
+            }
         } catch (JSONException e) {
             Log.e("json exception", e.getMessage());
+            this.status = BlubbDBReplyStatus.CONNECTION_ERROR;
+
         }
+
     }
 
     private BlubbDBReplyStatus parseReply(int replyStatus) {
@@ -75,6 +80,7 @@ public class BlubbResponse {
     }
 
     private Object parseResponseObject(JSONObject json) {
+
         try {
             JSONObject obj = json.getJSONObject("sessInfo");
             this.sessionInfo =  new SessionInfo(obj);

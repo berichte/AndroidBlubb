@@ -5,19 +5,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BlubbComManager;
-import com.blubb.alubb.beapcom.SessionManager;
+import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.SessionException;
 
 public class Blubb_login extends Activity {
 
@@ -27,15 +26,12 @@ public class Blubb_login extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blubb_login);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String unPref = this.getString(R.string.pref_username),
-                pwPref = this.getString(R.string.pref_password);
-        String un = sharedPreferences.getString(unPref, "NULL"),
-                pw = sharedPreferences.getString(pwPref, "NULL");
-        if(!un.equals("NULL") && !pw.equals("NULL")) {
-            login(un, pw);
-        }
+
         addLoginButtonListener();
+    }
+
+    private BlubbApplication getApp() {
+        return (BlubbApplication) getApplication();
     }
 
     private void addLoginButtonListener() {
@@ -46,7 +42,15 @@ public class Blubb_login extends Activity {
 
                 EditText un = (EditText) findViewById(R.id.blubb_login_username);
                 EditText pw = (EditText) findViewById(R.id.blubb_login_password);
-                login(un.getText().toString(), pw.getText().toString());
+                String unS = un.getText().toString(),
+                        pwS = pw.getText().toString();
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(Blubb_login.this);
+                sharedPreferences.edit().putString(
+                        Blubb_login.this.getString(R.string.pref_username), unS);
+                sharedPreferences.edit().putString(
+                        Blubb_login.this.getString(R.string.pref_password), pwS);
+                login(unS, pwS);
             }
         });
     }
@@ -65,13 +69,15 @@ public class Blubb_login extends Activity {
             String username = params[0],
                     password = params[1];
             try {
-                if (BlubbComManager.login(Blubb_login.this, username, password)){
-                    return SessionManager.getInstance().getSession().toString();
+                if (getApp().getSessionManager().login(username, password)){
+                    return SessionManager.getInstance().getSessionID(Blubb_login.this);
                 }
             } catch (InvalidParameterException e) {
                 return e.getMessage();
             } catch (BlubbDBException e) {
                 return e.getMessage();
+            } catch (SessionException e) {
+                e.printStackTrace();
             }
             return "no Results! :(";
         }

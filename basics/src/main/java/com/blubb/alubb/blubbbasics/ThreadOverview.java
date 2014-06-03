@@ -9,10 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.SystemClock;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,19 +27,16 @@ import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbThread;
-import com.blubb.alubb.basics.ThreadManager;
-import com.blubb.alubb.beapcom.BlubbComManager;
-import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
 import com.blubb.alubb.beapcom.MessagePullService;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.SessionException;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 
 public class ThreadOverview extends Activity {
@@ -53,15 +49,33 @@ public class ThreadOverview extends Activity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
-        // We'll define a custom screen layout here (the one shown above), but
-        // typically, you could just use the standard ListActivity layout.
         setContentView(R.layout.activity_thread_overview);
+        checkForLogin();
 
         AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
         asyncGetAllThreads.execute();
         addNewThreadButtonListener();
-        //startMessagePullService();
+        startMessagePullService();
+    }
 
+    private void checkForLogin() {
+        try {
+            getApp().getSessionManager().getSessionID(this);
+        } catch (InvalidParameterException e) {
+            Intent intent = new Intent(ThreadOverview.this, Blubb_login.class);
+            ThreadOverview.this.startActivity(intent);
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (SessionException e) {
+            Intent intent = new Intent(ThreadOverview.this, Blubb_login.class);
+            ThreadOverview.this.startActivity(intent);
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (BlubbDBException e) {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private BlubbApplication getApp() {
+        return (BlubbApplication) getApplication();
     }
 
     private void startMessagePullService() {
@@ -82,6 +96,13 @@ public class ThreadOverview extends Activity {
 
         am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 firstTime, interval*1000, mAlarmSender);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //login();
+        startMessagePullService();
     }
 
     @Override
@@ -130,13 +151,19 @@ public class ThreadOverview extends Activity {
                         asyncNewThread.execute();
                     }
                 });
+                cancelBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.cancel();
+                    }
+                });
                 dialog.show();
 
             }
         });
     }
 
-    private class AsyncNewThread extends AsyncTask<Void, Void, BlubbDBReplyStatus>{
+    private class AsyncNewThread extends AsyncTask<Void, Void, BlubbThread>{
 
         String title, descr;
         public AsyncNewThread(String title, String descr) {
@@ -144,10 +171,9 @@ public class ThreadOverview extends Activity {
             this.descr = descr;
         }
         @Override
-        protected BlubbDBReplyStatus doInBackground(Void... voids) {
-
+        protected BlubbThread doInBackground(Void... voids) {
             try {
-                return BlubbComManager.openNewBlubbThread(
+                return getApp().getThreadManager().createThread(
                         ThreadOverview.this, title, descr);
             } catch (BlubbDBException e) {
                 Context context = getApplicationContext();
@@ -156,23 +182,31 @@ public class ThreadOverview extends Activity {
 
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
+
             } catch (InvalidParameterException e) {
                 Context context = getApplicationContext();
                 CharSequence text = "something went terribly wrong: " + e.getMessage();
                 int duration = Toast.LENGTH_LONG;
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
+            } catch (SessionException e) {
+                Intent intent = new Intent(ThreadOverview.this, Blubb_login.class);
+                ThreadOverview.this.startActivity(intent);
+                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-            return BlubbDBReplyStatus.REQUEST_FAILURE;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(BlubbDBReplyStatus status) {
-            Context context = getApplicationContext();
-            CharSequence text = "Sent new Thread to DB - Reply: " + status.toString();
-            int duration = Toast.LENGTH_LONG;
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
+        protected void onPostExecute(BlubbThread thread) {
+            if(thread != null) {
+                String msg = "Created new Thread:\n" +
+                        "tId: " + thread.gettId() + "\n" +
+                        "tTitle: " + thread.getThreadTitle();
+                Toast.makeText(ThreadOverview.this, msg, Toast.LENGTH_LONG).show();
+            } // if null there has been a toast.
         }
     }
 
@@ -182,11 +216,26 @@ public class ThreadOverview extends Activity {
 
         @Override
         protected List<BlubbThread> doInBackground(Void... voids) {
-            return ThreadManager.getAllThreads(ThreadOverview.this);
+            try {
+                return getApp().getThreadManager().getAllThreadsFromBeap(ThreadOverview.this);
+            } catch (InvalidParameterException e) {
+                exception = e;
+            } catch (SessionException e) {
+                exception = e;
+            } catch (BlubbDBException e) {
+                exception = e;
+            } catch (JSONException e) {
+                exception = e;
+            }
+            return getApp().getThreadManager().getAllThreadsFromSqlite(ThreadOverview.this);
         }
 
         @Override
         protected void onPostExecute(final List<BlubbThread> response) {
+            if(exception != null) Toast.makeText(ThreadOverview.this,
+                    "Blubb " + exception.getMessage(),
+                    Toast.LENGTH_LONG).show();
+
             ListView lv = (ListView) findViewById(R.id.thread_list);
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
                     ThreadOverview.this, R.layout.thread_list_entry, response);

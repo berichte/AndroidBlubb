@@ -9,27 +9,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
-import com.blubb.alubb.basics.BlubbThread;
+import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.MessageManager;
-import com.blubb.alubb.beapcom.BlubbComManager;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
-import com.blubb.alubb.blubexceptions.BlubbDBException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -54,6 +47,10 @@ public class SingleThreadActivity extends Activity {
 
         this.addNewMessageButtonListener();
         asyncTask.execute();
+    }
+
+    private BlubbApplication getApp() {
+        return (BlubbApplication) getApplication();
     }
 
     private void addNewMessageButtonListener() {
@@ -81,7 +78,8 @@ public class SingleThreadActivity extends Activity {
 
         @Override
         protected List<BlubbMessage> doInBackground(Void... voids) {
-                return MessageManager.getMessagesForThread(
+
+            return getApp().getMessageManager().getAllMessagesForThread(
                         SingleThreadActivity.this, this.threadId);
         }
 
@@ -118,15 +116,6 @@ public class SingleThreadActivity extends Activity {
                 }
 
             });
-           /* String allThreadsString = "";
-            if(response != null) {
-                for(BlubbThread bt: response) {
-                    allThreadsString = allThreadsString + bt.toString() + "\n";
-                }
-            } else allThreadsString = this.exception.getMessage();
-
-            TextView tv = (TextView) findViewById(R.id.thread_textv);
-            tv.setText(allThreadsString);*/
         }
     }
 
@@ -161,6 +150,13 @@ public class SingleThreadActivity extends Activity {
             mDate.setText(blubbMessage.getmDate());
             mRole.setText(blubbMessage.getmCreatorRole());
 
+            if(blubbMessage.isNew()) {
+                rowView.setBackgroundColor(
+                        getResources().getColor(R.color.beap_light_yellow));
+                blubbMessage.setNew(false);
+                DatabaseHandler databaseHandler = new DatabaseHandler(SingleThreadActivity.this);
+                databaseHandler.setMessageRead(blubbMessage.getmId());
+            }
             return rowView;
         }
 

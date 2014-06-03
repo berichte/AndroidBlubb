@@ -303,6 +303,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tList;
     }
 
+    public void setMessageRead(String mId) {
+        Log.i(N, "set message " + mId + " to read.");
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+
+        ContentValues values=new ContentValues();
+        values.put(M_IS_NEW, 0);
+
+        int id = sqLiteDatabase.update(TABLE_MESSAGES,values,M_ID + "=?"  , new String[] {mId});
+    }
+
+    public void setThreadNewMsgs(String tId) {
+        Log.i(N, "set thread " + tId + " new messages");
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+
+        ContentValues values=new ContentValues();
+        values.put(T_HAS_NEW_M, 1);
+
+        int id = sqLiteDatabase.update(TABLE_THREADS,values,T_ID + "=?"  , new String[] {tId});
+
+    }
+
     public int getMessageCount() {
         String countQuery = "SELECT * FROM " + TABLE_MESSAGES;
         SQLiteDatabase db = this.getReadableDatabase();

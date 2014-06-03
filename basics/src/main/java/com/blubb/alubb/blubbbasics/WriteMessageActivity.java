@@ -1,33 +1,20 @@
 package com.blubb.alubb.blubbbasics;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
-import com.blubb.alubb.basics.BlubbThread;
-import com.blubb.alubb.beapcom.BlubbComManager;
-import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.SessionException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class WriteMessageActivity extends Activity {
 
@@ -61,7 +48,7 @@ public class WriteMessageActivity extends Activity {
         });
     }
 
-    private class AsyncSendMessage extends AsyncTask <Void, String, BlubbDBReplyStatus> {
+    private class AsyncSendMessage extends AsyncTask <Void, String, BlubbMessage> {
 
         private Exception exception;
         private String tId, mTitle, mContent;
@@ -72,41 +59,33 @@ public class WriteMessageActivity extends Activity {
             this.mContent = mContent;
         }
 
+        private BlubbApplication getApp() {
+            return (BlubbApplication) getApplication();
+        }
+
         @Override
-        protected BlubbDBReplyStatus doInBackground(Void... blubbs) {
-
-
+        protected BlubbMessage doInBackground(Void... blubbs) {
             try {
-                return BlubbComManager.sendMessage(
+                return getApp().getMessageManager().createMsg(
                         WriteMessageActivity.this, tId, mTitle, mContent);
 
             } catch (BlubbDBException e) {
                 this.exception = e;
                 Log.e("getAllMessages", e.getMessage());
-            } catch (BlubbDBConnectionException e) {
-                this.exception = e;
-                Log.e("getAllMessages", e.getMessage());
             } catch(InvalidParameterException e) {
                 this.exception = e;
+            } catch (SessionException e) {
+                this.exception = e;
             }
-            return BlubbDBReplyStatus.REQUEST_FAILURE;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(BlubbDBReplyStatus result) {
-           if(result == BlubbDBReplyStatus.OK) {
-               Intent intent = new Intent(WriteMessageActivity.this, SingleThreadActivity.class);
-               intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID,
-                       WriteMessageActivity.this.threadId);
-               WriteMessageActivity.this.startActivity(intent);
-           }
-           else {
-               Context context = getApplicationContext();
-               CharSequence text = "something went terribly wrong: " + result.toString();
-               int duration = Toast.LENGTH_LONG;
-
-               Toast toast = Toast.makeText(context, text, duration);
-               toast.show();
+        protected void onPostExecute(BlubbMessage message) {
+           if(message != null) {
+               String msg = "Created new Message:\n" +
+                       "tId: " + message.getmThread() + "\n" +
+                       "tTitle: " + message.getmTitle();
            }
         }
     }

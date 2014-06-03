@@ -1,6 +1,6 @@
 package com.blubb.alubb.basics;
 
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.beapcom.BPC;
 
 import org.json.JSONObject;
 

@@ -7,4 +7,7 @@
         android:orderInCategory="100"
         android:title="Settings"
         />
+    <item
+        android:id="@+id/go_login"
+        android:title="@string/login" />
 </menu>
