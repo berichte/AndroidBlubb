@@ -120,4 +120,18 @@ public class BlubbThread {
     public boolean hasNewMsgs() {
         return this.hasNewMsgs;
     }
+
+    public boolean equals(BlubbThread other) {
+        if(!this.gettId().equals(other.gettId())) return false;
+        if(this.gettMsgCount() != other.gettMsgCount()) return false;
+        if(!this.gettCreator().equals(other.gettCreator())) return false;
+        if(!this.hasNewMsgs != other.hasNewMsgs) return false;
+        if(!this.isNew != other.isNew) return false;
+        if(!this.gettCreatorRole().equals(other.gettCreatorRole())) return false;
+        if(!this.gettDate().equals(other.gettDate())) return false;
+        if(!this.gettDesc().equals(other.gettDesc())) return false;
+        if(!this.getThreadTitle().equals(other.getThreadTitle())) return false;
+        if(!this.gettType().equals(other.gettType())) return false;
+        return true;
+    }
 }

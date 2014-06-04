@@ -54,7 +54,7 @@ public class BlubbRequestManager {
                 + getParameter(BEAP_APP_VERSION, BEAP_VERSION)  + BLUBB_AND
                 + getParameter(BLUBB_USERNAME, username)        + BLUBB_AND
                 + getParameter(BLUBB_PASSWORD, password);
-        Log.i("BuildLogin", "url");
+        Log.v("BuildLogin", "url");
         return executeRequest(url);
     }
 
@@ -65,7 +65,7 @@ public class BlubbRequestManager {
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_CHECK + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
-        Log.i("BuildSessionCheck", url);
+        Log.v("BuildSessionCheck", url);
         return executeRequest(url);
     }
 
@@ -75,7 +75,7 @@ public class BlubbRequestManager {
                 + BEAP_ID   + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
-        Log.i("BuildSessionRefresh", url);
+        Log.v("BuildSessionRefresh", url);
         return executeRequest(url);
     }
 
@@ -84,7 +84,7 @@ public class BlubbRequestManager {
                 + BEAP_ID   + BEAP_ID_DB    + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
-        Log.i("BuildLogout", url);
+        Log.v("BuildLogout", url);
         return executeRequest(url);
     }
 
@@ -100,7 +100,7 @@ public class BlubbRequestManager {
                 + BEAP_ACTION + BEAP_ACTION_QUERY + BLUBB_AND
                 + BEAP_QUERY_STR
                 + query + BLUBB_AND;
-        Log.i("BuildQuery", "\nBuild " + query + " to\n" + url);
+        Log.v("BuildQuery", "\nBuild " + query + " to\n" + url);
         return executeRequest(url);
     }
 
@@ -133,7 +133,7 @@ public class BlubbRequestManager {
     private static String encode(String s) {
         try {
             String enc = URLEncoder.encode(s, ENCODING);
-            Log.i("urlEncoding", "Encoding " + s + " to\n" + enc);
+            Log.v("urlEncoding", "Encoding " + s + " to\n" + enc);
             return enc;
         } catch (UnsupportedEncodingException e) {
             Log.e(NAME, e.getMessage());
@@ -143,7 +143,7 @@ public class BlubbRequestManager {
 
     private static BlubbResponse executeRequest(String url)
             throws BlubbDBException {
-        Log.i(NAME, "Executing http-request:\n" + url);
+        Log.v(NAME, "Executing http-request:\n" + url);
         // request via http
         String httpResponse = BlubbHttpRequest.request(url);
         //parse the response to an object

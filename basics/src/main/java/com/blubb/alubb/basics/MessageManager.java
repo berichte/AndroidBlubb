@@ -7,6 +7,7 @@ import com.blubb.alubb.beapcom.BPC;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.SessionException;
@@ -40,55 +41,83 @@ public class MessageManager {
 
     public List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
             throws BlubbDBException, InvalidParameterException,
-            JSONException, SessionException {
+            JSONException, SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "getNewMessagesFromAllThreads(context)");
+
         List<BlubbThread> threads = ThreadManager.getInstance()
-                .getAllThreadsFromSqlite(context);
+                .getAllThreadsFromBeap(context);
+
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         for (BlubbThread t: threads) {
-             messages.addAll(this.getNewMessagesForThread(context, t.gettId()));
+             messages.addAll(this.getNewMessagesForThread(context, t));
         }
         return messages;
     }
 
-    private List<BlubbMessage> getNewMessagesForThread(Context context, String tId)
+    private List<BlubbMessage> getNewMessagesForThread(Context context, BlubbThread thread)
             throws BlubbDBException, InvalidParameterException,
-            JSONException, SessionException {
-        List<BlubbMessage> beapMessages = getAllMessagesForThreadFromBeap(context, tId);
-        List<BlubbMessage> sqliteMessages = getAllMessagesForThreadFromSqlite(context, tId);
-        beapMessages.removeAll(sqliteMessages);
-        boolean flag = false;
-        for(BlubbMessage m: beapMessages) {
-            m.setNew(true);
-            flag = true;
+            JSONException, SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "getNewMessagesForThread(context, thread = " + thread.gettId());
+        DatabaseHandler db = new DatabaseHandler(context);
+        BlubbThread sqliteThread = db.getThread(thread.gettId());
+
+        List<BlubbMessage> beapMessages = new ArrayList<BlubbMessage>();
+        // if the threads have the same msgCount nothing has changed,
+        // if local is bigger msg has been deleted. -> "<"
+        if(sqliteThread.gettMsgCount()<thread.gettMsgCount()) {
+            beapMessages = getAllMessagesForThreadFromBeap(context, thread.gettId());
+            List<BlubbMessage> sqliteMessages =
+                    getAllMessagesForThreadFromSqlite(context, thread.gettId());
+            // get difference between the two lists
+            beapMessages.removeAll(sqliteMessages);
+            boolean flag = false;
+            for (BlubbMessage m : beapMessages) {
+                //set all new messages to new.
+                m.setNew(true);
+                flag = true;
+            }
+            if (flag) {
+                // if there where new Msgs set flag in thread.
+
+                thread.setHasNewMsgs(true);
+                db = new DatabaseHandler(context);
+                db.setThreadNewMsgs(thread.gettId());
+            }
+            for (BlubbMessage m : sqliteMessages) {
+                if (m.isNew()) beapMessages.add(m);
+            }
         }
-        if(flag) {
-            BlubbThread t = ThreadManager.getInstance().getThread(context, tId);
-            t.setHasNewMsgs(true);
-            DatabaseHandler db = new DatabaseHandler(context);
-            db.setThreadNewMsgs(tId);
-        }
-        for (BlubbMessage m: sqliteMessages) {
-            if(m.isNew()) beapMessages.add(m);
-        }
+        Log.i(NAME, "Thread " + thread.gettId() + " has " +
+                beapMessages.size() + " new Messages.");
         return beapMessages;
     }
 
     public BlubbMessage createMsg(Context context,
                                   String tId, String mTitle, String mContent)
-            throws InvalidParameterException, BlubbDBException, SessionException {
+            throws InvalidParameterException, BlubbDBException,
+            SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "createMsg(context, tId = " + tId + ", mTitle = " +
+                mTitle + ", mContent = " + mContent + ")");
         mTitle = BPC.parseStringParameterToDB(mTitle);
         mContent = BPC.parseStringParameterToDB(mContent);
+        String ptId = BPC.parseStringParameterToDB(tId);
         String query = "tree.functions.createMsg(self," +
-                tId + "," + mTitle + "," + mContent + ")";
+                ptId + "," + mTitle + "," + mContent + ")";
         String sessionId = SessionManager.getInstance().getSessionID(context);
         BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         switch (response.getStatus()) {
             case OK:
                 JSONObject result = (JSONObject) response.getResultObj();
                 BlubbMessage message = new BlubbMessage(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.addMessage(message);
-                this.loadedMessages.get(tId).add(message);
+                List<BlubbMessage> messages = this.loadedMessages.get(tId);
+                if(messages == null) {
+                    messages = new ArrayList<BlubbMessage>();
+                    this.loadedMessages.put(tId, messages);
+                }
+                messages.add(message);
                 return message;
             default:
                 throw new BlubbDBException("Could not perform createMsg" +
@@ -98,6 +127,7 @@ public class MessageManager {
 
 
     public List<BlubbMessage> getAllMessagesForThread(Context context, String tId) {
+        Log.v(NAME, "getAllMessagesForThread(context, tId = " + tId);
         try {
             return getAllMessagesForThreadFromBeap(context, tId);
         } catch (InvalidParameterException e) {
@@ -108,23 +138,31 @@ public class MessageManager {
             Log.e(NAME, e.getMessage());
         } catch (JSONException e) {
             Log.e(NAME, e.getMessage());
+        } catch (BlubbDBConnectionException e) {
+            Log.e(NAME, e.getMessage());
         }
+        Log.v(NAME, "Did not receive msgs form Beap. Returning local msgs.");
         return getAllMessagesForThreadFromSqlite(context, tId);
 
     }
 
     private List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
-            throws InvalidParameterException, BlubbDBException, SessionException, JSONException {
+            throws InvalidParameterException, BlubbDBException, SessionException,
+            JSONException, BlubbDBConnectionException {
+        Log.v(NAME, "getAllMessagesForThreadFromBeap(context, tId = " + tId);
         tId = BPC.parseStringParameterToDB(tId);
         String query = "tree.functions.getMsgsForThread(self," + tId + ")";
         String sessionId = SessionManager.getInstance().getSessionID(context);
         BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         switch (response.getStatus()) {
             case OK:
                 JSONArray jsonArray = (JSONArray) response.getResultObj();
                 for(int i = 0; i < jsonArray.length(); i++) {
-                    messages.add(new BlubbMessage(jsonArray.getJSONObject(i)));
+                    BlubbMessage message = new BlubbMessage(jsonArray.getJSONObject(i));
+                    messages.add(message);
+                    putMessageToSqlite(context, message);
                 }
                 return messages;
             case NO_CONTENT:
@@ -135,6 +173,19 @@ public class MessageManager {
         }
     }
 
+    private void putMessageToSqlite(Context context, BlubbMessage message) {
+        Log.v(NAME, "putMessageToSqlite(context, message = " + message.getmId() + ")");
+        DatabaseHandler db = new DatabaseHandler(context);
+        BlubbMessage m = db .getMessage(message.getmId());
+        if(m != null) {
+            if(!message.equals(m)) {
+                db.updateMessage(message);
+            }
+        } else {
+            message.setNew(true);
+            db.addMessage(message);
+        }
+    }
     private List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
          if(this.loadedMessages.containsKey(tId)) {
             return this.loadedMessages.get(tId);
@@ -146,115 +197,5 @@ public class MessageManager {
         }
 
     }
-/*
-    public static BlubbDBReplyStatus sendMessage(Context context, String tId, String mTitle,
-     String mContent)
-            throws BlubbDBException, BlubbDBConnectionException, InvalidParameterException {
-        // Build the request for the BeapDB .createMsg(self, "tID", "mTitle", "mContent")
-        String url = BlubbRequestManager.buildQuery(
-                "tree.functions.createMsg" + F_SELF +
-                        encPara(tId) + F_SEP +
-                        encPara(BPC.parseStringParameterToDB(mTitle)) + F_SEP +
-                        encPara(BPC.parseStringParameterToDB(mContent)) + F_END
-        );
 
-        // execute the request
-        BlubbResponse response = executeRequest(context, url);
-        // return the reply status
-        return response.getStatus();
-    }
-
-
-/*
-    public static boolean newMessagesAvailable(Context context) {
-        int quickCheckMessages = 0;
-        try {
-            quickCheckMessages = BlubbComManager.quickCheck(context)[1];
-        } catch (BlubbDBException e) {
-            Log.e("MessageManager", e.getMessage());
-            return false;
-        }
-        if(msgAtBeap < quickCheckMessages) {
-            return true;
-        }
-        return false;
-    }
-
-    public static List<BlubbMessage> getNewMessages(Context context) {
-        int quickCheckMessages = 0;
-        try {
-            quickCheckMessages = BlubbComManager.quickCheck(context)[1];
-        } catch (BlubbDBException e) {
-            Log.e("MessageManager", e.getMessage());
-            return new ArrayList<BlubbMessage>();
-        }
-        if(msgAtBeap < quickCheckMessages) {
-            msgAtBeap = quickCheckMessages;
-            List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
-            List<BlubbThread> threads = ThreadManager.getAllThreads(context);
-            for(BlubbThread bt: threads) {
-                if(bt.hasNewMsgs()) {
-
-                    messages.addAll(getMessagesNewForThread(context, bt.gettId()));
-                }
-            }
-            return messages;
-        }
-        return new ArrayList<BlubbMessage>();
-    }
-
-    private static List<BlubbMessage> getMessagesNewForThread(Context context, String tId) {
-        List<BlubbMessage> list = getMessagesForThread(context, tId),
-                result = new ArrayList<BlubbMessage>();
-        for (BlubbMessage m: list) {
-            if(m.isNew()) result.add(m);
-        }
-        return result;
-    }
-
-    private static List<BlubbMessage> addMessageToList(
-            List<BlubbMessage> list, BlubbMessage message) {
-        // if the list is empty return it with the message
-        if(list.isEmpty()) {
-            Log.i("MessageManager", "List is empty, adding: " + message.getmId());
-            list.add(message);
-            return list;
-        }
-        // find an entry with the same mId, replace it and return the list.
-        for(BlubbMessage m: list) {
-            if(m.getmId().equals(message.getmId())) {
-                Log.i("MessageManager", "Found entry replacing: " + message.getmId());
-                list.remove(m);
-                list.add(message);
-                return list;
-            }
-        }
-        // if there was no entry with the id add the message and return the list.
-        Log.i("MessageManager", "No entry found in list adding: " + message.getmId());
-        list.add(message);
-        return list;
-    }
-
-    public static List<BlubbMessage> getMessagesForThread(Context context, String tId) {
-        Log.i("MessageManager", "getting messages for Thread: " + tId + " from beap and db.");
-        BlubbMessage[] beapMessages = new BlubbMessage[0];
-        try {
-            beapMessages = BlubbComManager.getMessages(context, tId);
-        } catch (BlubbDBException e) {
-            Log.e("MessageManager", e.getMessage());
-        }
-        DatabaseHandler databaseHandler = new DatabaseHandler(context);
-        List<BlubbMessage> dbMessages = databaseHandler.getMessagesForThread(tId);
-        BlubbMessage dbM = null;
-        for(BlubbMessage bM: beapMessages) {
-            dbM = databaseHandler.getMessage(bM.getmId());
-            if(dbM == null) {
-                bM.setNew(true);
-                databaseHandler.addMessage(bM);
-                dbMessages = addMessageToList(dbMessages, bM);
-            }
-            dbM = null;
-        }
-        return dbMessages;
-    }*/
 }

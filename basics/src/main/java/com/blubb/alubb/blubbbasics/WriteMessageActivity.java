@@ -8,21 +8,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
 
 public class WriteMessageActivity extends Activity {
+    public static final String NAME = "WriteMessageActivity";
 
     private String threadId;
     private String tTitle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(NAME, "onCreate(bundle)");
         setContentView(R.layout.activity_write_message);
         threadId = getIntent().getStringExtra(SingleThreadActivity.EXTRA_THREAD_ID);
         tTitle = getIntent().getStringExtra(SingleThreadActivity.EXTRA_THREAD_TITLE);
@@ -48,6 +52,17 @@ public class WriteMessageActivity extends Activity {
         });
     }
 
+    private BlubbApplication getApp() {
+        return (BlubbApplication) getApplication();
+    }
+
+    private void handleException(Exception e) {
+        if(e != null) {
+            Log.e(NAME, e.getMessage());
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private class AsyncSendMessage extends AsyncTask <Void, String, BlubbMessage> {
 
         private Exception exception;
@@ -59,15 +74,11 @@ public class WriteMessageActivity extends Activity {
             this.mContent = mContent;
         }
 
-        private BlubbApplication getApp() {
-            return (BlubbApplication) getApplication();
-        }
-
         @Override
         protected BlubbMessage doInBackground(Void... blubbs) {
             try {
                 return getApp().getMessageManager().createMsg(
-                        WriteMessageActivity.this, tId, mTitle, mContent);
+                        WriteMessageActivity.this.getApplicationContext(), tId, mTitle, mContent);
 
             } catch (BlubbDBException e) {
                 this.exception = e;
@@ -76,16 +87,21 @@ public class WriteMessageActivity extends Activity {
                 this.exception = e;
             } catch (SessionException e) {
                 this.exception = e;
+            } catch (BlubbDBConnectionException e) {
+                this.exception = e;
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(BlubbMessage message) {
+            handleException(exception);
            if(message != null) {
                String msg = "Created new Message:\n" +
                        "tId: " + message.getmThread() + "\n" +
                        "tTitle: " + message.getmTitle();
+               Log.i(NAME, msg);
+               Toast.makeText(WriteMessageActivity.this, msg, Toast.LENGTH_SHORT).show();
            }
         }
     }

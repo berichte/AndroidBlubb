@@ -38,5 +38,8 @@
     <string name="pref_username">pref_username</string>
     <string name="preferences_name">com.blubb.alubb.preferences</string>
     <string name="login">Login</string>
+    <string name="login_stay_logged_in">Stay logged in?</string>
+    <string name="login_username_hint">Your username</string>
+    <string name="login_password_hint">Your password</string>
 
 </resources>

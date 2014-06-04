@@ -2,13 +2,16 @@ package com.blubb.alubb.basics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Looper;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.beapcom.QuickCheck;
+import com.blubb.alubb.blubbbasics.BlubbApplication;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.SessionException;
@@ -49,7 +52,7 @@ public class SessionManager {
     }
 
     public String getSessionID(Context context) throws InvalidParameterException,
-            SessionException, BlubbDBException {
+            SessionException, BlubbDBException, BlubbDBConnectionException {
         return getSession(context).getSessionId();
     }
 
@@ -62,13 +65,15 @@ public class SessionManager {
      * @throws SessionException if no Session is available
      */
     private SessionInfo getSession(Context context) throws SessionException,
-            InvalidParameterException, BlubbDBException {
+            InvalidParameterException, BlubbDBException, BlubbDBConnectionException {
+        Log.v(NAME, "getSession(context)");
         // check whether there's a sessionInfo
         if(this.session == null) {
             // if not try a sessionLogin with preferences
             this.session = loginWithPrefs(context);
             int exMinutes = checkSession(context);
-        } else if (this.willSessionExpireSoon(context)){
+            this.setTimeTillSessionExpires(exMinutes);
+        } else if (this.willSessionExpireSoon()){
             int exMinutes = refreshSession(context);
             this.setTimeTillSessionExpires(exMinutes);
         }
@@ -76,7 +81,8 @@ public class SessionManager {
     }
 
     private int refreshSession(Context context) throws BlubbDBException,
-            InvalidParameterException, SessionException {
+            InvalidParameterException, SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "refreshSession(context)");
         //execute a refresh with beap
         BlubbResponse blubbResponse = BlubbRequestManager
                 .refreshSession(this.session.getSessionId());
@@ -92,16 +98,17 @@ public class SessionManager {
                 throw new SessionException("could not refresh session. received status: " +
                         status);
         }
-
     }
 
-    private boolean willSessionExpireSoon(Context context) {
+    private boolean willSessionExpireSoon() {
+        Log.v(NAME, "willSessionExpireSoon()");
         long now = System.currentTimeMillis();
         return (this.timeWhenSessionIsExpired < now);
     }
 
     private int checkSession(Context context) throws InvalidParameterException,
-            SessionException, BlubbDBException {
+            SessionException, BlubbDBException, BlubbDBConnectionException {
+        Log.v(NAME, "checkSession(context)");
         BlubbResponse blubbResponse =
                 BlubbRequestManager.checkSession(context, this.session.getSessionId());
         switch (blubbResponse.getStatus()) {
@@ -118,7 +125,10 @@ public class SessionManager {
     }
 
     public boolean login(String username, String password)
-            throws InvalidParameterException, BlubbDBException, SessionException {
+            throws InvalidParameterException, BlubbDBException,
+            SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "login(usename = " + username +
+                ", passwordLength = " + password.length() + ")");
         // make the sessionLogin
         this.session = sessionLogin(username, password);
         // if there has been returned a session return true
@@ -127,24 +137,25 @@ public class SessionManager {
 
     /**
      * Trys to log in to beap with username and password from Preferences.
-     * @param context
+     * @param appContext
      * @return the sessionInfo from the sessionLogin
      * @throws InvalidParameterException if prefUsername or prefPassword are not valid.
      * @throws BlubbDBException if something went wrong with the DB
      * @throws SessionException if there are no username or password in the Preferences -
      * user needs to log in manually.
      */
-    private SessionInfo loginWithPrefs(Context context) throws InvalidParameterException,
-            BlubbDBException, SessionException {
+    private SessionInfo loginWithPrefs(Context appContext) throws InvalidParameterException,
+            BlubbDBException, SessionException,BlubbDBConnectionException {
+        Log.v(NAME, "loginWithPrefs(appContext)");
         // try a sessionLogin with preferences
         // first get Prefs.
-        String unPref = context.getString(R.string.pref_username),
-                pwPref = context.getString(R.string.pref_password),
-                prefName = context.getString(R.string.preferences_name);
-        SharedPreferences prefs = context.getSharedPreferences(
-                prefName, Context.MODE_PRIVATE);
+        String unPref = appContext.getString(R.string.pref_username),
+                pwPref = appContext.getString(R.string.pref_password),
+                prefName = appContext.getString(R.string.preferences_name);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(appContext);
         String username = prefs.getString(unPref, "NULL"),
                 password = prefs.getString(pwPref, "NULL");
+        Log.v(NAME, "unPref = " + username + "  -  pwPref = " + password);
         // if there are no prefs throw a exception - it's not possible to get
         // a session without the username or password -> user needs to log in manually.
         if(username.equals("NULL") || password.equals("NULL")) {
@@ -158,15 +169,21 @@ public class SessionManager {
     }
 
     private SessionInfo sessionLogin(String username, String password) throws BlubbDBException,
-            SessionException {
+            SessionException, BlubbDBConnectionException {
+        Log.v(NAME, "sessionLogin(username = " + username +
+                ", password.length = " + password.length());
         BlubbResponse blubbResponse = BlubbRequestManager.login(username, password);
         switch (blubbResponse.getStatus()) {
             case OK:
                 // if it's ok the username and password will be stored temporarily for
                 // future sessionLogin.
                 this.tempUsername = username;
+                Log.v(NAME, "Set tempUsername to: " + tempUsername);
                 this.tempPassword = password;
+                Log.v(NAME, "Length of tempPassword: " + tempPassword.length());
                 return blubbResponse.getSessionInfo();
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new SessionException("Could not perform sessionLogin with prefs. " +
                         "Beap status: " + blubbResponse.getStatus());
@@ -174,14 +191,17 @@ public class SessionManager {
     }
 
     private void setTimeTillSessionExpires(int time) {
+        Log.v(NAME, "setTimeTillSessionExpires(minutes = " + time + ")");
         long now = System.currentTimeMillis();
         now += (time-1)*60*1000;
         this.timeWhenSessionIsExpired = now;
     }
 
     public QuickCheck quickCheck(Context context) throws
-            InvalidParameterException, SessionException, BlubbDBException,
+            InvalidParameterException, SessionException,
+            BlubbDBException, BlubbDBConnectionException,
             JSONException {
+        Log.v(NAME, "quickCheck(context)");
         List<BlubbThread> threads = new ArrayList<BlubbThread>();
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         // get the quickCheck from beap.
@@ -198,7 +218,9 @@ public class SessionManager {
     }
 
     private int[] check(Context context) throws
-            InvalidParameterException, SessionException, BlubbDBException {
+            InvalidParameterException, SessionException,
+            BlubbDBException, BlubbDBConnectionException {
+        Log.v(NAME, "check(context)");
         try {
             String query = "tree.functions.quickCheck(self)";
             BlubbResponse blubbResponse =
@@ -207,6 +229,7 @@ public class SessionManager {
                 case OK:
                     // with status ok result object will be a json array.
                     JSONArray array = (JSONArray) blubbResponse.getResultObj();
+
                     return new int[] {
                             (Integer) array.get(0),
                             (Integer) array.get(1)};

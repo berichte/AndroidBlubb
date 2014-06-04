@@ -7,4 +7,5 @@
     <color name="beap_green">#227700</color>
     <color name="beap_blue">#336699</color>
     <color name="beap_dark_blue">#223366</color>
+    <color name="beap_light_gray">#eeeeee</color>
 </resources>

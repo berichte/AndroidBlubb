@@ -7,13 +7,16 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.basics.SessionManager;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.SessionException;
@@ -22,6 +25,7 @@ public class Blubb_login extends Activity {
 
     public static final String  USERNAME_PREFAB = "username_prefab",
                                 PASSWORD_PREFAB = "password_prefab";
+    private String username, password;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,17 +44,14 @@ public class Blubb_login extends Activity {
             @Override
             public void onClick(View v) {
 
+
                 EditText un = (EditText) findViewById(R.id.blubb_login_username);
                 EditText pw = (EditText) findViewById(R.id.blubb_login_password);
-                String unS = un.getText().toString(),
-                        pwS = pw.getText().toString();
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(Blubb_login.this);
-                sharedPreferences.edit().putString(
-                        Blubb_login.this.getString(R.string.pref_username), unS);
-                sharedPreferences.edit().putString(
-                        Blubb_login.this.getString(R.string.pref_password), pwS);
-                login(unS, pwS);
+
+                username = un.getText().toString();
+                password = pw.getText().toString();
+                Log.i("Login", "LoginButton clicked. Username: " + username);
+                login(username, password);
             }
         });
     }
@@ -70,22 +71,41 @@ public class Blubb_login extends Activity {
                     password = params[1];
             try {
                 if (getApp().getSessionManager().login(username, password)){
-                    return SessionManager.getInstance().getSessionID(Blubb_login.this);
+
+                    return getApp().getSessionManager()
+                            .getSessionID(Blubb_login.this.getApplicationContext());
                 }
             } catch (InvalidParameterException e) {
                 return e.getMessage();
             } catch (BlubbDBException e) {
                 return e.getMessage();
             } catch (SessionException e) {
-                e.printStackTrace();
+                return e.getMessage();
+            } catch (BlubbDBConnectionException e) {
+                return e.getMessage();
             }
-            return "no Results! :(";
+            return null;
         }
 
         @Override
         protected void onPostExecute(String response) {
-            Intent intent = new Intent(Blubb_login.this, ThreadOverview.class);
-            Blubb_login.this.startActivity(intent);
+            if(response != null) {
+                CheckBox stayLogged = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+                if(stayLogged.isChecked()) {
+                    Log.i("Login", "User wants to stay logged in. Editing savedPrefs.");
+                    SharedPreferences sharedPreferences =
+                            PreferenceManager.getDefaultSharedPreferences(
+                                    Blubb_login.this.getApplicationContext());
+                    sharedPreferences.edit().putString(
+                            Blubb_login.this.getString(R.string.pref_username), username);
+                    sharedPreferences.edit().putString(
+                            Blubb_login.this.getString(R.string.pref_password), password);
+                    sharedPreferences.edit().commit();
+                }
+
+                Intent intent = new Intent(Blubb_login.this, ThreadOverview.class);
+                Blubb_login.this.startActivity(intent);
+            }
         }
     }
 }

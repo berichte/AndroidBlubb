@@ -1,8 +1,22 @@
 package com.blubb.alubb.basics;
 
+import android.content.Context;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
 
 import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Created by Benjamin Richter on 22.05.2014.
@@ -88,6 +102,41 @@ public class BlubbMessage {
         return mContent;
     }
 
+    public String getFormatedDate() {
+        return mDate.substring(0, 16).replace('T', ' ');
+    }
+
+    public View getView(Context context, ViewGroup parent, String tCreator) {
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View messageView = inflater.inflate(R.layout.message_layout, parent, false);
+
+        TextView mTitle = (TextView) messageView.findViewById(R.id.message_title_tv),
+                mContent= (TextView) messageView.findViewById(R.id.message_content_tv),
+                mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
+                mDate = (TextView) messageView.findViewById(R.id.message_date_tv),
+                mRole = (TextView) messageView.findViewById(R.id.message_role_tv);
+
+        mTitle.setText(this.getmTitle());
+        mContent.setText(this.getmContent());
+        mCreator.setText(this.getmCreator());
+        mDate.setText(this.getFormatedDate());
+        mRole.setText(this.getmCreatorRole());
+
+        if(isNew()) {
+            Log.v("BlubbMessage", "Message is new.");
+            messageView.setBackground(
+                    context.getResources().getDrawable(R.drawable.message_layout_back_new));
+        }
+        if(tCreator.equals(this.mCreator)) {
+            Log.v("BlubbMessage", "Message from thread creator.");
+            messageView.setBackground(
+                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
+            messageView.setPadding(65,25,15,15);
+        }
+        return messageView;
+    }
+
     public String toString() {
         return "mThread: " + mThread +
                 "mTitle: " + mTitle +
@@ -100,5 +149,17 @@ public class BlubbMessage {
 
     public boolean isNew() {
         return isNew;
+    }
+
+    public boolean equals(BlubbMessage other) {
+        if(!this.mId.equals(other.mId)) return false;
+        if(!this.mType.equals(other.mType)) return false;
+        if(!this.mCreator.equals(other.mCreator)) return false;
+        if(!this.mCreatorRole.equals(other.mCreatorRole)) return false;
+        if(!this.mDate.equals(other.mDate)) return false;
+        if(!this.mThread.equals(other.mThread)) return false;
+        if(!this.mTitle.equals(other.mTitle)) return false;
+        if(!this.mContent.equals(other.mContent)) return false;
+        return true;
     }
 }

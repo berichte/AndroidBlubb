@@ -20,30 +20,37 @@ import android.widget.TextView;
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.DatabaseHandler;
-import com.blubb.alubb.basics.MessageManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 
 public class SingleThreadActivity extends Activity {
+    public static final String NAME = "SingleThreadActivity";
     public static final String EXTRA_THREAD_ID = "threadId";
-    public static final String EXTRA_THREAD_TITLE = "threadTitle";
+    public static final String EXTRA_THREAD_TITLE = "threadTitle",
+            EXTRA_THREAD_CREATOR = "threadCreator";
 
-    private String threadId;
+    public List<BlubbMessage> messages;
+
+    private String threadId, tCreator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(NAME, "onCreate()");
         setContentView(R.layout.activity_single_thread);
 
         Intent intent = getIntent();
         this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
         Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
+        this.tCreator = intent.getStringExtra(EXTRA_THREAD_CREATOR);
+
         AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
 
         String tTitle = intent.getStringExtra(EXTRA_THREAD_TITLE);
-        setTitle(tTitle);
+        setTitle(tTitle + " - " + tCreator);
 
         this.addNewMessageButtonListener();
         asyncTask.execute();
@@ -60,11 +67,24 @@ public class SingleThreadActivity extends Activity {
 
             @Override
             public void onClick(View view) {
+                Log.i(NAME, "addNewMessageButton.onClick()");
                 Intent intent = new Intent(SingleThreadActivity.this, WriteMessageActivity.class);
                 intent.putExtra(EXTRA_THREAD_ID, SingleThreadActivity.this.threadId);
                 SingleThreadActivity.this.startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onBackPressed(){
+        super.onBackPressed();
+        for(BlubbMessage m: messages) {
+            if(m.isNew()) {
+                m.setNew(false);
+                DatabaseHandler databaseHandler = new DatabaseHandler(this);
+                databaseHandler.setMessageRead(m.getmId());
+            }
+        }
     }
 
     private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
@@ -78,14 +98,16 @@ public class SingleThreadActivity extends Activity {
 
         @Override
         protected List<BlubbMessage> doInBackground(Void... voids) {
-
+            Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
             return getApp().getMessageManager().getAllMessagesForThread(
-                        SingleThreadActivity.this, this.threadId);
+                        SingleThreadActivity.this.getApplicationContext(), this.threadId);
         }
 
         @Override
         protected void onPostExecute(final List<BlubbMessage> response) {
+            messages = response;
             ListView lv = (ListView) findViewById(R.id.single_thread_listview);
+            Collections.reverse(response);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
                     SingleThreadActivity.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
@@ -97,12 +119,7 @@ public class SingleThreadActivity extends Activity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {
-                    /*Intent intent = new Intent(SingleThreadActivity.this, SingleThreadActivity.class);
-                    assert ((BlubbThread) parent.getItemAtPosition(position)) != null;
-                    String threadId = ((BlubbThread) parent.getItemAtPosition(position)).gettId();
-                    intent.putExtra("Thread", threadId);
-                    SingleThreadActivity.this.startActivity(intent);
-*/
+
                     final String item = (String) parent.getItemAtPosition(position).toString();
                     view.animate().setDuration(2000).alpha(0)
                             .withEndAction(new Runnable() {
@@ -133,31 +150,8 @@ public class SingleThreadActivity extends Activity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = (LayoutInflater) super.getContext()
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View rowView = inflater.inflate(R.layout.message_layout, parent, false);
-
-            TextView mTitle = (TextView) rowView.findViewById(R.id.message_title_tv),
-                    mContent= (TextView) rowView.findViewById(R.id.message_content_tv),
-                    mCreator = (TextView) rowView.findViewById(R.id.message_creator_tv),
-                    mDate = (TextView) rowView.findViewById(R.id.message_date_tv),
-                    mRole = (TextView) rowView.findViewById(R.id.message_role_tv);
-            BlubbMessage blubbMessage = getItem(position);
-
-            mTitle.setText(blubbMessage.getmTitle());
-            mContent.setText(blubbMessage.getmContent());
-            mCreator.setText(blubbMessage.getmCreator());
-            mDate.setText(blubbMessage.getmDate());
-            mRole.setText(blubbMessage.getmCreatorRole());
-
-            if(blubbMessage.isNew()) {
-                rowView.setBackgroundColor(
-                        getResources().getColor(R.color.beap_light_yellow));
-                blubbMessage.setNew(false);
-                DatabaseHandler databaseHandler = new DatabaseHandler(SingleThreadActivity.this);
-                databaseHandler.setMessageRead(blubbMessage.getmId());
-            }
-            return rowView;
+            BlubbMessage message = getItem(position);
+            return message.getView(SingleThreadActivity.this, parent, tCreator);
         }
 
         @Override

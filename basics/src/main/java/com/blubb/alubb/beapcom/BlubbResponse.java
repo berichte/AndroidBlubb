@@ -14,6 +14,7 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
  * General Response object
  */
 public class BlubbResponse {
+    public static final String TAG = "BlubbResponse";
 
     public BlubbDBReplyStatus getStatus() {
         return status;
@@ -39,6 +40,7 @@ public class BlubbResponse {
             response = new JSONObject(jsonResponse );
             this.status = this.parseReply(response.getInt("BeapStatus"));
                    // RA.getString(R.string.json_beap_status)));
+
             this.statusDescr = response.getString("StatusDescr");
                     //RA.getString(R.string.json_beap_status_desc));
             if(status.equals(BlubbDBReplyStatus.OK)){
@@ -49,6 +51,7 @@ public class BlubbResponse {
             this.status = BlubbDBReplyStatus.CONNECTION_ERROR;
 
         }
+        Log.v(TAG, "Constructed new BlubbResponse - Status: " + status);
 
     }
 
@@ -94,20 +97,20 @@ public class BlubbResponse {
                 try {
                     o = json.getJSONArray("Result");
                 } catch (JSONException e) {
-                    Log.i("parsing json", "There's no \"Result\" for JsonArray.");
+                    Log.v("parsing json", "There's no \"Result\" for JsonArray.");
                 }
                 if(o == null) {
                     try {
                         o = json.getJSONObject("Result");
                     } catch (JSONException e) {
-                        Log.i("parsing json", "Threre's no \"Result\" for JsonObject. o.O");
+                        Log.v("parsing json", "Threre's no \"Result\" for JsonObject. o.O");
                     }
                 }
                 if(o == null) {
                     try {
                         o = json.getInt("Result");
                     } catch (JSONException e) {
-                        Log.i("parsing json", "Threre's no \"Result\" for int. o.O");
+                        Log.v("parsing json", "Threre's no \"Result\" for int. o.O");
                     }
                 }
                 return o;

@@ -11,12 +11,14 @@
     <EditText
         android:id="@+id/blubb_login_username"
         android:text="@string/prompt_username"
+        android:hint="@string/login_username_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <EditText
         android:id="@+id/blubb_login_password"
         android:text="@string/prompt_password"
+        android:hint="@string/login_password_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:password="true"
@@ -27,5 +29,12 @@
         android:text="@string/action_sign_in_short"
         android:id="@+id/blubb_login_button"
         android:layout_alignParentTop="true" />
+
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_stay_logged_in"
+        android:checked="true"
+        android:id="@+id/login_stay_logged_cb" />
 
 </LinearLayout>
