@@ -8,6 +8,6 @@
         android:title="Settings"
         />
     <item
-        android:id="@+id/go_login"
+        android:id="@+id/blubb_settings_login"
         android:title="@string/login" />
 </menu>

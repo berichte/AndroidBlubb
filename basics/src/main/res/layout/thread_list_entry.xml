@@ -3,16 +3,62 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@drawable/message_layout_back"
     >
 
-    <TextView android:id="@+id/thread_list_item_head"
-        android:textSize="26sp"
-        android:textStyle="bold"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="30dp"
+        android:paddingRight="20dp">
+        <TextView android:id="@+id/thread_list_item_title"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ThreadTitle"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Msgs"
+            android:textAlignment="center"
+            android:gravity="right"
+            android:id="@+id/thread_list_item_msgcount"
+            android:textSize="20dp" />
 
-    <TextView android:id="@+id/thread_list_item_body"
-        android:textSize="16sp"
+        </LinearLayout>
+
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingBottom="15dp"
+        android:paddingRight="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Small Text"
+            android:id="@+id/thread_list_item_info"
+            android:paddingLeft="15dp"
+            android:paddingBottom="10dp"
+            />
+
+        <TextView android:id="@+id/thread_list_item_description"
+            android:textSize="16sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thread\ndescription\non three lines"
+            android:background="@drawable/message_content_back"
+            android:paddingLeft="15dp"
+            android:paddingTop="5dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="10dp" />
+        </LinearLayout>
+
 </LinearLayout>

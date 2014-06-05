@@ -54,6 +54,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    public static void deleteDatabase(Context context) {
+        context.deleteDatabase(DATABASE_NAME);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         Log.v(N, "onCreate(sqlitedb)");

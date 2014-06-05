@@ -14,6 +14,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 
 import com.blubb.alubb.R;
+import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
@@ -26,6 +27,7 @@ public class Blubb_login extends Activity {
     public static final String  USERNAME_PREFAB = "username_prefab",
                                 PASSWORD_PREFAB = "password_prefab";
     private String username, password;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,9 +59,17 @@ public class Blubb_login extends Activity {
     }
 
     private void login(String username, String password) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
+                this.getApplicationContext());
+        String prefName = this.getString(R.string.pref_username);
+        prefName = prefs.getString(prefName, "NULL");
+        if(!username.equals(prefName) && !prefName.equals("NULL")) {
+            DatabaseHandler.deleteDatabase(this);
+        }
         String[] params = new String[2];
         params[0] = username;
         params[1] = password;
+
         new AsyncLogin().execute(params);
     }
 
@@ -71,7 +81,6 @@ public class Blubb_login extends Activity {
                     password = params[1];
             try {
                 if (getApp().getSessionManager().login(username, password)){
-
                     return getApp().getSessionManager()
                             .getSessionID(Blubb_login.this.getApplicationContext());
                 }
@@ -92,15 +101,17 @@ public class Blubb_login extends Activity {
             if(response != null) {
                 CheckBox stayLogged = (CheckBox) findViewById(R.id.login_stay_logged_cb);
                 if(stayLogged.isChecked()) {
-                    Log.i("Login", "User wants to stay logged in. Editing savedPrefs.");
+                    Log.i("Login", "User wants to stay logged in. Editing savedPrefs.\n" +
+                            "saving: " + username + " as Username");
                     SharedPreferences sharedPreferences =
                             PreferenceManager.getDefaultSharedPreferences(
                                     Blubb_login.this.getApplicationContext());
-                    sharedPreferences.edit().putString(
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(
                             Blubb_login.this.getString(R.string.pref_username), username);
-                    sharedPreferences.edit().putString(
+                    editor.putString(
                             Blubb_login.this.getString(R.string.pref_password), password);
-                    sharedPreferences.edit().commit();
+                    editor.commit();
                 }
 
                 Intent intent = new Intent(Blubb_login.this, ThreadOverview.class);

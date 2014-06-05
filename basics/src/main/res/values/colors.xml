@@ -8,4 +8,6 @@
     <color name="beap_blue">#336699</color>
     <color name="beap_dark_blue">#223366</color>
     <color name="beap_light_gray">#eeeeee</color>
+    <color name="blubb_message_back">#666666</color>
+    <color name="blubb_header">#222222</color>
 </resources>

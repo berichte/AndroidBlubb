@@ -1,5 +1,14 @@
 package com.blubb.alubb.basics;
 
+import android.content.Context;
+import android.graphics.Color;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
 
 import org.json.JSONException;
@@ -23,19 +32,10 @@ public class BlubbThread {
     private int tMsgCount;
     private boolean isNew;
     private boolean hasNewMsgs;
+    private boolean isBig = false;
 
     /** Type of this thread, e.g. Chatthread, pollThread, taskThread.*/
     private ThreadType tType;
- /*
- "tId" : "t2014-05-17_150000_S-Gross",
-            "tType" : "Thread",
-            "tCreator" : "S-Gross",
-            "tCreatorRole" : "admin",
-            "tDate" : "2014-05-17:T15:00:00.000Z",
-            "tTitle" : "Thread No. 1",
-            "tDescr" : "Weil,\nich bin der Admin\nund ich darf das ! ;-)",
-            "tMsgCount" : 2
-            */
 
     public BlubbThread(JSONObject jsonObject) throws JSONException {
         this.tCreator = BPC.findStringInJsonObj(jsonObject, "tCreator");
@@ -133,5 +133,52 @@ public class BlubbThread {
         if(!this.getThreadTitle().equals(other.getThreadTitle())) return false;
         if(!this.gettType().equals(other.gettType())) return false;
         return true;
+    }
+
+    public void toggleViewSize() {
+        if(isBig)   isBig = false;
+        else        isBig = true;
+    }
+
+    public View getView(Context context, ViewGroup parent) {
+        if(isBig) return this.getBigView(context, parent);
+        else return this.getSmallView(context, parent);
+    }
+
+    public View getBigView(Context context, ViewGroup parent) {
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout layout = (LinearLayout) inflater.inflate(
+                R.layout.thread_list_entry, parent, false);
+        TextView tTitle     = (TextView) layout.findViewById(R.id.thread_list_item_title),
+                tMsg        = (TextView) layout.findViewById(R.id.thread_list_item_msgcount),
+                tdescr      = (TextView) layout.findViewById(R.id.thread_list_item_description),
+                tInfo       = (TextView) layout.findViewById(R.id.thread_list_item_info);
+        tTitle.setText(this.tTitle);
+        tMsg.setText(this.tMsgCount + "");
+        if(this.hasNewMsgs) {
+            int red = context.getResources().getColor(R.color.beap_red);
+            tMsg.setTextColor(red);
+        }
+        tdescr.setText(this.tDesc);
+        String info = this.tCreatorRole + " - " + this.tCreator + " - " + this.tDate;
+        tInfo.setText(info);
+        return layout;
+    }
+
+    public View getSmallView(Context context, ViewGroup parent) {
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout layout = (LinearLayout) inflater.inflate(
+                R.layout.thread_list_item_small, parent, false);
+        TextView tTitle     = (TextView) layout.findViewById(R.id.thread_list_item_title),
+                tMsg        = (TextView) layout.findViewById(R.id.thread_list_item_msgcount);
+        tTitle.setText(this.tTitle);
+        tMsg.setText(this.tMsgCount + "");
+        if(this.hasNewMsgs) {
+            int red = context.getResources().getColor(R.color.beap_red);
+            tMsg.setTextColor(red);
+        }
+        return layout;
     }
 }

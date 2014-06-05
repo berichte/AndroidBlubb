@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity"
-    android:background="@color/beap_blue"
+    android:background="@color/blubb_message_back"
     android:orientation="vertical">
 
     <ListView

@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.blubb.alubb.R;
@@ -107,10 +109,18 @@ public class BlubbMessage {
     }
 
     public View getView(Context context, ViewGroup parent, String tCreator) {
-        LayoutInflater inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View messageView = inflater.inflate(R.layout.message_layout, parent, false);
+        View messageView, layout = null;
+        if(tCreator.equals(this.mCreator)) {
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
+            layout = inflater.inflate(R.layout.message_thread_creator, parent, false);
+            messageView = layout.findViewById(R.id.message_thread_creator);
+        } else {
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            messageView = inflater.inflate(R.layout.message_layout, parent, false);
+        }
         TextView mTitle = (TextView) messageView.findViewById(R.id.message_title_tv),
                 mContent= (TextView) messageView.findViewById(R.id.message_content_tv),
                 mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
@@ -128,13 +138,12 @@ public class BlubbMessage {
             messageView.setBackground(
                     context.getResources().getDrawable(R.drawable.message_layout_back_new));
         }
+
         if(tCreator.equals(this.mCreator)) {
-            Log.v("BlubbMessage", "Message from thread creator.");
-            messageView.setBackground(
-                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
-            messageView.setPadding(65,25,15,15);
+            return layout;
+        } else {
+            return messageView;
         }
-        return messageView;
     }
 
     public String toString() {

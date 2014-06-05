@@ -11,9 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -31,22 +34,29 @@ public class SingleThreadActivity extends Activity {
     public static final String NAME = "SingleThreadActivity";
     public static final String EXTRA_THREAD_ID = "threadId";
     public static final String EXTRA_THREAD_TITLE = "threadTitle",
-            EXTRA_THREAD_CREATOR = "threadCreator";
+            EXTRA_THREAD_CREATOR = "threadCreator",
+            EXTRA_THREAD_DESCRIPTION = "threadDescription";
 
     public List<BlubbMessage> messages;
 
     private String threadId, tCreator;
+    private boolean showSpinner = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         Log.v(NAME, "onCreate()");
         setContentView(R.layout.activity_single_thread);
-
         Intent intent = getIntent();
         this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
         Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
         this.tCreator = intent.getStringExtra(EXTRA_THREAD_CREATOR);
 
+        String tDescr = intent.getStringExtra(EXTRA_THREAD_DESCRIPTION);
+        addHeader(tDescr);
+
+        spinnerOn();
         AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
 
         String tTitle = intent.getStringExtra(EXTRA_THREAD_TITLE);
@@ -54,6 +64,20 @@ public class SingleThreadActivity extends Activity {
 
         this.addNewMessageButtonListener();
         asyncTask.execute();
+    }
+
+    private void addHeader(String tDescr) {
+        ListView lv = (ListView) findViewById(R.id.single_thread_listview);
+
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout header = (LinearLayout)
+                inflater.inflate(R.layout.single_thread_header, lv , false);
+
+        TextView headerText = (TextView) header.findViewById(R.id.single_thread_header_tv);
+        headerText.setText(tDescr);
+
+        lv.addHeaderView(header );
     }
 
     private BlubbApplication getApp() {
@@ -133,6 +157,7 @@ public class SingleThreadActivity extends Activity {
                 }
 
             });
+            spinnerOff();
         }
     }
 
@@ -167,5 +192,29 @@ public class SingleThreadActivity extends Activity {
 
     }
 
+    public void spinnerOn()
+    {
+        showSpinner = true;
+        setProgressBarIndeterminateVisibility(true);
+    }
 
+    public void spinnerOff()
+    {
+        showSpinner = false;
+        setProgressBarIndeterminateVisibility(false);
+    }
+
+    protected void onResume()
+    {
+        // solved by Dralangus http://stackoverflow.com/a/7414659/294884
+        super.onResume();
+        if (showSpinner)
+        {
+            spinnerOn();
+        }
+        else
+        {
+            spinnerOff();
+        }
+    }
 }
