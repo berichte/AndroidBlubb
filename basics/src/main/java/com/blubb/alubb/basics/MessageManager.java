@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.blubb.alubb.beapcom.BPC;
-import com.blubb.alubb.beapcom.BlubbComManager;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
@@ -17,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -44,12 +42,21 @@ public class MessageManager {
             JSONException, SessionException, BlubbDBConnectionException {
         Log.v(NAME, "getNewMessagesFromAllThreads(context)");
 
+        List<BlubbThread> localThreads = ThreadManager.getInstance()
+                .getAllThreadsFromSqlite(context);
+        HashMap<String, BlubbThread> hashThreads = new HashMap<String, BlubbThread>();
+        for(BlubbThread t: localThreads) {
+            hashThreads.put(t.gettId(), t);
+        }
         List<BlubbThread> threads = ThreadManager.getInstance()
                 .getAllThreadsFromBeap(context);
 
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         for (BlubbThread t: threads) {
-             messages.addAll(this.getNewMessagesForThread(context, t));
+            BlubbThread lT = hashThreads.get(t.gettId());
+            if(t.gettMsgCount() > lT.gettMsgCount()) {
+                messages.addAll(this.getNewMessagesForThread(context, t));
+            }
         }
         return messages;
     }
@@ -58,38 +65,46 @@ public class MessageManager {
             throws BlubbDBException, InvalidParameterException,
             JSONException, SessionException, BlubbDBConnectionException {
         Log.v(NAME, "getNewMessagesForThread(context, thread = " + thread.gettId());
+
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbThread sqliteThread = db.getThread(thread.gettId());
 
         List<BlubbMessage> beapMessages = new ArrayList<BlubbMessage>();
-        // if the threads have the same msgCount nothing has changed,
-        // if local is bigger msg has been deleted. -> "<"
-        if(sqliteThread.gettMsgCount()<thread.gettMsgCount()) {
-            beapMessages = getAllMessagesForThreadFromBeap(context, thread.gettId());
-            List<BlubbMessage> sqliteMessages =
-                    getAllMessagesForThreadFromSqlite(context, thread.gettId());
-            // get difference between the two lists
-            beapMessages.removeAll(sqliteMessages);
-            boolean flag = false;
-            for (BlubbMessage m : beapMessages) {
-                //set all new messages to new.
-                m.setNew(true);
-                flag = true;
-            }
-            if (flag) {
-                // if there where new Msgs set flag in thread.
-
+        beapMessages = getAllMessagesForThreadFromBeap(context, thread.gettId());
+        List<BlubbMessage> sqliteMessages =
+        getAllMessagesForThreadFromSqlite(context, thread.gettId());
+        // get difference between the two lists
+        removeAll(beapMessages, sqliteMessages);
+        boolean flag = false;
+        for (BlubbMessage m : beapMessages) {
+        //set all new messages to new.
+            m.setNew(true);
+            flag = true;
+        }/*
+        if (flag) {
+            // if there where new Msgs set flag in thread.
                 thread.setHasNewMsgs(true);
                 db = new DatabaseHandler(context);
                 db.setThreadNewMsgs(thread.gettId());
-            }
+            }*/
             for (BlubbMessage m : sqliteMessages) {
                 if (m.isNew()) beapMessages.add(m);
             }
-        }
+
         Log.i(NAME, "Thread " + thread.gettId() + " has " +
                 beapMessages.size() + " new Messages.");
         return beapMessages;
+    }
+
+    private List<BlubbMessage> removeAll(List<BlubbMessage> list, List<BlubbMessage> toRemove) {
+        HashMap<String, BlubbMessage> messages = new HashMap<String, BlubbMessage>();
+        for(BlubbMessage m: list) {
+            messages.put(m.getmId(), m);
+        }
+        for(BlubbMessage m: toRemove) {
+            messages.remove(m.getmId());
+        }
+        return new ArrayList<BlubbMessage>(messages.values());
     }
 
     public BlubbMessage createMsg(Context context,

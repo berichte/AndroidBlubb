@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/message_layout_back"
+    android:background="@drawable/thread_back_large"
+    android:paddingBottom="@dimen/cards_separation_space"
     >
 
     <LinearLayout
@@ -11,8 +12,9 @@
         android:layout_height="wrap_content"
         android:paddingLeft="20dp"
         android:paddingTop="10dp"
-        android:paddingBottom="30dp"
+        android:paddingBottom="20dp"
         android:paddingRight="20dp">
+
         <TextView android:id="@+id/thread_list_item_title"
             android:textSize="26sp"
             android:textStyle="bold"
@@ -42,8 +44,16 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="ThreadAuthor"
+            android:paddingLeft="15dp"
+            android:id="@+id/thread_list_item_author" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Small Text"
+            android:text="thread info"
             android:id="@+id/thread_list_item_info"
             android:paddingLeft="15dp"
             android:paddingBottom="10dp"

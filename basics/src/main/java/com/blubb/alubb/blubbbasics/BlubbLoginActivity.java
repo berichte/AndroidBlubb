@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -15,14 +14,12 @@ import android.widget.EditText;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.DatabaseHandler;
-import com.blubb.alubb.beapcom.BlubbComManager;
-import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
-public class Blubb_login extends Activity {
+public class BlubbLoginActivity extends Activity {
 
     public static final String  USERNAME_PREFAB = "username_prefab",
                                 PASSWORD_PREFAB = "password_prefab";
@@ -82,7 +79,7 @@ public class Blubb_login extends Activity {
             try {
                 if (getApp().getSessionManager().login(username, password)){
                     return getApp().getSessionManager()
-                            .getSessionID(Blubb_login.this.getApplicationContext());
+                            .getSessionID(BlubbLoginActivity.this.getApplicationContext());
                 }
             } catch (InvalidParameterException e) {
                 return e.getMessage();
@@ -105,17 +102,17 @@ public class Blubb_login extends Activity {
                             "saving: " + username + " as Username");
                     SharedPreferences sharedPreferences =
                             PreferenceManager.getDefaultSharedPreferences(
-                                    Blubb_login.this.getApplicationContext());
+                                    BlubbLoginActivity.this.getApplicationContext());
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(
-                            Blubb_login.this.getString(R.string.pref_username), username);
+                            BlubbLoginActivity.this.getString(R.string.pref_username), username);
                     editor.putString(
-                            Blubb_login.this.getString(R.string.pref_password), password);
+                            BlubbLoginActivity.this.getString(R.string.pref_password), password);
                     editor.commit();
                 }
 
-                Intent intent = new Intent(Blubb_login.this, ThreadOverview.class);
-                Blubb_login.this.startActivity(intent);
+                Intent intent = new Intent(BlubbLoginActivity.this, ThreadOverview.class);
+                BlubbLoginActivity.this.startActivity(intent);
             }
         }
     }

@@ -145,6 +145,11 @@ public class BlubbThread {
         else return this.getSmallView(context, parent);
     }
 
+    public String getFormatedDate() {
+        return tDate.substring(0, 16).replace('T', ' ');
+    }
+
+
     public View getBigView(Context context, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -153,15 +158,17 @@ public class BlubbThread {
         TextView tTitle     = (TextView) layout.findViewById(R.id.thread_list_item_title),
                 tMsg        = (TextView) layout.findViewById(R.id.thread_list_item_msgcount),
                 tdescr      = (TextView) layout.findViewById(R.id.thread_list_item_description),
-                tInfo       = (TextView) layout.findViewById(R.id.thread_list_item_info);
+                tInfo       = (TextView) layout.findViewById(R.id.thread_list_item_info),
+                tCreator    = (TextView) layout.findViewById(R.id.thread_list_item_author);
         tTitle.setText(this.tTitle);
+        tCreator.setText(this.tCreator);
         tMsg.setText(this.tMsgCount + "");
         if(this.hasNewMsgs) {
             int red = context.getResources().getColor(R.color.beap_red);
             tMsg.setTextColor(red);
         }
         tdescr.setText(this.tDesc);
-        String info = this.tCreatorRole + " - " + this.tCreator + " - " + this.tDate;
+        String info = this.tCreatorRole + " - " +  this.getFormatedDate();
         tInfo.setText(info);
         return layout;
     }

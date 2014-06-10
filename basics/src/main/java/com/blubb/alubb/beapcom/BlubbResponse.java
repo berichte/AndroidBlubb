@@ -7,8 +7,6 @@ import com.blubb.alubb.basics.SessionInfo;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
-
 /**
  * Created by Benjamin Richter on 22.05.2014.
  * General Response object
@@ -16,7 +14,7 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 public class BlubbResponse {
     public static final String TAG = "BlubbResponse";
 
-    public BlubbDBReplyStatus getStatus() {
+    public BeapReplyStatus getStatus() {
         return status;
     }
 
@@ -28,7 +26,7 @@ public class BlubbResponse {
         return resultObj;
     }
 
-    private BlubbDBReplyStatus status;
+    private BeapReplyStatus status;
     private String statusDescr;
     private Object resultObj;
     private SessionInfo sessionInfo;
@@ -43,42 +41,42 @@ public class BlubbResponse {
 
             this.statusDescr = response.getString("StatusDescr");
                     //RA.getString(R.string.json_beap_status_desc));
-            if(status.equals(BlubbDBReplyStatus.OK)){
+            if(status.equals(BeapReplyStatus.OK)){
                 this.resultObj = this.parseResponseObject(response);
             }
         } catch (JSONException e) {
             Log.e("json exception", e.getMessage());
-            this.status = BlubbDBReplyStatus.CONNECTION_ERROR;
+            this.status = BeapReplyStatus.CONNECTION_ERROR;
 
         }
         Log.v(TAG, "Constructed new BlubbResponse - Status: " + status);
 
     }
 
-    private BlubbDBReplyStatus parseReply(int replyStatus) {
+    private BeapReplyStatus parseReply(int replyStatus) {
         switch (replyStatus) {
             case 200:
-                return BlubbDBReplyStatus.OK;
+                return BeapReplyStatus.OK;
             case 203:
-                return BlubbDBReplyStatus.NO_CONTENT;
+                return BeapReplyStatus.NO_CONTENT;
             case 204:
-                return BlubbDBReplyStatus.SESSION_ALREADY_DELETED;
+                return BeapReplyStatus.SESSION_ALREADY_DELETED;
             case 400:
-                return BlubbDBReplyStatus.REQUEST_FAILURE;
+                return BeapReplyStatus.REQUEST_FAILURE;
             case 401:
-                return BlubbDBReplyStatus.LOGIN_REQUIRED;
+                return BeapReplyStatus.LOGIN_REQUIRED;
             case 403:
-                return BlubbDBReplyStatus.PERMISSION_DENIED;
+                return BeapReplyStatus.PERMISSION_DENIED;
             case 407:
-                return BlubbDBReplyStatus.CONNECTION_ERROR;
+                return BeapReplyStatus.CONNECTION_ERROR;
             case 406:
-                return BlubbDBReplyStatus.PARAMETER_ERROR;
+                return BeapReplyStatus.PARAMETER_ERROR;
             case 409:
-                return BlubbDBReplyStatus.PARAMETER_ERROR;
+                return BeapReplyStatus.PARAMETER_ERROR;
             case 418:
-                return BlubbDBReplyStatus.SYNTAX_ERROR;
+                return BeapReplyStatus.SYNTAX_ERROR;
             default:
-                return BlubbDBReplyStatus.UNKNOWN_STATUS;
+                return BeapReplyStatus.UNKNOWN_STATUS;
         }
     }
 

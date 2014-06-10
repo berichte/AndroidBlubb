@@ -4,6 +4,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/thread_back_small"
+    android:paddingBottom="@dimen/cards_separation_space"
     >
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,5 +29,13 @@
             android:textSize="20dp" />
 
     </LinearLayout>
+
+    <Space
+        android:layout_width="325dp"
+        android:layout_height="wrap_content"
+        android:background="@color/beap_dark_blue"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="2dp" />
+
 
 </LinearLayout>

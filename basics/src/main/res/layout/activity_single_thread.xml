@@ -3,13 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity"
-    android:background="@color/blubb_message_back"
+    android:background="@color/blubb_cards_back"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
     android:orientation="vertical">
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/single_thread_listview">
+        android:id="@+id/single_thread_listview"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="@dimen/cards_separation_space">
 
         </ListView>
     <ImageButton

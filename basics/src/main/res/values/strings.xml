@@ -41,5 +41,12 @@
     <string name="login_stay_logged_in">Stay logged in?</string>
     <string name="login_username_hint">Your username</string>
     <string name="login_password_hint">Your password</string>
+    <string name="create_new_thread_dialog_title">Create a new thread</string>
+    <string name="title_message_list">Threads</string>
+    <string name="title_message_detail">Message Detail</string>
+    <string name="create_new_message_dialog_title">Write a new message</string>
+    <string name="message_new_title_hint">Message subject</string>
+    <string name="message_new_content_hint">say something</string>
+    <string name="message_new_send_button_text">send</string>
 
 </resources>

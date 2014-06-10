@@ -7,10 +7,9 @@ import com.blubb.alubb.R;
  * Given parameter is not valid.
  */
 public class InvalidParameterException extends BlubbException {
-    protected static int messageID = R.string.InvalidParameterException;
 
     public InvalidParameterException() {
-        super();
+        super("The given Parameter is not valid.");
     }
 
     public InvalidParameterException(String message) {

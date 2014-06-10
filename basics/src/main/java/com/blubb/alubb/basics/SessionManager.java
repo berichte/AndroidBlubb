@@ -6,11 +6,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.blubb.alubb.R;
-import com.blubb.alubb.beapcom.BlubbDBReplyStatus;
+import com.blubb.alubb.beapcom.BeapReplyStatus;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.beapcom.QuickCheck;
-import com.blubb.alubb.blubbbasics.BlubbApplication;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
@@ -87,7 +86,7 @@ public class SessionManager {
         BlubbResponse blubbResponse = BlubbRequestManager
                 .refreshSession(this.session.getSessionId());
         //
-        BlubbDBReplyStatus status = blubbResponse.getStatus();
+        BeapReplyStatus status = blubbResponse.getStatus();
         switch (status) {
             case OK: //if status is ok return the result obj - will be a int.
                 return (Integer) blubbResponse.getResultObj();
@@ -206,14 +205,17 @@ public class SessionManager {
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         // get the quickCheck from beap.
         int [] check = check(context);
-        if(check[0] > tCount) {
-            threads = ThreadManager.getInstance().getNewThreads(context);
-            tCount = check[0];
-        }
         if(check[1] > mCount) {
+            Log.v(NAME, "QuickCheck " + (check[1]-mCount) + " new messages.");
             messages = MessageManager.getInstance().getNewMessagesFromAllThreads(context);
             mCount = check[1];
         }
+        if(check[0] > tCount) {
+            Log.v(NAME, "QuickCheck " + (check[0]-tCount) + " new threads.");
+            threads = ThreadManager.getInstance().getNewThreads(context);
+            tCount = check[0];
+        }
+
         return new QuickCheck(threads, messages);
     }
 

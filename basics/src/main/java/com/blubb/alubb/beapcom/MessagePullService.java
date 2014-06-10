@@ -16,9 +16,17 @@ import android.util.Log;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
+import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.MessageManager;
+import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.blubbbasics.SingleThreadActivity;
 import com.blubb.alubb.blubbbasics.ThreadOverview;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
+import com.blubb.alubb.blubexceptions.BlubbDBException;
+import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.SessionException;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +39,6 @@ public class MessagePullService extends Service {
 
     @Override
     public void onCreate() {
-
 
     }
 
@@ -49,7 +56,6 @@ public class MessagePullService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // TODO Auto-generated method stub
         MessagePullAsync messagePullAsync = new MessagePullAsync();
         messagePullAsync.execute();
         return super.onStartCommand(intent, flags, startId);
@@ -60,7 +66,6 @@ public class MessagePullService extends Service {
      */
     private void showNotification(String mAuthor, String mTitle, String mContent) {
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
         builder = new NotificationCompat.Builder(this);
         builder.setSmallIcon(R.drawable.alubb);
         builder.setContentTitle(mTitle);
@@ -77,26 +82,6 @@ public class MessagePullService extends Service {
         builder.setContentIntent(resultPendingIntent);
 
         issueNotification(builder);
-
-        /*
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.alarm_service_started);
-
-        // Set the icon, scrolling text and timestamp
-        Notification notification = new Notification(R.drawable.alubb, text,
-                System.currentTimeMillis());
-
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, SingleThreadActivity.class), 0);
-
-        // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.alarm_service_started),
-                text, contentIntent);
-
-        // Send the notification.
-        // We use a layout id because it is a unique number.  We use it later to cancel.
-        notificationManager.notify(R.string.alarm_service_started, notification); */
     }
 
     private void issueNotification(NotificationCompat.Builder builder) {
@@ -106,11 +91,6 @@ public class MessagePullService extends Service {
         mNotificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
-
-    /**
-     * This is the object that receives interactions from clients.  See RemoteService
-     * for a more complete example.
-     */
     private final IBinder mBinder = new Binder() {
         @Override
         protected boolean onTransact(int code, Parcel data, Parcel reply,
@@ -119,48 +99,90 @@ public class MessagePullService extends Service {
         }
     };
 
-    private class MessagePullAsync extends AsyncTask<Void, Void, List<BlubbMessage>> {
+    private class MessagePullAsync extends AsyncTask<Void, Void, QuickCheck> {
 
         @Override
-        protected List<BlubbMessage> doInBackground(Void... voids) {
-            Log.i(NAME, "try to pull msgs from server.");/**
+        protected QuickCheck doInBackground(Void... voids) {
+            Log.i(NAME, "try to pull msgs from server.");
+            SessionManager sManager = SessionManager.getInstance();
             try {
-                if(MessageManager.getInstance().newMessagesAvailable(MessagePullService.this)) {
-
-                    List<BlubbMessage> list =
-                            MessageManager.getNewMessages(MessagePullService.this);
-                    Log.i(NAME, "huray, " + list.size() + "new Messages.");
-                    return list;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.i(NAME, e.getMessage());
-            }*/
-            return new ArrayList<BlubbMessage>();
+                return sManager.quickCheck(MessagePullService.this);
+            } catch (InvalidParameterException e) {
+                Log.e(NAME, e.getMessage());
+            } catch (SessionException e) {
+                Log.e(NAME, e.getMessage());
+            } catch (BlubbDBException e) {
+                Log.e(NAME, e.getMessage());
+            } catch (BlubbDBConnectionException e) {
+                Log.e(NAME, e.getMessage());
+            } catch (JSONException e) {
+                Log.e(NAME, e.getMessage());
+            }
+            return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
         }
 
         @Override
-        public void onPostExecute(List<BlubbMessage> newMsgs) {
-            if(!newMsgs.isEmpty()) {
-                if(newMsgs.size()>1) {
-                    Log.i(NAME, "More than one Message!");
-                    String mCreator = newMsgs.size() + " new Messages.",
-                            mTitle = "";
-                    String mContent = "";
-                    for(BlubbMessage bm: newMsgs) {
-                        mContent = mContent + bm.getmCreator() + ": " + bm.getmTitle() + "\n";
-                    }
-                    showNotification(mCreator, mTitle, mContent);
-                } else {
-                    Log.i(NAME, "at least one new message.");
-                    BlubbMessage msg = newMsgs.get(0);
-                    showNotification(msg.getmCreator(), msg.getmTitle(), msg.getmContent());
+        public void onPostExecute(QuickCheck quickCheck) {
+            if(quickCheck.hasResult()) {
+                if(quickCheck.messages.size()>0) {
+                    createMessageNotification(quickCheck.messages);
                 }
+                if(quickCheck.threads.size()>0) {
+                    createThreadNotification(quickCheck.threads);
+                }
+
             }
-
-
             MessagePullService.this.stopSelf();
         }
+    }
+
+    private void createMessageNotification(List<BlubbMessage> messages) {
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.alubb);
+        if(messages.size() > 1) {
+            String nTitle = "You received " + messages.size() + " new messages";
+            String nContent = "From:\n";
+            for(BlubbMessage m: messages) {
+                nContent = nContent + m.getmCreator() + "\n";
+            }
+            builder.setContentTitle(nTitle);
+
+            builder.setContentText(nContent);
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(nContent));
+        } else if (messages.size() == 1) {
+            BlubbMessage message = messages.get(0);
+            builder.setContentTitle(message.getmTitle());
+            builder.setContentText(message.getmContent());
+        } else return;
+        Intent resultIntent = new Intent(this, ThreadOverview.class);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        builder.setContentIntent(resultPendingIntent);
+        issueNotification(builder);
+    }
+
+    private void createThreadNotification(List<BlubbThread> threads) {
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.alubb);
+        if(threads.size() > 1) {
+            String nTitle = threads.size() + " threads have been created.";
+            builder.setContentTitle(nTitle);
+        } else if (threads.size() == 1) {
+            BlubbThread thread = threads.get(0);
+            builder.setContentTitle(thread.getThreadTitle());
+            builder.setContentText(thread.gettDesc());
+        } else return;
+        Intent resultIntent = new Intent(this, ThreadOverview.class);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        builder.setContentIntent(resultPendingIntent);
+        issueNotification(builder);
     }
 
 }

@@ -4,7 +4,7 @@ package com.blubb.alubb.beapcom;
  * Created by Benjamin Richter on 17.05.2014.
  * enum for the diffent kinds of DB Replies.
  */
-public enum BlubbDBReplyStatus {
+public enum BeapReplyStatus {
     /** 200 - all right reply. */
     OK,
     /** 203 - request was ok but is empty. */

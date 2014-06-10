@@ -10,10 +10,9 @@ import com.blubb.alubb.R;
  * gets the standard message from ExceptionMessages.xml
  */
 public class BlubbException extends Exception {
-    protected static int messageID =  R.string.BlubbException;
 
     public BlubbException() {
-        super(Resources.getSystem().getString(messageID));
+        super();
     }
     public BlubbException(String message) {
         super(message);

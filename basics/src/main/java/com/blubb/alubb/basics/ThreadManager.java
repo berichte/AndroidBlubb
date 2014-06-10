@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class ThreadManager {
         Log.v(NAME, "got Threads from beap, ListSize: " + beapThreads.size());
         this.getAllThreadsFromSqlite(context);
         Log.v(NAME, "got Threads from sqlite db, ListSize: " + this.loadedThreads.size());
-        beapThreads.removeAll(this.loadedThreads);
+       removeAll(beapThreads, this.loadedThreads);
         for (BlubbThread t: beapThreads) {
             t.setNew(true);
         }
@@ -58,6 +59,17 @@ public class ThreadManager {
         }
         Log.i(NAME, "final size of newThreadList: " + beapThreads.size());
         return beapThreads;
+    }
+
+    private List<BlubbThread> removeAll(List<BlubbThread> list, List<BlubbThread> toRemove) {
+        HashMap<String, BlubbThread> threads = new HashMap<String, BlubbThread>();
+        for(BlubbThread t: list) {
+            threads.put(t.gettId(), t);
+        }
+        for(BlubbThread t: toRemove) {
+            threads.remove(t.gettId());
+        }
+        return new ArrayList<BlubbThread>(threads.values());
     }
 
     public List<BlubbThread> getAllThreadsFromBeap(Context context)

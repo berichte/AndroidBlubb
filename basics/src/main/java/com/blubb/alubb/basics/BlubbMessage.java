@@ -109,18 +109,11 @@ public class BlubbMessage {
     }
 
     public View getView(Context context, ViewGroup parent, String tCreator) {
-        View messageView, layout = null;
-        if(tCreator.equals(this.mCreator)) {
-            LayoutInflater inflater = (LayoutInflater) context
+        View messageView;
+        LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        messageView = inflater.inflate(R.layout.message_layout, parent, false);
 
-            layout = inflater.inflate(R.layout.message_thread_creator, parent, false);
-            messageView = layout.findViewById(R.id.message_thread_creator);
-        } else {
-            LayoutInflater inflater = (LayoutInflater) context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            messageView = inflater.inflate(R.layout.message_layout, parent, false);
-        }
         TextView mTitle = (TextView) messageView.findViewById(R.id.message_title_tv),
                 mContent= (TextView) messageView.findViewById(R.id.message_content_tv),
                 mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
@@ -140,10 +133,11 @@ public class BlubbMessage {
         }
 
         if(tCreator.equals(this.mCreator)) {
-            return layout;
-        } else {
-            return messageView;
+            messageView.setBackground(
+                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
+
         }
+        return messageView;
     }
 
     public String toString() {

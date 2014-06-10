@@ -6,15 +6,14 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name="com.blubb.alubb.blubbbasics.BlubbApplication"
         android:allowBackup="true"
         android:icon="@drawable/alubb"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:name="com.blubb.alubb.blubbbasics.BlubbApplication">
+        android:theme="@style/AppTheme" >
         <activity
-            android:name="com.blubb.alubb.blubbbasics.Blubb_login"
+            android:name="com.blubb.alubb.blubbbasics.BlubbLoginActivity"
             android:label="@string/title_activity_blubb_login" >
-
         </activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.ThreadOverview"
@@ -37,20 +36,16 @@
             android:name="com.blubb.alubb.blubbbasics.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
-        <activity
-            android:name="com.blubb.alubb.blubbbasics.MainActivity"
-            android:label="@string/title_activity_main" >
-        </activity>
 
         <service
             android:name="com.blubb.alubb.beapcom.MessagePullService"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/alubb"
-            android:label="@string/service_message_pull_name">
+            android:label="@string/service_message_pull_name" >
         </service>
+
     </application>
     <!-- To access Google+ APIs: -->
-
 
 </manifest>

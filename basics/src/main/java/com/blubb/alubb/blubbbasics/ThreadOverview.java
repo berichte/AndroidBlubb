@@ -1,5 +1,6 @@
 package com.blubb.alubb.blubbbasics;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Dialog;
@@ -7,9 +8,11 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -24,12 +27,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbThread;
-import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.beapcom.MessagePullService;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
@@ -38,7 +39,6 @@ import com.blubb.alubb.blubexceptions.SessionException;
 
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -49,30 +49,38 @@ public class ThreadOverview extends Activity {
     private static final int RESULT_SETTINGS = 1,
                             RESULT_LOGIN = 2;
     final Context context = this;
-    private PendingIntent mAlarmSender;
-    private boolean showSpinner = false;
+    private boolean loginSpinn = false,
+            getAllBeapSpinn = false,
+            getAllLocalSpinn = false,
+            createThreadSpinn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        Log.v(NAME, "onCreate(bundle)");
+        start();
+    }
+
+    private void start(){
 
         setContentView(R.layout.activity_thread_overview);
         checkForLogin();
 
+        this.getAllLocalSpinn = true;
         new AsyncGetLocalThreads().execute();
+        spinnerOn();
         AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
+        this.getAllBeapSpinn = true;
         spinnerOn();
         asyncGetAllThreads.execute();
         addNewThreadButtonListener();
         startMessagePullService();
     }
 
-
-
     private void checkForLogin() {
         Log.v(NAME, "checkForLogin()");
+        this.loginSpinn = true;
+        spinnerOn();
         new AsyncCheckLogin().execute();
     }
 
@@ -83,11 +91,11 @@ public class ThreadOverview extends Activity {
     private void startMessagePullService() {
         Log.v(NAME, "startMessagePullService()");
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mAlarmSender = PendingIntent.getService(ThreadOverview.this,
+        PendingIntent mAlarmSender = PendingIntent.getService(ThreadOverview.this,
                 0, new Intent(ThreadOverview.this, MessagePullService.class), 0);
         am.cancel(mAlarmSender);
-        SharedPreferences sharedPrefs =
-                PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
+        SharedPreferences sharedPrefs;
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         String intName = this.getString(R.string.pref_message_pull_interval);
         String intervalStr = sharedPrefs.getString(intName, "0");
@@ -105,9 +113,9 @@ public class ThreadOverview extends Activity {
     public void onResume() {
         super.onResume();
         Log.v(NAME, "onResume()");
-        //login();
+        start();
         startMessagePullService();
-        if (showSpinner)
+        if (shouldSpinn())
         {
             spinnerOn();
         }
@@ -131,7 +139,7 @@ public class ThreadOverview extends Activity {
                 startActivityForResult(i, RESULT_SETTINGS);
                 break;
             case R.id.blubb_settings_login:
-                Intent loginIntent = new Intent(this, Blubb_login.class);
+                Intent loginIntent = new Intent(this, BlubbLoginActivity.class);
                 startActivityForResult(loginIntent, RESULT_LOGIN);
         }
         return true;
@@ -142,17 +150,34 @@ public class ThreadOverview extends Activity {
         Button nMessageButton = (Button) findViewById(R.id.thread_overview_new_thread_button);
         nMessageButton.setOnClickListener(new View.OnClickListener() {
 
+            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
                 // custom dialog
-                final Dialog dialog = new Dialog(context);
-                dialog.setContentView(R.layout.new_thread_layout);
-                dialog.setTitle("Create new thread");
+                //AlertDialog.Builder builder = new AlertDialog.Builder(ThreadOverview.this);
+                final Dialog dialog = new Dialog(ThreadOverview.this);
 
-                final EditText title = (EditText) dialog.findViewById(R.id.thread_new_title),
-                        descr = (EditText) dialog.findViewById(R.id.thread_new_descr);
-                Button sendBtn = (Button) dialog.findViewById(R.id.thread_new_send_button),
-                        cancelBtn = (Button) dialog.findViewById(R.id.thread_new_cancel_button);
+                LayoutInflater inflater = getLayoutInflater();
+                View dialogLayout = inflater.inflate(R.layout.create_thread_dialog, null);
+                dialog.setContentView(dialogLayout);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                View divider = dialog.findViewById(
+                        dialog.getContext().getResources()
+                                .getIdentifier("android:id/titleDivider", null, null));
+                divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
+               // builder.setView(dialogLayout);
+
+                //builder.setInverseBackgroundForced(true);
+                assert dialogLayout != null;
+                final EditText title = (EditText) dialogLayout.findViewById(
+                        R.id.thread_new_title_dialog),
+                        descr = (EditText) dialogLayout.findViewById(
+                                R.id.thread_new_descr_dialog);
+                Button sendBtn;
+                sendBtn = (Button) dialogLayout.findViewById(
+                        R.id.thread_new_send_button_dialog);
+                Button cancelBtn = (Button) dialogLayout.findViewById(
+                                                R.id.thread_new_cancel_button_dialog);
 
                 sendBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -161,7 +186,10 @@ public class ThreadOverview extends Activity {
                                 title.getText().toString(),
                                 descr.getText().toString()
                         );
+                        createThreadSpinn = true;
+                        spinnerOn();
                         asyncNewThread.execute();
+                        dialog.cancel();
                     }
                 });
                 cancelBtn.setOnClickListener(new View.OnClickListener() {
@@ -171,7 +199,6 @@ public class ThreadOverview extends Activity {
                     }
                 });
                 dialog.show();
-
             }
         });
     }
@@ -188,7 +215,7 @@ public class ThreadOverview extends Activity {
         @Override
         protected BlubbThread doInBackground(Void... voids) {
             Log.v("AsyncNewThread", "execute()");
-            spinnerOn();
+
             try {
                 return getApp().getThreadManager().createThread(
                         ThreadOverview.this.getApplicationContext(), title, descr);
@@ -216,6 +243,7 @@ public class ThreadOverview extends Activity {
                 Toast.makeText(ThreadOverview.this, msg, Toast.LENGTH_LONG).show();
             } // if null there has been a toast.
             handleException(exception);
+            createThreadSpinn = false;
             spinnerOff();
         }
     }
@@ -227,16 +255,52 @@ public class ThreadOverview extends Activity {
         }
     }
 
+    private boolean shouldSpinn() {
+        return (getAllBeapSpinn || getAllLocalSpinn || loginSpinn || createThreadSpinn);
+    }
+
     public void spinnerOn()
     {
-        showSpinner = true;
-        setProgressBarIndeterminateVisibility(true);
+        if(shouldSpinn()) {
+            setProgressBarIndeterminateVisibility(true);
+        }
     }
 
     public void spinnerOff()
     {
-        showSpinner = false;
-        setProgressBarIndeterminateVisibility(false);
+        if(!shouldSpinn()) {
+            setProgressBarIndeterminateVisibility(false);
+        }
+    }
+
+    private class ThreadArrayAdapter extends ArrayAdapter<BlubbThread> {
+
+        HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
+
+        public ThreadArrayAdapter(Context context, int textViewResourceId,
+                                  List<BlubbThread> objects) {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            BlubbThread blubbThread = getItem(position);
+            return blubbThread.getView(ThreadOverview.this, parent);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            BlubbThread item = getItem(position);
+            return mIdMap.get(item);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
     }
 
     private class AsyncGetLocalThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
@@ -250,18 +314,18 @@ public class ThreadOverview extends Activity {
 
         @Override
         protected void onPostExecute(final List<BlubbThread> response) {
+            Log.v("AsyncGetAllLocalThreads", "received " + response.size() + " threads.");
             ListView lv = (ListView) findViewById(R.id.thread_list);
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
                     ThreadOverview.this, R.layout.thread_list_entry, response);
             lv.setAdapter(adapter);
-            final List<BlubbThread> list = new ArrayList<BlubbThread>(response);
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {
                     Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
-                    assert ((BlubbThread) parent.getItemAtPosition(position)) != null;
+                    assert parent.getItemAtPosition(position) != null;
                     BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
                     String threadId = bThread.gettId();
                     intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
@@ -282,12 +346,15 @@ public class ThreadOverview extends Activity {
                                                int position, long id) {
                     BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
                     thread.toggleViewSize();
+                    @SuppressWarnings("unchecked")
                     ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
                             parent.getAdapter();
                     adapter.notifyDataSetChanged();
                     return true;
                 }
             });
+            getAllLocalSpinn = false;
+            spinnerOff();
         }
     }
 
@@ -319,18 +386,25 @@ public class ThreadOverview extends Activity {
         @Override
         protected void onPostExecute(final List<BlubbThread> response) {
             handleException(exception);
+
             ListView lv = (ListView) findViewById(R.id.thread_list);
+
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
                     ThreadOverview.this, R.layout.thread_list_entry, response);
+
+            if(adapter.getCount() > response.size()) {
+                spinnerOff();
+                return;
+            }
+
             lv.setAdapter(adapter);
-            final List<BlubbThread> list = new ArrayList<BlubbThread>(response);
 
             lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {
                     Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
-                    assert ((BlubbThread) parent.getItemAtPosition(position)) != null;
+                    assert parent.getItemAtPosition(position) != null;
                     BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
                     String threadId = bThread.gettId();
                     intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
@@ -344,6 +418,7 @@ public class ThreadOverview extends Activity {
                 }
 
             });
+            getAllBeapSpinn = false;
             spinnerOff();
         }
     }
@@ -377,44 +452,18 @@ public class ThreadOverview extends Activity {
                 Toast.makeText(context, exception.getMessage(), Toast.LENGTH_SHORT).show();
                 // if the exception is a ConnectionException don't let user perform manual login
                 if(!exception.getClass().equals(BlubbDBConnectionException.class)) {
-                    Intent intent = new Intent(ThreadOverview.this, Blubb_login.class);
+                    Intent intent = new Intent(ThreadOverview.this, BlubbLoginActivity.class);
                     ThreadOverview.this.startActivity(intent);
                 }
 
 
             }
+            loginSpinn = false;
+            spinnerOff();
         }
     }
 
-    private class ThreadArrayAdapter extends ArrayAdapter<BlubbThread> {
 
-        HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
-
-        public ThreadArrayAdapter(Context context, int textViewResourceId,
-                                  List<BlubbThread> objects) {
-            super(context, textViewResourceId, objects);
-            for (int i = 0; i < objects.size(); ++i) {
-                mIdMap.put(objects.get(i), i);
-            }
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            BlubbThread blubbThread = getItem(position);
-            return blubbThread.getView(ThreadOverview.this, parent);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            BlubbThread item = getItem(position);
-            return mIdMap.get(item);
-        }
-
-        @Override
-        public boolean hasStableIds() {
-            return true;
-        }
-    }
 
 
 }
