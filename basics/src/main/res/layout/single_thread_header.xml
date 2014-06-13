@@ -14,7 +14,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Description of the thread\nfor thread\nblabla"
         android:id="@+id/single_thread_header_tv"
-        android:textColor="@color/beap_light_gray"
+        android:textColor="@color/blubb_cards_content_text"
         android:textAlignment="center"
         android:layout_gravity="center_horizontal" />
 </LinearLayout>

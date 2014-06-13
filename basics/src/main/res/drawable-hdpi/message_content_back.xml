@@ -7,7 +7,7 @@ android:paddingBottom="@dimen/cards_separation_space">
 <item >
     <shape xmlns:android="http://schemas.android.com/apk/res/android"
         android:shape="rectangle" android:padding="10dp">
-        <solid android:color="@color/beap_blue"/>
+        <solid android:color="@color/blubb_cards_shadow"/>
         <corners
             android:topLeftRadius="15dp"
             android:topRightRadius="8dp"
@@ -19,7 +19,7 @@ android:paddingBottom="@dimen/cards_separation_space">
 <item android:left="1dp" android:top="2dp">
     <shape xmlns:android="http://schemas.android.com/apk/res/android"
         android:shape="rectangle" android:padding="10dp">
-        <solid android:color="#FFFFFF"/>
+        <solid android:color="@color/blubb_cards_content"/>
         <corners
             android:topLeftRadius="15dp"
             android:topRightRadius="8dp"

@@ -18,11 +18,13 @@
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ThreadTitle"/>
+            android:text="ThreadTitle"
+            android:textColor="@color/blubb_cards_text"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Msgs"
+            android:textColor="@color/blubb_cards_text"
             android:textAlignment="center"
             android:gravity="right"
             android:id="@+id/thread_list_item_msgcount"

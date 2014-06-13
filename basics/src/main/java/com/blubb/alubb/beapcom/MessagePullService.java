@@ -139,7 +139,7 @@ public class MessagePullService extends Service {
     private void createMessageNotification(List<BlubbMessage> messages) {
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.alubb);
+        builder.setSmallIcon(R.drawable.blubb_logo);
         if(messages.size() > 1) {
             String nTitle = "You received " + messages.size() + " new messages";
             String nContent = "From:\n";

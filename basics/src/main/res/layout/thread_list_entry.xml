@@ -20,11 +20,13 @@
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ThreadTitle"/>
+            android:text="ThreadTitle"
+            android:textColor="@color/blubb_cards_text"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Msgs"
+            android:textColor="@color/blubb_cards_text"
             android:textAlignment="center"
             android:gravity="right"
             android:id="@+id/thread_list_item_msgcount"
@@ -46,6 +48,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="ThreadAuthor"
+            android:textColor="@color/blubb_cards_text"
             android:paddingLeft="15dp"
             android:id="@+id/thread_list_item_author" />
 
@@ -54,6 +57,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="thread info"
+            android:textColor="@color/blubb_cards_text"
             android:id="@+id/thread_list_item_info"
             android:paddingLeft="15dp"
             android:paddingBottom="10dp"
@@ -64,6 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Thread\ndescription\non three lines"
+            android:textColor="@color/blubb_cards_content_text"
             android:background="@drawable/message_content_back"
             android:paddingLeft="15dp"
             android:paddingTop="5dp"
