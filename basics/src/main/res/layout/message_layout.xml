@@ -7,22 +7,25 @@
     android:background="@drawable/message_layout_back"
     android:padding="@dimen/message_padding"
     android:id="@+id/message_layout">
+<!--    android:alpha="0.5"-->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_gravity="left">
-        <ImageView
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/message_profile_pic"
-            android:src="@drawable/alubb"/>
+            android:text="U"
+            android:textSize="50dp"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/message_role_tv"
             android:text="mRole"
-            android:textColor="@color/blubb_cards_text"/>
+            android:textColor="@color/blubb_cards_text"
+            android:visibility="invisible"/>
     </LinearLayout>
 
     <LinearLayout
@@ -49,20 +52,29 @@
                 android:singleLine="false"
                 android:textAppearance="@android:style/TextAppearance.Large" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="mCreator"
-                android:textColor="@color/blubb_cards_text"
-                android:id="@+id/message_creator_tv"
-                android:textAppearance="@android:style/TextAppearance.Medium" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/message_date_tv"
-                android:text="mDate"
-                android:textColor="@color/blubb_cards_text"
-                android:paddingBottom="7dp"/>
+                android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="mCreator"
+                    android:textColor="@color/blubb_cards_text"
+                    android:id="@+id/message_creator_tv"
+                    android:textAppearance="@android:style/TextAppearance.Medium"
+                    android:layout_gravity="left"
+                    android:layout_weight="1" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/message_date_tv"
+                    android:text="mDate"
+                    android:textColor="@color/blubb_cards_text"
+                    android:paddingBottom="7dp"
+                    android:layout_gravity="right"
+                    android:layout_weight="1" />
+                </LinearLayout>
+
         </LinearLayout>
         <TextView
             android:layout_width="match_parent"
@@ -70,6 +82,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:background="@drawable/message_content_back"
             android:text="mContent"
+            android:textColor="@color/blubb_cards_content_text"
             android:padding="8dp"
             android:id="@+id/message_content_tv" />
      </LinearLayout>

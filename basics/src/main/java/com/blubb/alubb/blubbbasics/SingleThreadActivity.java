@@ -200,7 +200,7 @@ public class SingleThreadActivity extends Activity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {
-
+/*
                     final String item = parent.getItemAtPosition(position).toString();
                     view.animate().setDuration(2000).alpha(0)
                             .withEndAction(new Runnable() {
@@ -209,7 +209,7 @@ public class SingleThreadActivity extends Activity {
                                     //TODO place here code to reply to a message or something.
                                 }
                             });
-                }
+                */}
 
             });
             spinnerOff();

@@ -3,13 +3,14 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="createEmptyContentRootDirectories" value="true" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="C:\Users\Benni\Workspace\AndroidBlubb" />
-            <option value="C:\Users\Benni\Workspace\AndroidBlubb\basics" />
-            <option value="C:\Users\Benni\Workspace\AndroidBlubb\blubb_support" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/basics" />
+            <option value="$PROJECT_DIR$/blubb_support" />
           </set>
         </option>
       </GradleProjectSettings>

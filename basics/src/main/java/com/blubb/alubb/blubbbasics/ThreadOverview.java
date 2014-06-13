@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -27,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
@@ -60,6 +62,8 @@ public class ThreadOverview extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         start();
     }
+
+
 
     private void start(){
 

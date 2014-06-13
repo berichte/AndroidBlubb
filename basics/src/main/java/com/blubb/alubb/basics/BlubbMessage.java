@@ -1,6 +1,7 @@
 package com.blubb.alubb.basics;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
+import com.blubb.alubb.blubbbasics.BlubbApplication;
 
 import org.json.JSONObject;
 
@@ -118,7 +120,9 @@ public class BlubbMessage {
                 mContent= (TextView) messageView.findViewById(R.id.message_content_tv),
                 mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
                 mDate = (TextView) messageView.findViewById(R.id.message_date_tv),
-                mRole = (TextView) messageView.findViewById(R.id.message_role_tv);
+                mRole = (TextView) messageView.findViewById(R.id.message_role_tv),
+                mPic = (TextView) messageView.findViewById(R.id.message_profile_pic);
+
 
         mTitle.setText(this.getmTitle());
         mContent.setText(this.getmContent());
@@ -132,9 +136,16 @@ public class BlubbMessage {
                     context.getResources().getDrawable(R.drawable.message_layout_back_new));
         }
 
+        Typeface tf = Typeface.createFromAsset(context.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, mPic);
+
         if(tCreator.equals(this.mCreator)) {
-            messageView.setBackground(
+            mPic.setTextColor(context.getResources().getColor(R.color.beap_red));
+            /*messageView.setBackground(
                     context.getResources().getDrawable(R.drawable.message_layout_back_creator));
+*/
+        } else {
+            mPic.setTextColor(context.getResources().getColor(R.color.beap_dark_yellow));
 
         }
         return messageView;

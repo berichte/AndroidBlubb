@@ -14,11 +14,14 @@
         android:layout_weight="0.05"
         android:textStyle="bold"
         android:textSize="30sp"
+        android:textColor="@color/beap_dark_blue"
         android:gravity="center"
-        android:padding="15dp" />
+        android:padding="15dp"/>
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/beap_blue"
+        android:textColorHint="@color/beap_blue"
         android:id="@+id/message_new_title_dialog"
         android:hint="@string/message_new_title_hint"
         />

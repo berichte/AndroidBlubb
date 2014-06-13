@@ -2,6 +2,7 @@ package com.blubb.alubb.basics;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
+import com.blubb.alubb.blubbbasics.BlubbApplication;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -180,6 +182,7 @@ public class BlubbThread {
                 R.layout.thread_list_item_small, parent, false);
         TextView tTitle     = (TextView) layout.findViewById(R.id.thread_list_item_title),
                 tMsg        = (TextView) layout.findViewById(R.id.thread_list_item_msgcount);
+
         tTitle.setText(this.tTitle);
         tMsg.setText(this.tMsgCount + "");
         if(this.hasNewMsgs) {
@@ -188,4 +191,6 @@ public class BlubbThread {
         }
         return layout;
     }
+
+
 }
