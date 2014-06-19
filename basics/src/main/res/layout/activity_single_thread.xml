@@ -2,29 +2,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity"
     android:background="@drawable/blubb_background2"
+    android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:orientation="vertical">
+    tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity">
 
     <ListView
+        android:id="@+id/single_thread_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/single_thread_listview"
         android:divider="@android:color/transparent"
-        android:dividerHeight="@dimen/cards_separation_space">
+        android:dividerHeight="@dimen/cards_separation_space"
+        android:paddingTop="?android:attr/actionBarSize">
 
-        </ListView>
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:src="@drawable/mail_new"
-        android:id="@+id/single_thread_new_message_button"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:contentDescription="@string/new_message_text"
-        android:background="@drawable/message_layout_back"
-        android:padding="@dimen/message_padding"/>
+    </ListView>
+
 </RelativeLayout>

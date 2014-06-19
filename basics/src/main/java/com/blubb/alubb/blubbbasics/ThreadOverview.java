@@ -28,7 +28,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
@@ -37,6 +36,7 @@ import com.blubb.alubb.beapcom.MessagePullService;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
 import org.json.JSONException;
@@ -63,8 +63,6 @@ public class ThreadOverview extends Activity {
         start();
     }
 
-
-
     private void start(){
 
         setContentView(R.layout.activity_thread_overview);
@@ -77,7 +75,6 @@ public class ThreadOverview extends Activity {
         this.getAllBeapSpinn = true;
         spinnerOn();
         asyncGetAllThreads.execute();
-        addNewThreadButtonListener();
         startMessagePullService();
     }
 
@@ -131,13 +128,16 @@ public class ThreadOverview extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.settings, menu);
+        getMenuInflater().inflate(R.menu.thread_overview_actions, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.new_thread_action:
+                newThreadDialog();
+                break;
             case R.id.blubb_settings:
                 Intent i = new Intent(this, SettingsActivity.class);
                 startActivityForResult(i, RESULT_SETTINGS);
@@ -149,65 +149,84 @@ public class ThreadOverview extends Activity {
         return true;
     }
 
-    private void addNewThreadButtonListener() {
-        Log.v(NAME, "addNewThreadButtonListener()");
-        Button nMessageButton = (Button) findViewById(R.id.thread_overview_new_thread_button);
-        nMessageButton.setOnClickListener(new View.OnClickListener() {
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private void newThreadDialog() {
+        final Dialog dialog = new Dialog(ThreadOverview.this);
 
-            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogLayout = inflater.inflate(R.layout.create_thread_dialog, null);
+        dialog.setContentView(dialogLayout);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        View divider = dialog.findViewById(
+                dialog.getContext().getResources()
+                        .getIdentifier("android:id/titleDivider", null, null)
+        );
+        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
+        // builder.setView(dialogLayout);
+
+        //builder.setInverseBackgroundForced(true);
+        assert dialogLayout != null;
+        final EditText title = (EditText) dialogLayout.findViewById(
+                R.id.thread_new_title_dialog),
+                descr = (EditText) dialogLayout.findViewById(
+                        R.id.thread_new_descr_dialog);
+        Button yBtn;
+        yBtn = (Button) dialogLayout.findViewById(
+                R.id.y_button_dialog);
+        Button xBtn = (Button) dialogLayout.findViewById(
+                R.id.x_button_dialog);
+
+        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, yBtn);
+        BlubbApplication.setLayoutFont(tf, xBtn);
+
+        yBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // custom dialog
-                //AlertDialog.Builder builder = new AlertDialog.Builder(ThreadOverview.this);
-                final Dialog dialog = new Dialog(ThreadOverview.this);
-
-                LayoutInflater inflater = getLayoutInflater();
-                View dialogLayout = inflater.inflate(R.layout.create_thread_dialog, null);
-                dialog.setContentView(dialogLayout);
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                View divider = dialog.findViewById(
-                        dialog.getContext().getResources()
-                                .getIdentifier("android:id/titleDivider", null, null));
-                divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-               // builder.setView(dialogLayout);
-
-                //builder.setInverseBackgroundForced(true);
-                assert dialogLayout != null;
-                final EditText title = (EditText) dialogLayout.findViewById(
-                        R.id.thread_new_title_dialog),
-                        descr = (EditText) dialogLayout.findViewById(
-                                R.id.thread_new_descr_dialog);
-                Button sendBtn;
-                sendBtn = (Button) dialogLayout.findViewById(
-                        R.id.thread_new_send_button_dialog);
-                Button cancelBtn = (Button) dialogLayout.findViewById(
-                                                R.id.thread_new_cancel_button_dialog);
-
-                sendBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AsyncNewThread asyncNewThread = new AsyncNewThread(
-                                title.getText().toString(),
-                                descr.getText().toString()
-                        );
-                        createThreadSpinn = true;
-                        spinnerOn();
-                        asyncNewThread.execute();
-                        dialog.cancel();
-                    }
-                });
-                cancelBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.cancel();
-                    }
-                });
-                dialog.show();
+                AsyncNewThread asyncNewThread = new AsyncNewThread(
+                        title.getText().toString(),
+                        descr.getText().toString()
+                );
+                createThreadSpinn = true;
+                spinnerOn();
+                asyncNewThread.execute();
+                dialog.cancel();
             }
         });
+        xBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.cancel();
+            }
+        });
+        dialog.show();
     }
 
-    private class AsyncNewThread extends AsyncTask<Void, Void, BlubbThread>{
+    private void handleException(Exception e) {
+        if (e != null) {
+            Log.e(NAME, e.getMessage());
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean shouldSpinn() {
+        return (getAllBeapSpinn || getAllLocalSpinn || loginSpinn || createThreadSpinn);
+    }
+
+    public void spinnerOn() {
+        if (shouldSpinn()) {
+            setProgressBarIndeterminateVisibility(true);
+        }
+    }
+
+    public void spinnerOff()
+    {
+        if (!shouldSpinn()) {
+            setProgressBarIndeterminateVisibility(false);
+        }
+    }
+
+    private class AsyncNewThread extends AsyncTask<Void, Void, BlubbThread> {
 
         String title, descr;
         Exception exception;
@@ -216,6 +235,7 @@ public class ThreadOverview extends Activity {
             this.title = title;
             this.descr = descr;
         }
+
         @Override
         protected BlubbThread doInBackground(Void... voids) {
             Log.v("AsyncNewThread", "execute()");
@@ -239,7 +259,7 @@ public class ThreadOverview extends Activity {
 
         @Override
         protected void onPostExecute(BlubbThread thread) {
-            if(thread != null) {
+            if (thread != null) {
                 String msg = "Created new Thread:\n" +
                         "tId: " + thread.gettId() + "\n" +
                         "tTitle: " + thread.getThreadTitle();
@@ -249,31 +269,6 @@ public class ThreadOverview extends Activity {
             handleException(exception);
             createThreadSpinn = false;
             spinnerOff();
-        }
-    }
-
-    private void handleException(Exception e) {
-        if(e != null) {
-            Log.e(NAME, e.getMessage());
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private boolean shouldSpinn() {
-        return (getAllBeapSpinn || getAllLocalSpinn || loginSpinn || createThreadSpinn);
-    }
-
-    public void spinnerOn()
-    {
-        if(shouldSpinn()) {
-            setProgressBarIndeterminateVisibility(true);
-        }
-    }
-
-    public void spinnerOff()
-    {
-        if(!shouldSpinn()) {
-            setProgressBarIndeterminateVisibility(false);
         }
     }
 
@@ -445,6 +440,8 @@ public class ThreadOverview extends Activity {
                 this.exception = e;
             } catch (BlubbDBConnectionException e) {
                 this.exception = e;
+            } catch (PasswordInitException e) {
+                Log.e(NAME, e.getMessage() + " can not happen at this point!");
             }
             return false;
         }

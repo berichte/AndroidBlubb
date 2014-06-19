@@ -2,25 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/blubb_background3"
+    android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity"
-    android:orientation="vertical"
-    android:background="@drawable/blubb_background3">
+    tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity">
 
     <ListView
+        android:id="@+id/thread_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/thread_list"
         android:divider="@android:color/transparent"
-        android:paddingTop="@dimen/cards_separation_space"
-        android:dividerHeight="@dimen/cards_separation_space">
-    </ListView>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/thread_overview_new_thread_button_text"
-        android:id="@+id/thread_overview_new_thread_button"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"/>
+        android:dividerHeight="@dimen/cards_separation_space"
+        android:paddingTop="?android:attr/actionBarSize"></ListView>
 </RelativeLayout>

@@ -3,10 +3,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/new_thread_action"
+        android:icon="@drawable/blubb_logo"
+        android:showAsAction="always"
+        android:title="@string/new_thread_action_text" />
+    <item
         android:id="@+id/blubb_settings"
         android:orderInCategory="100"
-        android:title="Settings"
-        />
+        android:title="Settings" />
     <item
         android:id="@+id/blubb_settings_login"
         android:title="@string/login" />

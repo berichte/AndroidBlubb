@@ -2,58 +2,78 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/beap_light_gray"
+    android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
-    tools:context="com.blubb.alubb.blubbbasics.BlubbLoginActivity"
-    android:weightSum="1">
+    android:weightSum="1"
+    tools:context="com.blubb.alubb.blubbbasics.BlubbLoginActivity">
 
     <ImageView
+        android:id="@+id/imageView"
         android:layout_width="225dp"
         android:layout_height="221dp"
-        android:id="@+id/imageView"
         android:layout_gravity="center_horizontal|top"
+        android:paddingTop="?android:attr/actionBarSize"
         android:src="@drawable/blubb_logo_big" />
 
     <Space
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.33" />
+        android:layout_height="wrap_content" />
 
     <EditText
         android:id="@+id/blubb_login_username"
-        android:text="@string/prompt_username"
-        android:hint="@string/login_username_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom" />
+        android:layout_gravity="center_horizontal|bottom"
+        android:hint="@string/login_username_hint" />
 
     <EditText
         android:id="@+id/blubb_login_password"
-        android:text="@string/prompt_password"
-        android:hint="@string/login_password_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:password="true"
         android:layout_alignParentBottom="true"
-        android:layout_gravity="center_horizontal|bottom" />
-    <Button
+        android:layout_gravity="center_horizontal|bottom"
+        android:hint="@string/login_password_hint"
+        android:password="true" />
+
+    <EditText
+        android:id="@+id/blubb_login_password_reset"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/action_sign_in_short"
-        android:textColor="@android:color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center_horizontal|bottom"
+        android:hint="@string/login_password_reset_hint"
+        android:password="true"
+        android:visibility="invisible" />
+
+    <EditText
+        android:id="@+id/blubb_login_password_reset_confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center_horizontal|bottom"
+        android:hint="@string/login_password__reset_confirm_hint"
+        android:password="true"
+        android:visibility="invisible" />
+
+    <Button
         android:id="@+id/blubb_login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/blubb_button"
-        android:layout_gravity="center_horizontal|bottom" />
+        android:text="@string/action_sign_in_short"
+        android:textColor="@android:color/white" />
 
     <CheckBox
+        android:id="@+id/login_stay_logged_cb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/login_stay_logged_in"
+        android:layout_gravity="center_horizontal|bottom"
         android:checked="true"
-        android:id="@+id/login_stay_logged_cb"
-        android:layout_gravity="center_horizontal|bottom" />
+        android:text="@string/login_stay_logged_in" />
 
 </LinearLayout>

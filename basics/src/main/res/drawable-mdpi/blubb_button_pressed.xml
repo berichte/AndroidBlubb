@@ -8,7 +8,7 @@
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_title_bar_shadow" />
+            <solid android:color="@color/beap_blue" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"
@@ -17,12 +17,12 @@
         </shape>
     </item>
     <item
-        android:bottom="2dp"
-        android:right="1dp">
+        android:left="1dp"
+        android:top="2dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_title_bar" />
+            <solid android:color="@color/beap_dark_blue" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"

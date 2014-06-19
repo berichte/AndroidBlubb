@@ -23,8 +23,8 @@
     <string name="thread_overview_new_thread_button_text">create a new thread</string>
     <string name="thread_new_title_hint">here goes the thread title</string>
     <string name="thread_new_descr_hint">put in a simple description for your thread</string>
-    <string name="thread_new_send_button_text">create</string>
-    <string name="thread_new_cancel_button_text">cancel</string>
+    <string name="thread_new_send_button_text">y</string>
+    <string name="thread_new_cancel_button_text">x</string>
     <string name="thread_new_mb_title">Create a new thread</string>
     <string name="new_message_text">new message</string>
     <string name="blubb_message_pull_prefab_rate">Message Pull</string>
@@ -40,12 +40,21 @@
     <string name="login_stay_logged_in">Stay logged in?</string>
     <string name="login_username_hint">Your username</string>
     <string name="login_password_hint">Your password</string>
+    <string name="login_password_reset_hint">Your new password</string>
+    <string name="login_password__reset_confirm_hint">Confirm your new password</string>
     <string name="create_new_thread_dialog_title">Create a new thread</string>
     <string name="title_message_list">Threads</string>
     <string name="title_message_detail">Message Detail</string>
     <string name="create_new_message_dialog_title">Write a new message</string>
     <string name="message_new_title_hint">Message subject</string>
     <string name="message_new_content_hint">say something</string>
-    <string name="message_new_send_button_text">send</string>
+    <string name="message_new_send_button_text">Y</string>
+    <string name="new_thread_action_text">new thread</string>
+    <string name="application_font">Exo2.0-Regular.otf</string>
+    <string name="new_message_action_text">create a new message</string>
+    <string name="password_init_dialog_title">You must set your own password before you can proceed.</string>
+    <string name="password_init_dialog_old_password_hint">Your init password</string>
+    <string name="password_init_dialog_new_password_hint">Your new password</string>
+    <string name="password_init_dialog_confirm_password_hint">Confirm your new password</string>
 
 </resources>

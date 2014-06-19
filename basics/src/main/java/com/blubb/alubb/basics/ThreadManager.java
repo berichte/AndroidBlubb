@@ -1,9 +1,7 @@
 package com.blubb.alubb.basics;
 
 import android.content.Context;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.blubb.alubb.beapcom.BPC;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
@@ -11,6 +9,7 @@ import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
 import org.json.JSONArray;
@@ -78,7 +77,12 @@ public class ThreadManager {
         Log.v(NAME, "getAllThreadsFromBeap(context)");
         List<BlubbThread> beapThreads = new ArrayList<BlubbThread>();
         String query = "tree.functions.getAllThreads(self)";
-        String sessionId = SessionManager.getInstance().getSessionID(context);
+        String sessionId = null;
+        try {
+            sessionId = SessionManager.getInstance().getSessionID(context);
+        } catch (PasswordInitException e) {
+            Log.e(NAME, e.getMessage() + " can not happen at this point!");
+        }
         BlubbResponse response = BlubbRequestManager.query(query, sessionId);
         switch (response.getStatus()) {
             case OK:
@@ -174,7 +178,12 @@ public class ThreadManager {
         String query = "tree.functions.createThread(self," +
                 tTitle + "," + tDescription + ")";
         Log.i(NAME, "Executing query: " + query);
-        String sessionId = SessionManager.getInstance().getSessionID(context);
+        String sessionId = null;
+        try {
+            sessionId = SessionManager.getInstance().getSessionID(context);
+        } catch (PasswordInitException e) {
+            Log.e(NAME, e.getMessage() + " can not happen at this point!");
+        }
         Log.v(NAME, "Received sessionId: " + sessionId);
         // execute query
         BlubbResponse response = BlubbRequestManager.query(query, sessionId);
@@ -192,6 +201,16 @@ public class ThreadManager {
             default:
                 throw new BlubbDBException("Could not perform createThread" +
                         " Beap status: " + response.getStatus());
+        }
+    }
+
+    public void readingThread(Context context, String threadId) {
+        for (BlubbThread t : loadedThreads) {
+            if (t.gettId().equals(threadId)) {
+                t.setNew(false);
+                t.setHasNewMsgs(false);
+                putThreadToSqlite(context, t);
+            }
         }
     }
 }

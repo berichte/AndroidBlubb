@@ -13,6 +13,31 @@ import org.json.JSONObject;
  */
 public class BlubbResponse {
     public static final String TAG = "BlubbResponse";
+    private BeapReplyStatus status;
+    private String statusDescr;
+    private Object resultObj;
+    private SessionInfo sessionInfo;
+
+    public BlubbResponse(String jsonResponse) {
+        JSONObject response;
+        try {
+            response = new JSONObject(jsonResponse);
+            this.status = this.parseReply(response.getInt("BeapStatus"));
+            // RA.getString(R.string.json_beap_status)));
+
+            this.statusDescr = response.getString("StatusDescr");
+            //RA.getString(R.string.json_beap_status_desc));
+            if (status.equals(BeapReplyStatus.OK)) {
+                this.resultObj = this.parseResponseObject(response);
+            }
+        } catch (JSONException e) {
+            Log.e("json exception", e.getMessage());
+            this.status = BeapReplyStatus.CONNECTION_ERROR;
+
+        }
+        Log.v(TAG, "Constructed new BlubbResponse - Status: " + status);
+
+    }
 
     public BeapReplyStatus getStatus() {
         return status;
@@ -24,33 +49,6 @@ public class BlubbResponse {
 
     public Object getResultObj() {
         return resultObj;
-    }
-
-    private BeapReplyStatus status;
-    private String statusDescr;
-    private Object resultObj;
-    private SessionInfo sessionInfo;
-
-
-    public BlubbResponse(String jsonResponse) {
-        JSONObject response;
-        try {
-            response = new JSONObject(jsonResponse );
-            this.status = this.parseReply(response.getInt("BeapStatus"));
-                   // RA.getString(R.string.json_beap_status)));
-
-            this.statusDescr = response.getString("StatusDescr");
-                    //RA.getString(R.string.json_beap_status_desc));
-            if(status.equals(BeapReplyStatus.OK)){
-                this.resultObj = this.parseResponseObject(response);
-            }
-        } catch (JSONException e) {
-            Log.e("json exception", e.getMessage());
-            this.status = BeapReplyStatus.CONNECTION_ERROR;
-
-        }
-        Log.v(TAG, "Constructed new BlubbResponse - Status: " + status);
-
     }
 
     private BeapReplyStatus parseReply(int replyStatus) {
@@ -75,6 +73,8 @@ public class BlubbResponse {
                 return BeapReplyStatus.PARAMETER_ERROR;
             case 418:
                 return BeapReplyStatus.SYNTAX_ERROR;
+            case 423:
+                return BeapReplyStatus.PASSWORD_INIT;
             default:
                 return BeapReplyStatus.UNKNOWN_STATUS;
         }
@@ -84,34 +84,34 @@ public class BlubbResponse {
 
         try {
             JSONObject obj = json.getJSONObject("sessInfo");
-            this.sessionInfo =  new SessionInfo(obj);
+            this.sessionInfo = new SessionInfo(obj);
         } catch (JSONException e) {
             Log.e("parsing json", "there's no session info.");
         }
 
 
-            Object o = null;
-            if(json.has("Result")){
+        Object o = null;
+        if (json.has("Result")) {
+            try {
+                o = json.getJSONArray("Result");
+            } catch (JSONException e) {
+                Log.v("parsing json", "There's no \"Result\" for JsonArray.");
+            }
+            if (o == null) {
                 try {
-                    o = json.getJSONArray("Result");
+                    o = json.getJSONObject("Result");
                 } catch (JSONException e) {
-                    Log.v("parsing json", "There's no \"Result\" for JsonArray.");
+                    Log.v("parsing json", "Threre's no \"Result\" for JsonObject. o.O");
                 }
-                if(o == null) {
-                    try {
-                        o = json.getJSONObject("Result");
-                    } catch (JSONException e) {
-                        Log.v("parsing json", "Threre's no \"Result\" for JsonObject. o.O");
-                    }
+            }
+            if (o == null) {
+                try {
+                    o = json.getInt("Result");
+                } catch (JSONException e) {
+                    Log.v("parsing json", "Threre's no \"Result\" for int. o.O");
                 }
-                if(o == null) {
-                    try {
-                        o = json.getInt("Result");
-                    } catch (JSONException e) {
-                        Log.v("parsing json", "Threre's no \"Result\" for int. o.O");
-                    }
-                }
-                return o;
+            }
+            return o;
 
         }
         return null;

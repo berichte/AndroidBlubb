@@ -29,7 +29,8 @@ public class BlubbRequestManager {
                                 BEAP_ACTION_LOGOUT      = "logout",
                                 BEAP_ACTION_CHECK       = "check",
                                 BEAP_ACTION_QUERY       = "query",
-
+    // TODO set the right action for password reset in.
+    BEAP_ACTION_RESET_PW = "",
                                 BEAP_QUERY_STR          = "queryStr=",
 
                                 BEAP_ID_SESSION         = "BeapSession",
@@ -88,6 +89,19 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
+    public static BlubbResponse resetPassword(String username, String oldPw, String newPw,
+                                              String confirmPw) throws BlubbDBException {
+        //TODO check how to pass the passwords and modify the url.
+        String url = URL
+                + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
+                + BEAP_ACTION + BEAP_ACTION_RESET_PW + BLUBB_AND
+                + getParameter(BLUBB_USERNAME, username) + BLUBB_AND
+                + getParameter(BLUBB_PASSWORD, oldPw) + BLUBB_AND
+                + getParameter(BLUBB_PASSWORD, newPw) + BLUBB_AND
+                + getParameter(BLUBB_PASSWORD, confirmPw);
+        Log.v(NAME, "Build resetPassword url:\n" + url);
+        return executeRequest(url);
+    }
 
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&sessId=a634cca33cc52b1252ba9&Action=query
     // &queryStr=tree.functions.getAllThreads(self)
