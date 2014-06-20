@@ -33,8 +33,8 @@ import com.blubb.alubb.blubexceptions.SessionException;
 public class BlubbLoginActivity extends Activity {
     public static final String NAME = "BlubbLoginActivity";
 
-    public static final String  USERNAME_PREFAB = "username_prefab",
-                                PASSWORD_PREFAB = "password_prefab";
+    public static final String USERNAME_PREFAB = "username_prefab",
+            PASSWORD_PREFAB = "password_prefab";
     private String username, password;
 
     @Override
@@ -55,7 +55,6 @@ public class BlubbLoginActivity extends Activity {
             @Override
             public void onClick(View v) {
 
-
                 EditText un = (EditText) findViewById(R.id.blubb_login_username);
                 EditText pw = (EditText) findViewById(R.id.blubb_login_password);
 
@@ -72,7 +71,7 @@ public class BlubbLoginActivity extends Activity {
                 this.getApplicationContext());
         String prefName = this.getString(R.string.pref_username);
         prefName = prefs.getString(prefName, "NULL");
-        if(!username.equals(prefName) && !prefName.equals("NULL")) {
+        if (!username.equals(prefName) && !prefName.equals("NULL")) {
             DatabaseHandler.deleteDatabase(this);
         }
         String[] params = new String[2];
@@ -160,7 +159,7 @@ public class BlubbLoginActivity extends Activity {
             String username = params[0],
                     password = params[1];
             try {
-                if (getApp().getSessionManager().login(username, password)){
+                if (getApp().getSessionManager().login(username, password)) {
                     return getApp().getSessionManager()
                             .getSessionID(BlubbLoginActivity.this.getApplicationContext());
                 }
@@ -185,9 +184,9 @@ public class BlubbLoginActivity extends Activity {
                 return;
             }
 
-            if(response != null) {
+            if (response != null) {
                 CheckBox stayLogged = (CheckBox) findViewById(R.id.login_stay_logged_cb);
-                if(stayLogged.isChecked()) {
+                if (stayLogged.isChecked()) {
                     Log.i("Login", "User wants to stay logged in. Editing savedPrefs.\n" +
                             "saving: " + username + " as Username");
                     SharedPreferences sharedPreferences =

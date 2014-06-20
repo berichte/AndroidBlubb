@@ -68,9 +68,6 @@ public class ThreadOverview extends Activity {
         setContentView(R.layout.activity_thread_overview);
         checkForLogin();
 
-        this.getAllLocalSpinn = true;
-        new AsyncGetLocalThreads().execute();
-        spinnerOn();
         AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
         this.getAllBeapSpinn = true;
         spinnerOn();
@@ -267,6 +264,8 @@ public class ThreadOverview extends Activity {
                 Toast.makeText(ThreadOverview.this, msg, Toast.LENGTH_LONG).show();
             } // if null there has been a toast.
             handleException(exception);
+            AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
+            asyncGetAllThreads.execute();
             createThreadSpinn = false;
             spinnerOff();
         }
@@ -302,6 +301,7 @@ public class ThreadOverview extends Activity {
         }
     }
 
+    /**
     private class AsyncGetLocalThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
 
         @Override
@@ -355,37 +355,19 @@ public class ThreadOverview extends Activity {
             getAllLocalSpinn = false;
             spinnerOff();
         }
-    }
+    } */
 
     private class AsyncGetAllThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
-
-        private Exception exception;
 
         @Override
         protected List<BlubbThread> doInBackground(Void... voids) {
             Log.v("AsyncGetAllThreads", "execute()");
-            try {
-                return getApp().getThreadManager().getAllThreadsFromBeap(
+            return getApp().getThreadManager().getAllThreads(
                         ThreadOverview.this.getApplicationContext());
-            } catch (InvalidParameterException e) {
-                exception = e;
-            } catch (SessionException e) {
-                exception = e;
-            } catch (BlubbDBException e) {
-                exception = e;
-            } catch (JSONException e) {
-                exception = e;
-            } catch (BlubbDBConnectionException e) {
-                exception = e;
-            }
-            return getApp().getThreadManager().getAllThreadsFromSqlite(
-                    ThreadOverview.this.getApplicationContext());
         }
 
         @Override
         protected void onPostExecute(final List<BlubbThread> response) {
-            handleException(exception);
-
             ListView lv = (ListView) findViewById(R.id.thread_list);
 
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
@@ -416,6 +398,20 @@ public class ThreadOverview extends Activity {
                     ThreadOverview.this.startActivity(intent);
                 }
 
+            });
+            lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
+
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view,
+                                               int position, long id) {
+                    BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
+                    thread.toggleViewSize();
+                    @SuppressWarnings("unchecked")
+                    ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
+                            parent.getAdapter();
+                    adapter.notifyDataSetChanged();
+                    return true;
+                }
             });
             getAllBeapSpinn = false;
             spinnerOff();
@@ -452,7 +448,7 @@ public class ThreadOverview extends Activity {
             if (!isLoggedIn) {
                 Toast.makeText(context, exception.getMessage(), Toast.LENGTH_SHORT).show();
                 // if the exception is a ConnectionException don't let user perform manual login
-                if(!exception.getClass().equals(BlubbDBConnectionException.class)) {
+                if (exception.getClass().equals(SessionException.class)) {
                     Intent intent = new Intent(ThreadOverview.this, BlubbLoginActivity.class);
                     ThreadOverview.this.startActivity(intent);
                 }
@@ -463,8 +459,4 @@ public class ThreadOverview extends Activity {
             spinnerOff();
         }
     }
-
-
-
-
 }

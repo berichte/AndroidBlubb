@@ -16,38 +16,46 @@ import java.util.List;
 public class DatabaseHandler extends SQLiteOpenHelper {
 
     public static final String N = "SQLite";
-    /** Database version */
+    /**
+     * Database version
+     */
     private static final int DATABASE_VERSION = 1;
-    /** Database name */
+    /**
+     * Database name
+     */
     private static final String DATABASE_NAME = "blubbDB";
-    /** messages table name */
+    /**
+     * messages table name
+     */
     private static final String TABLE_MESSAGES = "messages";
-    /** threads table name */
+    /**
+     * threads table name
+     */
     private static final String TABLE_THREADS = "threads";
 
     //Column names for messages
     private static final String
-            M_ID        = "mId",
-            M_TITLE     = "mTitle",
-            M_CONTENT   = "mContent",
-            M_ROLE      = "mRole",
-            M_CREATOR   = "mCreator",
-            M_DATE      = "mDate",
-            M_TYPE      = "mType",
+            M_ID = "mId",
+            M_TITLE = "mTitle",
+            M_CONTENT = "mContent",
+            M_ROLE = "mRole",
+            M_CREATOR = "mCreator",
+            M_DATE = "mDate",
+            M_TYPE = "mType",
             M_THREAD_ID = "mThreadId",
-            M_IS_NEW    = "mIsNew";
+            M_IS_NEW = "mIsNew";
 
     //Column names for threads
     private static final String
-            T_ID        = "tId",
-            T_TITLE     = "tTitle",
-            T_DESC      = "tDescription",
-            T_CREATOR   = "tCreator",
-            T_C_ROLE    = "tCreatorRole",
-            T_DATE      = "tDate",
+            T_ID = "tId",
+            T_TITLE = "tTitle",
+            T_DESC = "tDescription",
+            T_CREATOR = "tCreator",
+            T_C_ROLE = "tCreatorRole",
+            T_DATE = "tDate",
             T_MSG_COUNT = "tMsgCount",
-            T_TYPE      = "tType",
-            T_IS_NEW    = "tIsNew",
+            T_TYPE = "tType",
+            T_IS_NEW = "tIsNew",
             T_HAS_NEW_M = "tHasNewMsg";
 
     public DatabaseHandler(Context context) {
@@ -111,7 +119,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(M_DATE, message.getmDate());
         values.put(M_TYPE, message.getmType());
         values.put(M_THREAD_ID, message.getmThread());
-        int flag = (message.isNew())? 1 : 0;
+        int flag = (message.isNew()) ? 1 : 0;
         values.put(M_IS_NEW, flag);
         db.insert(TABLE_MESSAGES, null, values);
         db.close();
@@ -130,8 +138,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(T_DATE, thread.gettDate());
         values.put(T_MSG_COUNT, thread.gettMsgCount());
         values.put(T_TYPE, thread.gettType().name());
-        int flagNew = (thread.isNew())? 1 : 0;
-        int flagMsgs = (thread.hasNewMsgs())? 1 : 0;
+        int flagNew = (thread.isNew()) ? 1 : 0;
+        int flagMsgs = (thread.hasNewMsgs()) ? 1 : 0;
         values.put(T_IS_NEW, flagNew);
         values.put(T_HAS_NEW_M, flagMsgs);
 
@@ -143,7 +151,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "getMessage(mId = " + mId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_MESSAGES,
-                new String[] {
+                new String[]{
                         M_ID,
                         M_TITLE,
                         M_CONTENT,
@@ -154,7 +162,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         M_THREAD_ID,
                         M_IS_NEW},
                 M_ID + "=?",
-                new String[] { String.valueOf(mId) }, null, null, null, null);
+                new String[]{String.valueOf(mId)}, null, null, null, null
+        );
         if (cursor != null && cursor.moveToFirst()) {
 
             BlubbMessage message = new BlubbMessage(
@@ -181,7 +190,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "getThread(tId = " + tId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_THREADS,
-                new String[] {
+                new String[]{
                         T_ID,
                         T_TITLE,
                         T_DESC,
@@ -193,7 +202,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         T_IS_NEW,
                         T_HAS_NEW_M},
                 T_ID + "=?",
-                new String[] { String.valueOf(tId) }, null, null, null, null);
+                new String[]{String.valueOf(tId)}, null, null, null, null
+        );
 
         if (cursor != null && cursor.moveToFirst()) {
 
@@ -225,7 +235,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectAllQuery, null);
         Log.v(N, "Found " + cursor.getCount() + " messages.");
-        if(cursor != null && cursor.moveToFirst()) {
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 BlubbMessage message = new BlubbMessage(
                         cursor.getString(0),
@@ -248,7 +258,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "getMessagesForThread(tId = " + tId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_MESSAGES,
-                new String[] {
+                new String[]{
                         M_ID,
                         M_TITLE,
                         M_CONTENT,
@@ -259,12 +269,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         M_THREAD_ID,
                         M_IS_NEW},      // Select * From table_messages
                 M_THREAD_ID + "=?",   // Where mThreadId = ?
-                new String[] { String.valueOf(tId) },   // ? = tId
-                null, null, null, null);
+                new String[]{String.valueOf(tId)},   // ? = tId
+                null, null, null, null
+        );
 
         List<BlubbMessage> msgList = new ArrayList<BlubbMessage>();
         Log.v(N, "Found " + cursor.getCount() + " messages for thread.");
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             do {
                 BlubbMessage message = new BlubbMessage(
                         cursor.getString(0),
@@ -292,7 +303,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectAllQuery, null);
 
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             do {
                 BlubbThread thread = new BlubbThread(
                         cursor.getString(0),
@@ -316,19 +327,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "setMessageRead(mId = " + mId + ")");
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values=new ContentValues();
+        ContentValues values = new ContentValues();
         values.put(M_IS_NEW, 0);
 
-        int id = db.update(TABLE_MESSAGES,values,M_ID + "=?"  , new String[] {mId});
+        int id = db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{mId});
         db.close();
     }
 
-    public void setThreadNewMsgs(String tId) {
+    public void setThreadNewMsgs(String tId, boolean hasNewMsgs) {
         Log.v(N, "setThreadNewMsgs(thread = " + tId + ")");
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values=new ContentValues();
-        values.put(T_HAS_NEW_M, 1);
+        int value = 0;
+        if (hasNewMsgs) value = 1;
+        ContentValues values = new ContentValues();
+        values.put(T_HAS_NEW_M, value);
 
         db.update(TABLE_THREADS, values, T_ID + "=?", new String[]{tId});
         db.close();
@@ -347,10 +360,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(M_DATE, message.getmDate());
         values.put(M_TYPE, message.getmType());
         values.put(M_THREAD_ID, message.getmThread());
-        int flag = (message.isNew())? 1 : 0;
+        int flag = (message.isNew()) ? 1 : 0;
         values.put(M_IS_NEW, flag);
 
-        db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[] {message.getmId()});
+        db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{message.getmId()});
+        db.close();
+        Log.v(N, "Updated message " + message.getmId());
+    }
+
+    public void updateMessageFromBeap(BlubbMessage message) {
+        Log.v(N, "updateMessageFromBeap(message = " + message.getmId());
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(M_ID, message.getmId());
+        values.put(M_TITLE, message.getmTitle());
+        values.put(M_CONTENT, message.getmContent());
+        values.put(M_ROLE, message.getmCreatorRole());
+        values.put(M_CREATOR, message.getmCreator());
+        values.put(M_DATE, message.getmDate());
+        values.put(M_TYPE, message.getmType());
+        values.put(M_THREAD_ID, message.getmThread());
+
+        db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{message.getmId()});
         db.close();
         Log.v(N, "Updated message " + message.getmId());
     }
@@ -368,12 +400,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(T_DATE, thread.gettDate());
         values.put(T_MSG_COUNT, thread.gettMsgCount());
         values.put(T_TYPE, thread.gettType().name());
-        int flagNew = (thread.isNew())? 1 : 0;
-        int flagMsgs = (thread.hasNewMsgs())? 1 : 0;
+        int flagNew = (thread.isNew()) ? 1 : 0;
+        int flagMsgs = (thread.hasNewMsgs()) ? 1 : 0;
         values.put(T_IS_NEW, flagNew);
         values.put(T_HAS_NEW_M, flagMsgs);
 
-        db.update(TABLE_THREADS, values, T_ID + "=?", new String[] {thread.gettId()});
+        db.update(TABLE_THREADS, values, T_ID + "=?", new String[]{thread.gettId()});
+        db.close();
+        Log.v(N, "Updated thread " + thread.gettId());
+    }
+
+    public void updateThreadFromBeap(BlubbThread thread) {
+        Log.v(N, "updateThreadFromBeap(thread = " + thread.gettId());
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(T_ID, thread.gettId());
+        values.put(T_TITLE, thread.getThreadTitle());
+        values.put(T_DESC, thread.gettDesc());
+        values.put(T_CREATOR, thread.gettCreator());
+        values.put(T_C_ROLE, thread.gettCreatorRole());
+        values.put(T_DATE, thread.gettDate());
+        values.put(T_MSG_COUNT, thread.gettMsgCount());
+        values.put(T_TYPE, thread.gettType().name());
+
+        db.update(TABLE_THREADS, values, T_ID + "=?", new String[]{thread.gettId()});
         db.close();
         Log.v(N, "Updated thread " + thread.gettId());
     }

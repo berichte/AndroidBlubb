@@ -29,8 +29,6 @@ public class ThreadManager {
     private static int threadsAtBeap = 0;
     private static ThreadManager tManager;
 
-    private List<BlubbThread> loadedThreads = new ArrayList<BlubbThread>();
-
     private ThreadManager() {
         Log.v(NAME, "Creating ThreadManager.");
     }
@@ -41,23 +39,33 @@ public class ThreadManager {
         return tManager;
     }
 
+    public List<BlubbThread> getAllThreads(Context context) {
+        try {
+            this.getAllThreadsFromBeap(context);
+        } catch (InvalidParameterException e) {
+            Log.e(NAME, e.getMessage());
+        } catch (SessionException e) {
+            Log.e(NAME, e.getMessage());
+        } catch (BlubbDBException e) {
+            Log.e(NAME, e.getMessage());
+        } catch (JSONException e) {
+            Log.e(NAME, e.getMessage());
+        } catch (BlubbDBConnectionException e) {
+            Log.e(NAME, e.getMessage());
+        }
+        return this.getAllThreadsFromSqlite(context);
+    }
+
     public List<BlubbThread> getNewThreads(Context context)
             throws InvalidParameterException, SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
         Log.v(NAME, "getNewThreads(context)");
-        List<BlubbThread> beapThreads = this.getAllThreadsFromBeap(context);
-        Log.v(NAME, "got Threads from beap, ListSize: " + beapThreads.size());
-        this.getAllThreadsFromSqlite(context);
-        Log.v(NAME, "got Threads from sqlite db, ListSize: " + this.loadedThreads.size());
-       removeAll(beapThreads, this.loadedThreads);
-        for (BlubbThread t: beapThreads) {
-            t.setNew(true);
+        List<BlubbThread> threads = getAllThreads(context);
+        List<BlubbThread> newThreads = new ArrayList<BlubbThread>();
+        for (BlubbThread t : threads) {
+            if (t.isNew()) newThreads.add(t);
         }
-        for(BlubbThread t: loadedThreads) {
-            if(t.isNew()) beapThreads.add(t);
-        }
-        Log.i(NAME, "final size of newThreadList: " + beapThreads.size());
-        return beapThreads;
+        return newThreads;
     }
 
     private List<BlubbThread> removeAll(List<BlubbThread> list, List<BlubbThread> toRemove) {
@@ -89,7 +97,7 @@ public class ThreadManager {
                 JSONArray jsonArray = (JSONArray) response.getResultObj();
                 for(int i = 0; i < jsonArray.length(); i++) {
                     BlubbThread t = new BlubbThread(jsonArray.getJSONObject(i));
-                    putThreadToSqlite(context, t);
+                    putThreadToSqliteFromBeap(context, t);
                     beapThreads.add(t);
                 }
                 Log.i(NAME, "received " + beapThreads.size() + " threads from beap.");
@@ -101,10 +109,25 @@ public class ThreadManager {
         }
     }
 
-    private void putThreadToSqlite(Context context, BlubbThread thread) {
-        Log.v(NAME, "putThreadToSqlite(context, message = " + thread.gettId() + ")");
+    private void putThreadToSqliteFromBeap(Context context, BlubbThread thread) {
+        Log.v(NAME, "putThreadToSqlite(context, thread=" + thread.gettId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
-        BlubbThread t = db .getThread(thread.gettId());
+        BlubbThread t = db.getThread(thread.gettId());
+        if (t != null) {
+            if (!thread.equals(t)) {
+                if (thread.gettMsgCount() > t.gettMsgCount()) thread.setHasNewMsgs(true);
+                db.updateThreadFromBeap(thread);
+            }
+        } else {
+            thread.setNew(true);
+            db.addThread(thread);
+        }
+    }
+
+    private void putThreadToSqlite(Context context, BlubbThread thread) {
+        Log.v(NAME, "putThreadToSqlite(context, thread=" + thread.gettId() + ")");
+        DatabaseHandler db = new DatabaseHandler(context);
+        BlubbThread t = db.getThread(thread.gettId());
         if(t != null) {
             if(!thread.equals(t)){
                 db.updateThread(thread);
@@ -117,14 +140,9 @@ public class ThreadManager {
     public List<BlubbThread> getAllThreadsFromSqlite(Context context) {
         DatabaseHandler db = new DatabaseHandler(context);
         Log.v(NAME, "getAllThreadsFromSqlite(context)");
-        if(loadedThreads.size() < db.getThreadCount()) {
-            Log.v(NAME, "Have no threads saved temporary, get it from sqlite.");
-            this.loadedThreads = db.getAllThreads();
-            Log.v(NAME, "Received " + this.loadedThreads.size() + " threads from sqlite.");
-        }
-        Log.v(NAME, "Have " + loadedThreads.size() + " to return from sqlite.");
+        List<BlubbThread> list = db.getAllThreads();
         db.close();
-        return this.loadedThreads;
+        return list;
     }
 
     public BlubbThread getThread(Context context, String tId)
@@ -196,7 +214,6 @@ public class ThreadManager {
                 BlubbThread thread = new BlubbThread(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.addThread(thread);
-                this.loadedThreads.add(thread);
                 return thread;
             default:
                 throw new BlubbDBException("Could not perform createThread" +
@@ -205,12 +222,10 @@ public class ThreadManager {
     }
 
     public void readingThread(Context context, String threadId) {
-        for (BlubbThread t : loadedThreads) {
-            if (t.gettId().equals(threadId)) {
-                t.setNew(false);
-                t.setHasNewMsgs(false);
-                putThreadToSqlite(context, t);
-            }
-        }
+        DatabaseHandler db = new DatabaseHandler(context);
+        BlubbThread thread = db.getThread(threadId);
+        thread.setNew(false);
+        thread.setHasNewMsgs(false);
+        db.updateThread(thread);
     }
 }

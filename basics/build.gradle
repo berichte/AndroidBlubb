@@ -11,7 +11,12 @@ android {
         versionName "1.0"
     }
     buildTypes {
+        debug {
+            versionNameSuffix "-DEBUG"
+            applicationIdSuffix ".debug"
+        }
         release {
+            debuggable false
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
@@ -21,15 +26,7 @@ android {
 dependencies {
     compile 'com.google.android.gms:play-services:4.0.30'
     compile 'com.android.support:appcompat-v7:+'
-    compile 'com.android.support:support-v4:18.0.0'
-    // You must install or update the Google Repository through the SDK manager to use this dependency.
-    // The Google Repository (separate from the corresponding library) can be found in the Extras category.
-    // 
-    
-    
-    // You must install or update the Google Repository through the SDK manager to use this dependency.
-    // The Google Repository (separate from the corresponding library) can be found in the Extras category.
-    // 
-    
+    compile 'com.android.support:support-v4:19.0.0'
+
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

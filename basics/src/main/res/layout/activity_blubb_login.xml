@@ -27,7 +27,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:hint="@string/login_username_hint" />
+        android:hint="@string/login_username_hint"
+        android:textColor="@color/beap_dark_blue" />
 
     <EditText
         android:id="@+id/blubb_login_password"
@@ -36,7 +37,8 @@
         android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password_hint"
-        android:password="true" />
+        android:password="true"
+        android:textColor="@color/beap_dark_blue" />
 
     <EditText
         android:id="@+id/blubb_login_password_reset"
@@ -46,6 +48,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password_reset_hint"
         android:password="true"
+        android:textColor="@color/beap_dark_blue"
         android:visibility="invisible" />
 
     <EditText
@@ -56,6 +59,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password__reset_confirm_hint"
         android:password="true"
+        android:textColor="@color/beap_dark_blue"
         android:visibility="invisible" />
 
     <Button
@@ -74,6 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:checked="true"
-        android:text="@string/login_stay_logged_in" />
+        android:text="@string/login_stay_logged_in"
+        android:textColor="@color/beap_dark_blue" />
 
 </LinearLayout>

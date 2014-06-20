@@ -6,21 +6,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
 import com.blubb.alubb.blubbbasics.BlubbApplication;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * Created by Benjamin Richter on 22.05.2014.
@@ -67,12 +61,25 @@ public class BlubbMessage {
         this.mCreator       = BPC.findStringInJsonObj(object, "mCreator");
         this.mCreatorRole   = BPC.findStringInJsonObj(object, "mCreatorRole");
         this.mDate          = BPC.findStringInJsonObj(object, "mDate");
-        this.mThread        = BPC.findStringInJsonObj(object, "mThread");
+        this.mThread = getThreadID(object);
         this.mTitle         = BPC.findStringInJsonObj(object, "mTitle");
         this.mContent       = BPC.findStringInJsonObj(object, "mContent");
+        this.isNew = true;
     }
 
-
+    private String getThreadID(JSONObject object) {
+        try {
+            JSONArray threads = object.getJSONArray("mThread");
+            if (threads.length() == 1) return (String) threads.get(0);
+            else {
+                //TODO return it with personal thread id.
+                return (String) threads.get(0);
+            }
+        } catch (JSONException e) {
+            Log.e("BlubbMessage", "got the wrong json object, there was no array for threadId");
+            return null;
+        }
+    }
 
     public String getmTitle() {
         return mTitle;
@@ -106,6 +113,7 @@ public class BlubbMessage {
         return mContent;
     }
 
+    //TODO change Message date from string to date.
     public String getFormatedDate() {
         return mDate.substring(0, 16).replace('T', ' ');
     }
@@ -132,6 +140,7 @@ public class BlubbMessage {
 
         if(isNew()) {
             Log.v("BlubbMessage", "Message is new.");
+            mDate.setText(this.getFormatedDate() + " is new");
             messageView.setBackground(
                     context.getResources().getDrawable(R.drawable.message_layout_back_new));
         }
@@ -139,14 +148,18 @@ public class BlubbMessage {
         Typeface tf = Typeface.createFromAsset(context.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, mPic);
 
-        if(tCreator.equals(this.mCreator)) {
+        if (mCreatorRole.equals("admin")) {
             mPic.setTextColor(context.getResources().getColor(R.color.beap_red));
-            /*messageView.setBackground(
-                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
-*/
+        } else if (mCreatorRole.equals("PL")) {
+            mPic.setTextColor(context.getResources().getColor(R.color.beap_medium_yellow));
         } else {
-            mPic.setTextColor(context.getResources().getColor(R.color.beap_dark_yellow));
+            mPic.setTextColor(context.getResources().getColor(R.color.beap_dark_blue));
+        }
 
+        if(tCreator.equals(this.mCreator)) {
+
+            messageView.setBackground(
+                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
         }
         return messageView;
     }
@@ -157,12 +170,12 @@ public class BlubbMessage {
                 "mContent: " + mContent;
     }
 
-    public void setNew(boolean isNew) {
-        this.isNew = isNew;
-    }
-
     public boolean isNew() {
         return isNew;
+    }
+
+    public void setNew(boolean isNew) {
+        this.isNew = isNew;
     }
 
     public boolean equals(BlubbMessage other) {

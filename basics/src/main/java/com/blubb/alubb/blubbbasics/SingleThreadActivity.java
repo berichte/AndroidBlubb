@@ -29,14 +29,17 @@ import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
+import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
+import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
-import java.util.ArrayList;
+import org.json.JSONException;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +54,8 @@ public class SingleThreadActivity extends Activity {
 
     public List<BlubbMessage> messages;
 
-    private String threadId, tCreator;
+    private String threadId;
+    private BlubbThread thread;
     private boolean showSpinner = false;
 
     @Override
@@ -59,27 +63,25 @@ public class SingleThreadActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         Log.v(NAME, "onCreate()");
-       start();
-    }
-
-    private void start() {
         setContentView(R.layout.activity_single_thread);
         Intent intent = getIntent();
         this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
+        AsyncGetThread asyncGetThread = new AsyncGetThread();
+        asyncGetThread.execute();
+    }
+
+    protected void start() {
         ThreadManager.getInstance().readingThread(this, threadId);
         Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
-        this.tCreator = intent.getStringExtra(EXTRA_THREAD_CREATOR);
 
-        String tDescr = intent.getStringExtra(EXTRA_THREAD_DESCRIPTION);
+        String tDescr = thread.gettDesc();
+        String tTitle = thread.getThreadTitle();
+        setTitle(tTitle + " - " + thread.gettCreator());
         addHeader(tDescr);
 
         spinnerOn();
-        AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
-
-        String tTitle = intent.getStringExtra(EXTRA_THREAD_TITLE);
-        setTitle(tTitle + " - " + tCreator);
-
-        asyncTask.execute();
+        //AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
+        //asyncTask.execute();
     }
 
     private void addHeader(String tDescr) {
@@ -142,7 +144,6 @@ public class SingleThreadActivity extends Activity {
                 spinnerOn();
                 asyncNewMessage.execute();
                 dialog.cancel();
-                new AsyncGetAllMessagesToThread(threadId).execute();
             }
         });
         xBtn.setOnClickListener(new View.OnClickListener() {
@@ -172,13 +173,14 @@ public class SingleThreadActivity extends Activity {
 
 
     @Override
-    public void onBackPressed(){
-        super.onBackPressed();
+    public void onStop() {
+        super.onStop();
         for(BlubbMessage m: messages) {
             if(m.isNew()) {
                 m.setNew(false);
                 DatabaseHandler databaseHandler = new DatabaseHandler(this);
                 databaseHandler.setMessageRead(m.getmId());
+                databaseHandler.setThreadNewMsgs(threadId, false);
             }
         }
     }
@@ -198,7 +200,8 @@ public class SingleThreadActivity extends Activity {
 
         // solved by Dralangus http://stackoverflow.com/a/7414659/294884
         super.onResume();
-        start();
+        AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
+        asyncTask.execute();
         if (showSpinner) {
             spinnerOn();
         } else {
@@ -237,7 +240,7 @@ public class SingleThreadActivity extends Activity {
                     SingleThreadActivity.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
 
-            final List<BlubbMessage> list = new ArrayList<BlubbMessage>(response);
+            //final List<BlubbMessage> list = new ArrayList<BlubbMessage>(response);
 
             lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -276,7 +279,7 @@ public class SingleThreadActivity extends Activity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             BlubbMessage message = getItem(position);
-            return message.getView(SingleThreadActivity.this, parent, tCreator);
+            return message.getView(SingleThreadActivity.this, parent, thread.gettCreator());
         }
 
         @Override
@@ -290,6 +293,34 @@ public class SingleThreadActivity extends Activity {
             return true;
         }
 
+    }
+
+    private class AsyncGetThread extends AsyncTask<Void, String, BlubbThread> {
+        private Exception e;
+
+        @Override
+        protected BlubbThread doInBackground(Void... params) {
+            try {
+                return ThreadManager.getInstance().getThread(SingleThreadActivity.this, threadId);
+            } catch (SessionException e) {
+                this.e = e;
+            } catch (InvalidParameterException e) {
+                this.e = e;
+            } catch (BlubbDBException e) {
+                this.e = e;
+            } catch (JSONException e) {
+                this.e = e;
+            } catch (BlubbDBConnectionException e) {
+                this.e = e;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(BlubbThread thread) {
+            SingleThreadActivity.this.thread = thread;
+            SingleThreadActivity.this.start();
+        }
     }
 
     private class AsyncSendMessage extends AsyncTask<Void, String, BlubbMessage> {
@@ -318,6 +349,8 @@ public class SingleThreadActivity extends Activity {
                 this.exception = e;
             } catch (BlubbDBConnectionException e) {
                 this.exception = e;
+            } catch (PasswordInitException e) {
+                Log.e(NAME, e.getMessage()); // can not happen at this point.
             }
             return null;
         }
@@ -330,7 +363,9 @@ public class SingleThreadActivity extends Activity {
                         "tId: " + message.getmThread() + "\n" +
                         "tTitle: " + message.getmTitle();
                 Log.i(NAME, msg);
+                new AsyncGetAllMessagesToThread(threadId).execute();
                 Toast.makeText(SingleThreadActivity.this, msg, Toast.LENGTH_SHORT).show();
+
             }
         }
     }
