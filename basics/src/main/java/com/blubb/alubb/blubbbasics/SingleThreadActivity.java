@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -51,9 +52,8 @@ public class SingleThreadActivity extends Activity {
     public static final String EXTRA_THREAD_TITLE = "threadTitle",
             EXTRA_THREAD_CREATOR = "threadCreator",
             EXTRA_THREAD_DESCRIPTION = "threadDescription";
-
     public List<BlubbMessage> messages;
-
+    private String titleInput = "", contentInput = "";
     private String threadId;
     private BlubbThread thread;
     private boolean showSpinner = false;
@@ -77,6 +77,7 @@ public class SingleThreadActivity extends Activity {
         String tDescr = thread.gettDesc();
         String tTitle = thread.getThreadTitle();
         setTitle(tTitle + " - " + thread.gettCreator());
+
         addHeader(tDescr);
 
         spinnerOn();
@@ -121,13 +122,24 @@ public class SingleThreadActivity extends Activity {
         assert dialogLayout != null;
         final EditText title = (EditText) dialogLayout.findViewById(
                 R.id.message_new_title_dialog),
-                descr = (EditText) dialogLayout.findViewById(
+                content = (EditText) dialogLayout.findViewById(
                         R.id.message_new_content_dialog);
         Button yBtn;
         yBtn = (Button) dialogLayout.findViewById(
                 R.id.y_button_dialog);
         Button xBtn = (Button) dialogLayout.findViewById(
                 R.id.x_button_dialog);
+
+        title.setText(titleInput);
+        content.setText(contentInput);
+
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                titleInput = title.getText().toString();
+                contentInput = content.getText().toString();
+            }
+        });
 
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
@@ -139,7 +151,7 @@ public class SingleThreadActivity extends Activity {
                 AsyncSendMessage asyncNewMessage = new AsyncSendMessage(
                         threadId,
                         title.getText().toString(),
-                        descr.getText().toString()
+                        content.getText().toString()
                 );
                 spinnerOn();
                 asyncNewMessage.execute();
@@ -150,6 +162,8 @@ public class SingleThreadActivity extends Activity {
             @Override
             public void onClick(View v) {
                 dialog.cancel();
+                titleInput = "";
+                contentInput = "";
             }
         });
         dialog.show();

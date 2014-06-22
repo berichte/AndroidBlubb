@@ -56,5 +56,8 @@
     <string name="password_init_dialog_old_password_hint">Your init password</string>
     <string name="password_init_dialog_new_password_hint">Your new password</string>
     <string name="password_init_dialog_confirm_password_hint">Confirm your new password</string>
+    <string name="thread_title_size_warning">The title must not be longer then 40 characters! But at least 1.</string>
+    <string name="thread_descr_nl_warning">The description must not have more then 3 lines.</string>
+    <string name="thread_descr_size_warning">You must enter a description.</string>
 
 </resources>

@@ -4,6 +4,6 @@
     <item
         android:id="@+id/new_message_action"
         android:icon="@drawable/mail_new"
-        android:showAsAction="always"
+        android:showAsAction="collapseActionView"
         android:title="@string/new_message_action_text" />
 </menu>

@@ -294,4 +294,13 @@ public class SessionManager {
                 username, oldPassword, newPassword, confirmNewPassword);
 
     }
+
+    public String getUserId(Context context) {
+        if (this.session != null) return this.session.getBlubbUser();
+        else {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            String unId = context.getString(R.string.pref_username);
+            return prefs.getString(unId, "noUser");
+        }
+    }
 }

@@ -1,13 +1,17 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Holo">
+    <style name="AppTheme" parent="@android:style/Theme.Holo.Light">
         <item name="android:actionBarStyle">@style/myActionBar</item>
         <item name="android:actionBarTabTextStyle">@style/blubbActionBarTabText</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
+        <item name="android:popupMenuStyle">@style/blubbPopupMenuStyle</item>
+        <item name="popupMenuStyle">@style/blubbPopupMenuStyle</item>
         <item name="android:button">@style/blubbButton</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:typeface">monospace</item>
+        <item name="android:textColor">@color/beap_dark_blue</item>
+        <item name="android:title">@style/blubbTitle</item>
     </style>
 
     <style name="CustomActionBarTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar"></style>
@@ -15,10 +19,13 @@
     <!-- ActionBar styles -->
     <style name="myActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@drawable/actionbar_background</item>
+        <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
     </style>
 
     <style name="MyActionBarTitleText">
         <item name="android:textColor">@color/actionbar_text</item>
+        <item name="android:textSize">@dimen/blubb_text_size_large</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <!-- ActionBar tabs text styles -->
@@ -31,4 +38,19 @@
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
 
+    <style name="blubbPopupMenuStyle">
+        <item name="android:background">@color/beap_green_transparent</item>
+        <item name="android:popupBackground">@drawable/blubb_popup_menu_back</item>
+        <item name="android:dropDownSelector">@drawable/blubb_button</item>
+    </style>
+
+    <style name="blubbTitle">
+        <item name="android:textColor">@color/beap_dark_blue</item>
+    </style>
+
+    <style name="blubbSymbolStyle">
+        <item name="android:textSize">@dimen/blubb_symbol_size</item>
+    </style>
+
+    <dimen name="blubb_symbol_size">50dp</dimen>
 </resources>

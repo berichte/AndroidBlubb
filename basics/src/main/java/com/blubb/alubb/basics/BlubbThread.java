@@ -1,6 +1,7 @@
 package com.blubb.alubb.basics;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
+import com.blubb.alubb.blubbbasics.BlubbApplication;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -162,25 +164,51 @@ public class BlubbThread {
 
 
     public View getBigView(Context context, ViewGroup parent) {
+
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout layout = (LinearLayout) inflater.inflate(
+        View layout = (LinearLayout) inflater.inflate(
                 R.layout.thread_list_entry, parent, false);
+
+        layout = this.setContentForHeader(layout);
+        TextView tdescr = (TextView) layout.findViewById(R.id.thread_list_item_description),
+                tInfo = (TextView) layout.findViewById(R.id.thread_list_item_info),
+                tIcon = (TextView) layout.findViewById(R.id.thread_list_item_status);
+
+        tdescr.setText(this.tDesc);
+        String info = this.tCreatorRole + " - " + this.getFormatedDate();
+        tInfo.setText(info);
+        return layout;
+    }
+
+    private TextView setIcon(TextView tIcon) {
+        Typeface tf = Typeface.createFromAsset(tIcon.getContext().getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, tIcon);
+
+        if (tCreatorRole.equals("admin")) {
+            tIcon.setTextColor(tIcon.getContext().getResources().getColor(R.color.beap_red));
+        } else if (tCreatorRole.equals("PL")) {
+            tIcon.setTextColor(tIcon.getContext().getResources().getColor(R.color.beap_medium_yellow));
+        } else {
+            tIcon.setTextColor(tIcon.getContext().getResources().getColor(R.color.beap_dark_blue));
+        }
+        return tIcon;
+    }
+
+    private View setContentForHeader(View layout) {
+
         TextView tTitle = (TextView) layout.findViewById(R.id.thread_list_item_title),
                 tMsg = (TextView) layout.findViewById(R.id.thread_list_item_msgcount),
-                tdescr = (TextView) layout.findViewById(R.id.thread_list_item_description),
-                tInfo = (TextView) layout.findViewById(R.id.thread_list_item_info),
-                tCreator = (TextView) layout.findViewById(R.id.thread_list_item_author);
+                tCreator = (TextView) layout.findViewById(R.id.thread_list_item_author),
+                tIcon = (TextView) layout.findViewById(R.id.thread_list_item_status);
+        setIcon(tIcon);
         tTitle.setText(this.tTitle);
         tCreator.setText(this.tCreator);
         tMsg.setText(this.tMsgCount + "");
         if (this.hasNewMsgs) {
-            int red = context.getResources().getColor(R.color.beap_red);
+            int red = layout.getContext().getResources().getColor(R.color.beap_red);
             tMsg.setTextColor(red);
         }
-        tdescr.setText(this.tDesc);
-        String info = this.tCreatorRole + " - " + this.getFormatedDate();
-        tInfo.setText(info);
         return layout;
     }
 
@@ -188,17 +216,8 @@ public class BlubbThread {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout layout = (LinearLayout) inflater.inflate(
-                R.layout.thread_list_item_small, parent, false);
-        TextView tTitle = (TextView) layout.findViewById(R.id.thread_list_item_title),
-                tMsg = (TextView) layout.findViewById(R.id.thread_list_item_msgcount);
-
-        tTitle.setText(this.tTitle);
-        tMsg.setText(this.tMsgCount + "");
-        if (this.hasNewMsgs) {
-            int red = context.getResources().getColor(R.color.beap_red);
-            tMsg.setTextColor(red);
-        }
-        return layout;
+                R.layout.thread_list_entry_small, parent, false);
+        return this.setContentForHeader(layout);
     }
 
 

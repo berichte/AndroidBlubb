@@ -4,8 +4,6 @@
 
     <item
         android:id="@+id/new_thread_action"
-        android:icon="@drawable/blubb_logo"
-        android:showAsAction="always"
         android:title="@string/new_thread_action_text" />
     <item
         android:id="@+id/blubb_settings"

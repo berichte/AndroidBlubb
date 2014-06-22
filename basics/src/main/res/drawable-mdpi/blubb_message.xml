@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/blubb_message_new_creator"
+        android:maxLevel="3"
+        android:minLevel="3" />
+    <item
+        android:drawable="@drawable/blubb_message_new"
+        android:maxLevel="2"
+        android:minLevel="2" />
+    <item
+        android:drawable="@drawable/blubb_message_creator"
+        android:maxLevel="1"
+        android:minLevel="1" />
+    <item
+        android:drawable="@drawable/blubb_message_default"
+        android:maxLevel="0" />
+</level-list>

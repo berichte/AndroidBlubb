@@ -13,10 +13,12 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="com.blubb.alubb.blubbbasics.BlubbLoginActivity"
-            android:label="@string/title_activity_blubb_login"></activity>
+            android:label="@string/title_activity_blubb_login"
+            android:screenOrientation="nosensor"></activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.ThreadOverview"
-            android:label="@string/title_activity_thread_overview">
+            android:label="@string/title_activity_thread_overview"
+            android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,7 +27,8 @@
         </activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.SingleThreadActivity"
-            android:label="@string/title_activity_single_thread"></activity>
+            android:label="@string/title_activity_single_thread"
+            android:screenOrientation="nosensor"></activity>
         <activity
             android:name="com.blubb.alubb.blubbbasics.SettingsActivity"
             android:label="@string/title_activity_settings"></activity>

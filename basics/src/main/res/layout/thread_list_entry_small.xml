@@ -61,28 +61,6 @@
                 android:textColor="@color/blubb_cards_text"
                 android:textSize="@dimen/blubb_text_size_medium" />
 
-            <TextView
-                android:id="@+id/thread_list_item_info"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="10dp"
-                android:paddingLeft="15dp"
-                android:text="thread info"
-                android:textColor="@color/blubb_cards_text"
-                android:textSize="@dimen/blubb_text_size_small" />
-
-            <TextView
-                android:id="@+id/thread_list_item_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/message_content_back"
-                android:paddingBottom="10dp"
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
-                android:paddingTop="5dp"
-                android:text="Thread\ndescription\non three lines"
-                android:textColor="@color/blubb_cards_content_text"
-                android:textSize="@dimen/blubb_text_size_small" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

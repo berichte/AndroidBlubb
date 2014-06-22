@@ -4,14 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <!--    android:alpha="0.5"-->
-    <Space
-        android:layout_width="30dp"
-        android:layout_height="match_parent" />
-
     <LinearLayout
         android:id="@+id/message_back_ll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:background="@drawable/blubb_message"
         android:orientation="horizontal"
         android:padding="@dimen/message_padding"
@@ -28,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="U"
-                android:textSize="@dimen/blubb_symbol_size" />
+                android:textSize="50dp" />
 
             <TextView
                 android:id="@+id/message_role_tv"
@@ -101,4 +98,9 @@
                 android:textColor="@color/blubb_cards_content_text" />
         </LinearLayout>
     </LinearLayout>
+
+    <Space
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 </LinearLayout>

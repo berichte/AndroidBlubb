@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.blubb.alubb.R;
@@ -21,18 +22,18 @@ import org.json.JSONObject;
  */
 public class BlubbMessage {
 
-   private String mId,
-    mType,
-    mCreator,
-    mCreatorRole,
-    mDate,
-    mThread,
-    mTitle,
-    mContent;
+    private String mId,
+            mType,
+            mCreator,
+            mCreatorRole,
+            mDate,
+            mThread,
+            mTitle,
+            mContent;
     private boolean isNew;
 
     public BlubbMessage(JSONObject object) {
-       this.fillFieldsViaJson(object);
+        this.fillFieldsViaJson(object);
     }
 
     public BlubbMessage(String mId, String mTitle, String mContent, String mCreatorRole,
@@ -45,7 +46,7 @@ public class BlubbMessage {
         this.mThread = mThread;
         this.mTitle = mTitle;
         this.mContent = mContent;
-        this.isNew = (isNew == 1)? true : false;
+        this.isNew = (isNew == 1) ? true : false;
     }
 
     public BlubbMessage(String threadId, String title, String content) {
@@ -56,14 +57,14 @@ public class BlubbMessage {
 
     public void fillFieldsViaJson(JSONObject object) {
         // TODO: parse the strings from DB
-        this.mId            = BPC.findStringInJsonObj(object, "mId");
-        this.mType          = BPC.findStringInJsonObj(object, "mType");
-        this.mCreator       = BPC.findStringInJsonObj(object, "mCreator");
-        this.mCreatorRole   = BPC.findStringInJsonObj(object, "mCreatorRole");
-        this.mDate          = BPC.findStringInJsonObj(object, "mDate");
+        this.mId = BPC.findStringInJsonObj(object, "mId");
+        this.mType = BPC.findStringInJsonObj(object, "mType");
+        this.mCreator = BPC.findStringInJsonObj(object, "mCreator");
+        this.mCreatorRole = BPC.findStringInJsonObj(object, "mCreatorRole");
+        this.mDate = BPC.findStringInJsonObj(object, "mDate");
         this.mThread = getThreadID(object);
-        this.mTitle         = BPC.findStringInJsonObj(object, "mTitle");
-        this.mContent       = BPC.findStringInJsonObj(object, "mContent");
+        this.mTitle = BPC.findStringInJsonObj(object, "mTitle");
+        this.mContent = BPC.findStringInJsonObj(object, "mContent");
         this.isNew = true;
     }
 
@@ -121,29 +122,37 @@ public class BlubbMessage {
     public View getView(Context context, ViewGroup parent, String tCreator) {
         View messageView;
         LayoutInflater inflater = (LayoutInflater) context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        messageView = inflater.inflate(R.layout.message_layout, parent, false);
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (ownMessage(context)) {
+            messageView = inflater.inflate(R.layout.message_own_layout, parent, false);
+        } else {
+            messageView = inflater.inflate(R.layout.message_layout, parent, false);
+        }
+
+        LinearLayout backLayout = (LinearLayout) messageView.findViewById(R.id.message_back_ll);
+
+//        backLayout.getBackground().setLevel(0);
+        int backLevel = 0;
+        if (tCreator.equals(this.mCreator)) {
+            backLevel++;
+        }
+        if (isNew()) {
+            backLevel += 2;
+        }
+        backLayout.getBackground().setLevel(backLevel);
 
         TextView mTitle = (TextView) messageView.findViewById(R.id.message_title_tv),
-                mContent= (TextView) messageView.findViewById(R.id.message_content_tv),
+                mContent = (TextView) messageView.findViewById(R.id.message_content_tv),
                 mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
                 mDate = (TextView) messageView.findViewById(R.id.message_date_tv),
                 mRole = (TextView) messageView.findViewById(R.id.message_role_tv),
                 mPic = (TextView) messageView.findViewById(R.id.message_profile_pic);
-
 
         mTitle.setText(this.getmTitle());
         mContent.setText(this.getmContent());
         mCreator.setText(this.getmCreator());
         mDate.setText(this.getFormatedDate());
         mRole.setText(this.getmCreatorRole());
-
-        if(isNew()) {
-            Log.v("BlubbMessage", "Message is new.");
-            mDate.setText(this.getFormatedDate() + " is new");
-            messageView.setBackground(
-                    context.getResources().getDrawable(R.drawable.message_layout_back_new));
-        }
 
         Typeface tf = Typeface.createFromAsset(context.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, mPic);
@@ -155,13 +164,12 @@ public class BlubbMessage {
         } else {
             mPic.setTextColor(context.getResources().getColor(R.color.beap_dark_blue));
         }
-
-        if(tCreator.equals(this.mCreator)) {
-
-            messageView.setBackground(
-                    context.getResources().getDrawable(R.drawable.message_layout_back_creator));
-        }
         return messageView;
+    }
+
+    private boolean ownMessage(Context context) {
+        String userId = SessionManager.getInstance().getUserId(context);
+        return (userId.equals(this.mCreator));
     }
 
     public String toString() {
@@ -179,14 +187,14 @@ public class BlubbMessage {
     }
 
     public boolean equals(BlubbMessage other) {
-        if(!this.mId.equals(other.mId)) return false;
-        if(!this.mType.equals(other.mType)) return false;
-        if(!this.mCreator.equals(other.mCreator)) return false;
-        if(!this.mCreatorRole.equals(other.mCreatorRole)) return false;
-        if(!this.mDate.equals(other.mDate)) return false;
-        if(!this.mThread.equals(other.mThread)) return false;
-        if(!this.mTitle.equals(other.mTitle)) return false;
-        if(!this.mContent.equals(other.mContent)) return false;
+        if (!this.mId.equals(other.mId)) return false;
+        if (!this.mType.equals(other.mType)) return false;
+        if (!this.mCreator.equals(other.mCreator)) return false;
+        if (!this.mCreatorRole.equals(other.mCreatorRole)) return false;
+        if (!this.mDate.equals(other.mDate)) return false;
+        if (!this.mThread.equals(other.mThread)) return false;
+        if (!this.mTitle.equals(other.mTitle)) return false;
+        if (!this.mContent.equals(other.mContent)) return false;
         return true;
     }
 }

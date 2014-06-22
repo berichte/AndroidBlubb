@@ -8,11 +8,21 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity">
 
+
+    <Space
+        android:id="@+id/thread_ov_topspace"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
     <ListView
         android:id="@+id/thread_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/thread_ov_topspace"
         android:divider="@android:color/transparent"
         android:dividerHeight="@dimen/cards_separation_space"
         android:paddingTop="?android:attr/actionBarSize"></ListView>
+
 </RelativeLayout>

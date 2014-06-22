@@ -6,6 +6,7 @@ import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -50,6 +51,7 @@ public class ThreadOverview extends Activity {
 
     private static final int RESULT_SETTINGS = 1,
                             RESULT_LOGIN = 2;
+    private static String titleInput = "", descInput = "";
     final Context context = this;
     private boolean loginSpinn = false,
             getAllBeapSpinn = false,
@@ -177,9 +179,55 @@ public class ThreadOverview extends Activity {
         BlubbApplication.setLayoutFont(tf, yBtn);
         BlubbApplication.setLayoutFont(tf, xBtn);
 
+        title.setText(titleInput);
+        descr.setText(descInput);
+
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                Log.d(NAME, "onCancel(Dialog)");
+                titleInput = title.getText().toString();
+                descInput = descr.getText().toString();
+            }
+        });/**
+         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        @Override public void onDismiss(DialogInterface dialog) {
+        titleInput = title.getText().toString();
+        descInput = descr.getText().toString();
+        }
+        });*/
+
         yBtn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
+                String titleString = title.getText().toString(),
+                        descString = descr.getText().toString();
+                if (titleString.length() > 40 || titleString.length() == 0) {
+                    String message = ThreadOverview.this.getString(
+                            R.string.thread_title_size_warning);
+                    Toast.makeText(ThreadOverview.this, message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                char[] de = descString.toCharArray();
+                int nlCounter = 0;
+                for (char c : de) {
+                    if (c == '\n') nlCounter++;
+                }
+                if (nlCounter > 2) {
+                    String message = ThreadOverview.this.getString(
+                            R.string.thread_descr_nl_warning);
+                    Toast.makeText(ThreadOverview.this,
+                            message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (descString.length() < 1) {
+                    String message = ThreadOverview.this.getString(
+                            R.string.thread_descr_size_warning);
+                    Toast.makeText(ThreadOverview.this,
+                            message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 AsyncNewThread asyncNewThread = new AsyncNewThread(
                         title.getText().toString(),
                         descr.getText().toString()
@@ -187,13 +235,18 @@ public class ThreadOverview extends Activity {
                 createThreadSpinn = true;
                 spinnerOn();
                 asyncNewThread.execute();
+                titleInput = "";
+                descInput = "";
                 dialog.cancel();
             }
         });
+
         xBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.cancel();
+                titleInput = "";
+                descInput = "";
             }
         });
         dialog.show();
