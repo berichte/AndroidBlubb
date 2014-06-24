@@ -2,14 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/sunset_wallpaper"
+    android:background="@drawable/waterdrop_wallpaper"
     android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="com.blubb.alubb.blubbbasics.SingleThreadActivity">
+    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread">
 
 
-    <Space
+<Space
         android:id="@+id/thread_ov_topspace"
         android:layout_width="match_parent"
         android:layout_height="20dp"

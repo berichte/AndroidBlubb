@@ -3,13 +3,20 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/new_thread_action"
-        android:title="@string/new_thread_action_text" />
+        android:id="@+id/menu_new_thread_action"
+        android:title="@string/menu_action_new_thread_text" />
     <item
-        android:id="@+id/blubb_settings"
-        android:orderInCategory="100"
+        android:id="@+id/menu_blubb_settings"
+        android:orderInCategory="90"
         android:title="Settings" />
     <item
-        android:id="@+id/blubb_settings_login"
+        android:id="@+id/menu_action_login"
         android:title="@string/login" />
+    <item
+        android:id="@+id/menu_action_resetpassword"
+        android:title="@string/menu_action_resetpassword_text" />
+    <item
+        android:id="@+id/menu_action_shutdown"
+        android:orderInCategory="100"
+        android:title="@string/menu_action_shutdown_title" />
 </menu>

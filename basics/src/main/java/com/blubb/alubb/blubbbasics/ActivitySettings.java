@@ -5,7 +5,7 @@ import android.preference.PreferenceActivity;
 
 import com.blubb.alubb.R;
 
-public class SettingsActivity extends PreferenceActivity {
+public class ActivitySettings extends PreferenceActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

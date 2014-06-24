@@ -18,28 +18,30 @@ import java.net.URLEncoder;
  */
 public class BlubbRequestManager {
     private static final String NAME = BlubbRequestManager.class.getName();
-    private static final String URL                     = "http://blubb.traeumtgerade.de:9980/?",
-                                BEAP_ID                 = "BeapId=",
-                                BEAP_ACTION             = "Action=",
-                                BEAP_APP_VERSION        = "appVers=",
-                                BEAP_SESSION_ID         = "sessId=",
+    private static final String URL = "http://blubb.traeumtgerade.de:9980/?",
+            BEAP_ID = "BeapId=",
+            BEAP_ACTION = "Action=",
+            BEAP_APP_VERSION = "appVers=",
+            BEAP_SESSION_ID = "sessId=",
 
-                                BEAP_ACTION_LOGIN       = "login",
-                                BEAP_ACTION_REFRESH     = "refresh",
-                                BEAP_ACTION_LOGOUT      = "logout",
-                                BEAP_ACTION_CHECK       = "check",
-                                BEAP_ACTION_QUERY       = "query",
+    BEAP_ACTION_LOGIN = "login",
+            BEAP_ACTION_REFRESH = "refresh",
+            BEAP_ACTION_LOGOUT = "logout",
+            BEAP_ACTION_CHECK = "check",
+            BEAP_ACTION_QUERY = "query",
     // TODO set the right action for password reset in.
-    BEAP_ACTION_RESET_PW = "",
-                                BEAP_QUERY_STR          = "queryStr=",
+    BEAP_ACTION_RESET_PW = "setOwnPwd",
+            BEAP_QUERY_STR = "queryStr=",
 
-                                BEAP_ID_SESSION         = "BeapSession",
-                                BEAP_ID_DB              = "BeapDB",
-                                BEAP_VERSION            = "1.5.0rc1",
-                                BLUBB_USERNAME          = "uName=",
-                                BLUBB_PASSWORD          = "uPwd=",
-                                BLUBB_AND               = "&",
-                                ENCODING                = "UTF-8";
+    BEAP_ID_SESSION = "BeapSession",
+            BEAP_ID_DB = "BeapDB",
+            BEAP_VERSION = "1.5.0rc1",
+            BLUBB_USERNAME = "uName=",
+            BLUBB_PASSWORD = "uPwd=",
+            BLUBB_NEW_PWD1 = "newPwd1=",
+            BLUBB_NEW_PWD2 = "newPwd2=",
+            BLUBB_AND = "&",
+            ENCODING = "UTF-8";
     //http://blubb.traeumtgerade.de:9980/?
     // BeapId=BeapSession&amp;
     // Action=login&amp;
@@ -50,10 +52,10 @@ public class BlubbRequestManager {
     public static BlubbResponse login(String username, String password)
             throws BlubbDBException {
         String url = URL
-                + BEAP_ID           + BEAP_ID_SESSION           + BLUBB_AND
-                + BEAP_ACTION       + BEAP_ACTION_LOGIN         + BLUBB_AND
-                + getParameter(BEAP_APP_VERSION, BEAP_VERSION)  + BLUBB_AND
-                + getParameter(BLUBB_USERNAME, username)        + BLUBB_AND
+                + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
+                + BEAP_ACTION + BEAP_ACTION_LOGIN + BLUBB_AND
+                + getParameter(BEAP_APP_VERSION, BEAP_VERSION) + BLUBB_AND
+                + getParameter(BLUBB_USERNAME, username) + BLUBB_AND
                 + getParameter(BLUBB_PASSWORD, password);
         Log.v("BuildLogin", "url");
         return executeRequest(url);
@@ -73,7 +75,7 @@ public class BlubbRequestManager {
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=refresh&sessId=a634cca33cc52b1252ba9
     public static BlubbResponse refreshSession(String sessionId) throws BlubbDBException {
         String url = URL
-                + BEAP_ID   + BEAP_ID_SESSION + BLUBB_AND
+                + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
         Log.v("BuildSessionRefresh", url);
@@ -82,7 +84,7 @@ public class BlubbRequestManager {
 
     public static BlubbResponse logout(String sessionId) throws BlubbDBException {
         String url = URL
-                + BEAP_ID   + BEAP_ID_DB    + BLUBB_AND
+                + BEAP_ID + BEAP_ID_DB + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
         Log.v("BuildLogout", url);
@@ -97,8 +99,8 @@ public class BlubbRequestManager {
                 + BEAP_ACTION + BEAP_ACTION_RESET_PW + BLUBB_AND
                 + getParameter(BLUBB_USERNAME, username) + BLUBB_AND
                 + getParameter(BLUBB_PASSWORD, oldPw) + BLUBB_AND
-                + getParameter(BLUBB_PASSWORD, newPw) + BLUBB_AND
-                + getParameter(BLUBB_PASSWORD, confirmPw);
+                + getParameter(BLUBB_NEW_PWD1, newPw) + BLUBB_AND
+                + getParameter(BLUBB_NEW_PWD2, confirmPw);
         Log.v(NAME, "Build resetPassword url:\n" + url);
         return executeRequest(url);
     }
@@ -109,7 +111,7 @@ public class BlubbRequestManager {
     public static BlubbResponse query(String query, String sessionId)
             throws BlubbDBException {
         String url = URL
-                + BEAP_ID   + BEAP_ID_DB + BLUBB_AND
+                + BEAP_ID + BEAP_ID_DB + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId) + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_QUERY + BLUBB_AND
                 + BEAP_QUERY_STR
@@ -127,7 +129,7 @@ public class BlubbRequestManager {
                 case OK:
                     // with status ok result object will be a json array.
                     JSONArray array = (JSONArray) blubbResponse.getResultObj();
-                    return new int[] {
+                    return new int[]{
                             (Integer) array.get(0),
                             (Integer) array.get(1)};
                 default:

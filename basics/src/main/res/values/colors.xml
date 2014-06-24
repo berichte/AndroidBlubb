@@ -22,4 +22,6 @@
     <color name="blubb_title_bar_shadow">#85252525</color>
     <color name="beap_red_transparent">#88881100</color>
     <color name="blubb_popup_menu">#AAFFFFFF</color>
+    <color name="dialog_background">#aaeeeeee</color>
+    <color name="dialog_background_shadow">#aa223366</color>
 </resources>

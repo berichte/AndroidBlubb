@@ -12,6 +12,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.DatabaseHandler;
@@ -30,19 +33,59 @@ import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
-public class BlubbLoginActivity extends Activity {
+public class ActivityLogin extends Activity {
     public static final String NAME = "BlubbLoginActivity";
-
+    public static final String EXTRA_LOGIN_TYPE = "loginType";
     public static final String USERNAME_PREFAB = "username_prefab",
             PASSWORD_PREFAB = "password_prefab";
+    ;
+    private LoginType loginType;
     private String username, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blubb_login);
+        Intent intent = getIntent();
+        LoginType loginType = (LoginType) intent.getSerializableExtra(EXTRA_LOGIN_TYPE);
+        if (loginType != null) this.loginType = loginType;
+        else this.loginType = LoginType.LOGIN;
+    }
 
-        addLoginButtonListener();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Button button = (Button) findViewById(R.id.blubb_login_button);
+        final EditText resetPw = (EditText) findViewById(R.id.blubb_login_password_reset),
+                confirmPw = (EditText) findViewById(R.id.blubb_login_password_reset_confirm),
+                username = (EditText) findViewById(R.id.blubb_login_username),
+                password = (EditText) findViewById(R.id.blubb_login_password);
+        CheckBox stayloggedIn = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+        switch (loginType) {
+            case RESET:
+                button.setText(getString(R.string.blubb_reset_button_text));
+                resetPw.setVisibility(View.VISIBLE);
+                confirmPw.setVisibility(View.VISIBLE);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String un = username.getText().toString(),
+                                pw = password.getText().toString(),
+                                rpw = resetPw.getText().toString(),
+                                cpw = confirmPw.getText().toString();
+                        new AsyncResetPassword().execute(un, pw, rpw, cpw);
+                    }
+                });
+                stayloggedIn.setVisibility(View.INVISIBLE);
+                break;
+            case LOGIN:
+                button.setText(getString(R.string.action_sign_in_short));
+                resetPw.setVisibility(View.INVISIBLE);
+                confirmPw.setVisibility(View.INVISIBLE);
+                addLoginButtonListener();
+                stayloggedIn.setVisibility(View.VISIBLE);
+                break;
+        }
     }
 
     private BlubbApplication getApp() {
@@ -107,11 +150,55 @@ public class BlubbLoginActivity extends Activity {
                 confirmPassword = (EditText) dialogLayout.findViewById(
                         R.id.password_init_dialog_confirm_password_et);
 
+        username.setText(ActivityLogin.this.username);
+        oldPassword.setText(ActivityLogin.this.password);
         final Button yBtn;
         yBtn = (Button) dialogLayout.findViewById(
                 R.id.y_button_dialog);
         Button xBtn = (Button) dialogLayout.findViewById(
                 R.id.x_button_dialog);
+
+        newPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (newPassword.getText().toString().equals(confirmPassword.getText().toString())) {
+                    yBtn.setEnabled(true);
+                } else {
+                    yBtn.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        confirmPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (newPassword.getText().toString().equals(confirmPassword.getText().toString())) {
+                    yBtn.setEnabled(true);
+                } else {
+                    yBtn.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
@@ -150,6 +237,8 @@ public class BlubbLoginActivity extends Activity {
         dialog.show();
     }
 
+    public enum LoginType {LOGIN, RESET, INIT}
+
     public class AsyncLogin extends AsyncTask<String, Void, String> {
 
         PasswordInitException passwordInitException;
@@ -161,7 +250,7 @@ public class BlubbLoginActivity extends Activity {
             try {
                 if (getApp().getSessionManager().login(username, password)) {
                     return getApp().getSessionManager()
-                            .getSessionID(BlubbLoginActivity.this.getApplicationContext());
+                            .getSessionID(ActivityLogin.this.getApplicationContext());
                 }
             } catch (InvalidParameterException e) {
                 return e.getMessage();
@@ -186,22 +275,25 @@ public class BlubbLoginActivity extends Activity {
 
             if (response != null) {
                 CheckBox stayLogged = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(
+                                ActivityLogin.this.getApplicationContext());
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                String unPref = "", pwPref = "";
                 if (stayLogged.isChecked()) {
                     Log.i("Login", "User wants to stay logged in. Editing savedPrefs.\n" +
                             "saving: " + username + " as Username");
-                    SharedPreferences sharedPreferences =
-                            PreferenceManager.getDefaultSharedPreferences(
-                                    BlubbLoginActivity.this.getApplicationContext());
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(
-                            BlubbLoginActivity.this.getString(R.string.pref_username), username);
-                    editor.putString(
-                            BlubbLoginActivity.this.getString(R.string.pref_password), password);
-                    editor.commit();
+                    unPref = username;
+                    pwPref = password;
                 }
+                editor.putString(
+                        ActivityLogin.this.getString(R.string.pref_username), unPref);
+                editor.putString(
+                        ActivityLogin.this.getString(R.string.pref_password), pwPref);
+                editor.commit();
 
-                Intent intent = new Intent(BlubbLoginActivity.this, ThreadOverview.class);
-                BlubbLoginActivity.this.startActivity(intent);
+                Intent intent = new Intent(ActivityLogin.this, ActivityThreadOverview.class);
+                ActivityLogin.this.startActivity(intent);
             }
         }
     }
@@ -223,7 +315,27 @@ public class BlubbLoginActivity extends Activity {
         }
 
         protected void onPostExecute(BlubbResponse response) {
-            // TODO whatever the response will be, do something!!
+            switch (response.getStatus()) {
+                case OK:
+                    String toastText = getString(R.string.login_pw_reset_ok_toast);
+                    Toast.makeText(ActivityLogin.this, toastText, Toast.LENGTH_SHORT).show();
+                    loginType = LoginType.LOGIN;
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(
+                            ActivityLogin.this);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(USERNAME_PREFAB, "");
+                    editor.putString(PASSWORD_PREFAB, "");
+                    editor.commit();
+                    break;
+                default:
+                    Toast.makeText(ActivityLogin.this,
+                            response.getStatusDescr(), Toast.LENGTH_SHORT).show();
+                    loginType = LoginType.RESET;
+                    break;
+            }
+            ActivityLogin.this.onResume();
         }
     }
+
+
 }

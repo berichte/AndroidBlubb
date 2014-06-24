@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class SingleThreadActivity extends Activity {
+public class ActivitySingleThread extends Activity {
     public static final String NAME = "SingleThreadActivity";
     public static final String EXTRA_THREAD_ID = "threadId";
     public static final String EXTRA_THREAD_TITLE = "threadTitle",
@@ -56,7 +56,7 @@ public class SingleThreadActivity extends Activity {
     private String titleInput = "", contentInput = "";
     private String threadId;
     private BlubbThread thread;
-    private boolean showSpinner = false;
+    private boolean showSpinner = false, storeDraft = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,12 +91,12 @@ public class SingleThreadActivity extends Activity {
         LayoutInflater inflater = (LayoutInflater) this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout header = (LinearLayout)
-                inflater.inflate(R.layout.single_thread_header, lv , false);
+                inflater.inflate(R.layout.single_thread_header, lv, false);
 
         TextView headerText = (TextView) header.findViewById(R.id.single_thread_header_tv);
         headerText.setText(tDescr);
 
-        lv.addHeaderView(header );
+        lv.addHeaderView(header);
     }
 
     private BlubbApplication getApp() {
@@ -105,7 +105,7 @@ public class SingleThreadActivity extends Activity {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void newMessageDialog() {
-        final Dialog dialog = new Dialog(SingleThreadActivity.this);
+        final Dialog dialog = new Dialog(ActivitySingleThread.this);
 
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.create_message_dialog, null);
@@ -130,9 +130,11 @@ public class SingleThreadActivity extends Activity {
         Button xBtn = (Button) dialogLayout.findViewById(
                 R.id.x_button_dialog);
 
-        title.setText(titleInput);
-        content.setText(contentInput);
-
+        if (storeDraft) {
+            title.setText(titleInput);
+            content.setText(contentInput);
+        }
+        storeDraft = true;
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
@@ -162,8 +164,7 @@ public class SingleThreadActivity extends Activity {
             @Override
             public void onClick(View v) {
                 dialog.cancel();
-                titleInput = "";
-                contentInput = "";
+                storeDraft = false;
             }
         });
         dialog.show();
@@ -189,8 +190,8 @@ public class SingleThreadActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        for(BlubbMessage m: messages) {
-            if(m.isNew()) {
+        for (BlubbMessage m : messages) {
+            if (m.isNew()) {
                 m.setNew(false);
                 DatabaseHandler databaseHandler = new DatabaseHandler(this);
                 databaseHandler.setMessageRead(m.getmId());
@@ -209,8 +210,7 @@ public class SingleThreadActivity extends Activity {
         setProgressBarIndeterminateVisibility(false);
     }
 
-    protected void onResume()
-    {
+    protected void onResume() {
 
         // solved by Dralangus http://stackoverflow.com/a/7414659/294884
         super.onResume();
@@ -242,7 +242,7 @@ public class SingleThreadActivity extends Activity {
         protected List<BlubbMessage> doInBackground(Void... voids) {
             Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
             return getApp().getMessageManager().getAllMessagesForThread(
-                    SingleThreadActivity.this.getApplicationContext(), this.threadId);
+                    ActivitySingleThread.this.getApplicationContext(), this.threadId);
         }
 
         @Override
@@ -251,7 +251,7 @@ public class SingleThreadActivity extends Activity {
             ListView lv = (ListView) findViewById(R.id.single_thread_listview);
             Collections.reverse(response);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
-                    SingleThreadActivity.this, R.layout.message_layout, response);
+                    ActivitySingleThread.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
 
             //final List<BlubbMessage> list = new ArrayList<BlubbMessage>(response);
@@ -293,7 +293,7 @@ public class SingleThreadActivity extends Activity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             BlubbMessage message = getItem(position);
-            return message.getView(SingleThreadActivity.this, parent, thread.gettCreator());
+            return message.getView(ActivitySingleThread.this, parent, thread.gettCreator());
         }
 
         @Override
@@ -315,7 +315,7 @@ public class SingleThreadActivity extends Activity {
         @Override
         protected BlubbThread doInBackground(Void... params) {
             try {
-                return ThreadManager.getInstance().getThread(SingleThreadActivity.this, threadId);
+                return ThreadManager.getInstance().getThread(ActivitySingleThread.this, threadId);
             } catch (SessionException e) {
                 this.e = e;
             } catch (InvalidParameterException e) {
@@ -332,8 +332,8 @@ public class SingleThreadActivity extends Activity {
 
         @Override
         protected void onPostExecute(BlubbThread thread) {
-            SingleThreadActivity.this.thread = thread;
-            SingleThreadActivity.this.start();
+            ActivitySingleThread.this.thread = thread;
+            ActivitySingleThread.this.start();
         }
     }
 
@@ -352,7 +352,7 @@ public class SingleThreadActivity extends Activity {
         protected BlubbMessage doInBackground(Void... blubbs) {
             try {
                 return getApp().getMessageManager().createMsg(
-                        SingleThreadActivity.this.getApplicationContext(), tId, mTitle, mContent);
+                        ActivitySingleThread.this.getApplicationContext(), tId, mTitle, mContent);
 
             } catch (BlubbDBException e) {
                 this.exception = e;
@@ -378,7 +378,7 @@ public class SingleThreadActivity extends Activity {
                         "tTitle: " + message.getmTitle();
                 Log.i(NAME, msg);
                 new AsyncGetAllMessagesToThread(threadId).execute();
-                Toast.makeText(SingleThreadActivity.this, msg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ActivitySingleThread.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }

@@ -17,8 +17,8 @@ import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.SessionManager;
-import com.blubb.alubb.blubbbasics.SingleThreadActivity;
-import com.blubb.alubb.blubbbasics.ThreadOverview;
+import com.blubb.alubb.blubbbasics.ActivitySingleThread;
+import com.blubb.alubb.blubbbasics.ActivityThreadOverview;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
@@ -80,7 +80,7 @@ public class MessagePullService extends Service {
 
         builder.setStyle(new NotificationCompat.BigTextStyle().bigText(mContent));
 
-        Intent resultIntent = new Intent(this, ThreadOverview.class);
+        Intent resultIntent = new Intent(this, ActivityThreadOverview.class);
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -114,16 +114,16 @@ public class MessagePullService extends Service {
             builder.setContentText(nContent);
             builder.setStyle(new NotificationCompat.BigTextStyle().bigText(nContent));
 
-            resultIntent = new Intent(this, ThreadOverview.class);
+            resultIntent = new Intent(this, ActivityThreadOverview.class);
         } else if (messages.size() == 1) {
             BlubbMessage message = messages.get(0);
             builder.setContentTitle(message.getmCreator() + "\n" + message.getmTitle());
             builder.setContentText(message.getmContent());
 
-            resultIntent = new Intent(this, SingleThreadActivity.class);
+            resultIntent = new Intent(this, ActivitySingleThread.class);
 
             String threadId = message.getmThread();
-            resultIntent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
+            resultIntent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
 
         } else return;
 
@@ -147,7 +147,7 @@ public class MessagePullService extends Service {
             builder.setContentTitle(thread.getThreadTitle());
             builder.setContentText(thread.gettDesc());
         } else return;
-        Intent resultIntent = new Intent(this, ThreadOverview.class);
+        Intent resultIntent = new Intent(this, ActivityThreadOverview.class);
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);

@@ -8,9 +8,9 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:weightSum="1"
-    tools:context="com.blubb.alubb.blubbbasics.BlubbLoginActivity">
+    tools:context="com.blubb.alubb.blubbbasics.ActivityLogin">
 
-    <ImageView
+<ImageView
         android:id="@+id/imageView"
         android:layout_width="225dp"
         android:layout_height="221dp"
