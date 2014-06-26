@@ -1,30 +1,27 @@
 package com.blubb.alubb.blubbbasics;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.AdapterView;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +41,7 @@ import org.json.JSONException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 
 public class ActivitySingleThread extends Activity {
@@ -57,11 +55,13 @@ public class ActivitySingleThread extends Activity {
     private String threadId;
     private BlubbThread thread;
     private boolean showSpinner = false, storeDraft = true;
+    private InputState inputState = InputState.TITLE;
+    ;
+    private String atMessage = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         Log.v(NAME, "onCreate()");
         setContentView(R.layout.activity_single_thread);
         Intent intent = getIntent();
@@ -79,10 +79,105 @@ public class ActivitySingleThread extends Activity {
         setTitle(tTitle + " - " + thread.gettCreator());
 
         addHeader(tDescr);
-
+        startInputView();
         spinnerOn();
         //AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
         //asyncTask.execute();
+    }
+
+    private void startInputView() {
+        final Button yBtn = (Button) findViewById(R.id.y_button),
+                xBtn = (Button) findViewById(R.id.x_button);
+        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        final TextView titleView = (TextView) findViewById(R.id.message_input_title_tv);
+        final TextView contentView = (TextView) findViewById(R.id.message_input_content_tv);
+        final View msgLayout = findViewById(R.id.message_input_ll);
+        contentView.setMovementMethod(new ScrollingMovementMethod());
+        inputET.setMovementMethod(new ScrollingMovementMethod());
+
+        yBtn.requestFocus();
+        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, yBtn);
+        BlubbApplication.setLayoutFont(tf, xBtn);
+
+        inputET.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    msgLayout.setVisibility(View.VISIBLE);
+                } else msgLayout.setVisibility(View.INVISIBLE);
+            }
+        });
+        inputET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (inputState == InputState.TITLE) {
+                    titleView.setText(inputET.getText());
+                } else if (inputState == InputState.CONTENT) {
+
+                    contentView.setText(atMessage + inputET.getText());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        yBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (inputState) {
+                    case TITLE:
+                        inputState = InputState.CONTENT;
+                        yBtn.setText("y");
+                        xBtn.setText(".");
+                        inputET.setText(contentView.getText());
+                        inputET.setHint(getString(R.string.message_new_content_hint));
+                        msgLayout.setVisibility(View.VISIBLE);
+                        break;
+                    case CONTENT:
+                        inputState = InputState.TITLE;
+                        yBtn.setText(":");
+                        xBtn.setText("x");
+                        String titleString = titleView.getText().toString();
+                        String conteString = contentView.getText().toString();
+
+                        new AsyncSendMessage().execute(threadId, titleString, conteString);
+                        showInput(false, inputET);
+                        clearTVs(titleView, contentView, inputET);
+                        msgLayout.setVisibility(View.INVISIBLE);
+                        inputET.setHint(getString(R.string.message_new_title_hint));
+                        break;
+                }
+            }
+        });
+        xBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (inputState) {
+                    case TITLE:
+                        showInput(false, inputET);
+                        clearTVs(titleView, contentView, inputET);
+                        msgLayout.setVisibility(View.INVISIBLE);
+                        xBtn.requestFocus();
+                        break;
+                    case CONTENT:
+                        inputState = InputState.TITLE;
+                        yBtn.setText(":");
+                        xBtn.setText("x");
+                        inputET.setText(titleView.getText());
+                        inputET.setHint(getString(R.string.message_new_title_hint));
+                        break;
+                }
+            }
+        });
     }
 
     private void addHeader(String tDescr) {
@@ -103,73 +198,6 @@ public class ActivitySingleThread extends Activity {
         return (BlubbApplication) getApplication();
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    private void newMessageDialog() {
-        final Dialog dialog = new Dialog(ActivitySingleThread.this);
-
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogLayout = inflater.inflate(R.layout.create_message_dialog, null);
-        dialog.setContentView(dialogLayout);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        View divider = dialog.findViewById(
-                dialog.getContext().getResources()
-                        .getIdentifier("android:id/titleDivider", null, null)
-        );
-        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-        // builder.setView(dialogLayout);
-
-        //builder.setInverseBackgroundForced(true);
-        assert dialogLayout != null;
-        final EditText title = (EditText) dialogLayout.findViewById(
-                R.id.message_new_title_dialog),
-                content = (EditText) dialogLayout.findViewById(
-                        R.id.message_new_content_dialog);
-        Button yBtn;
-        yBtn = (Button) dialogLayout.findViewById(
-                R.id.y_button_dialog);
-        Button xBtn = (Button) dialogLayout.findViewById(
-                R.id.x_button_dialog);
-
-        if (storeDraft) {
-            title.setText(titleInput);
-            content.setText(contentInput);
-        }
-        storeDraft = true;
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                titleInput = title.getText().toString();
-                contentInput = content.getText().toString();
-            }
-        });
-
-        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
-        BlubbApplication.setLayoutFont(tf, yBtn);
-        BlubbApplication.setLayoutFont(tf, xBtn);
-
-        yBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AsyncSendMessage asyncNewMessage = new AsyncSendMessage(
-                        threadId,
-                        title.getText().toString(),
-                        content.getText().toString()
-                );
-                spinnerOn();
-                asyncNewMessage.execute();
-                dialog.cancel();
-            }
-        });
-        xBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.cancel();
-                storeDraft = false;
-            }
-        });
-        dialog.show();
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.single_thread_actions, menu);
@@ -180,12 +208,19 @@ public class ActivitySingleThread extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.new_message_action:
-                newMessageDialog();
+//                newMessageDialog();
+                EditText input = (EditText) findViewById(R.id.message_input_et);
+                input.requestFocus();
+                InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(input, 0);
+                break;
+            case R.id.menu_action_refresh:
+                new AsyncGetAllMessagesToThread(threadId).execute();
                 break;
         }
         return true;
     }
-
 
     @Override
     public void onStop() {
@@ -202,12 +237,14 @@ public class ActivitySingleThread extends Activity {
 
     public void spinnerOn() {
         showSpinner = true;
-        setProgressBarIndeterminateVisibility(true);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        pb.setVisibility(View.VISIBLE);
     }
 
     public void spinnerOff() {
         showSpinner = false;
-        setProgressBarIndeterminateVisibility(false);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        pb.setVisibility(View.INVISIBLE);
     }
 
     protected void onResume() {
@@ -216,11 +253,6 @@ public class ActivitySingleThread extends Activity {
         super.onResume();
         AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
         asyncTask.execute();
-        if (showSpinner) {
-            spinnerOn();
-        } else {
-            spinnerOff();
-        }
     }
 
     private void handleException(Exception e) {
@@ -230,11 +262,83 @@ public class ActivitySingleThread extends Activity {
         }
     }
 
+    private void replyToMessage(final BlubbMessage replyTo) {
+        final View msgLayout = findViewById(R.id.message_input_ll);
+        final Button yBtn = (Button) findViewById(R.id.y_button),
+                xBtn = (Button) findViewById(R.id.x_button);
+        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        final TextView titleView = (TextView) msgLayout.findViewById(R.id.message_input_title_tv);
+        final TextView contentView = (TextView) msgLayout.findViewById(R.id.message_input_content_tv);
+        inputET.requestFocus();
+        msgLayout.setVisibility(View.VISIBLE);
+        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, yBtn);
+        BlubbApplication.setLayoutFont(tf, xBtn);
+
+        titleView.setText(replyTo.getmTitle());
+        inputState = InputState.CONTENT;
+        showInput(true, inputET);
+
+        yBtn.setText("y");
+        xBtn.setText("x");
+
+        yBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String titleString = replyTo.getmTitle();
+                String conteString = contentView.getText().toString();
+                new AsyncSendMessage().execute(threadId, titleString, conteString, replyTo.getmId());
+                showInput(false, inputET);
+                clearTVs(titleView, contentView, inputET);
+                msgLayout.setVisibility(View.INVISIBLE);
+                inputET.setHint(getString(R.string.message_new_title_hint));
+                inputState = InputState.TITLE;
+                startInputView();
+            }
+        });
+        xBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showInput(false, inputET);
+                clearTVs(titleView, contentView, inputET);
+                msgLayout.setVisibility(View.INVISIBLE);
+                xBtn.requestFocus();
+                inputState = InputState.TITLE;
+                startInputView();
+            }
+        });
+
+        atMessage = "@" + replyTo.getmCreator() + "\n";
+        TextView atSign = (TextView) msgLayout.findViewById(R.id.message_input_profile_pic);
+        atSign.setText("@");
+        atSign.setVisibility(View.VISIBLE);
+    }
+
+    private void clearTVs(TextView... views) {
+        for (TextView tv : views) {
+            tv.setText("");
+        }
+    }
+
+    private void showInput(boolean show, View view) {
+        InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (show) {
+            imm.showSoftInput(view, 0);
+        } else {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    private enum InputState {TITLE, CONTENT}
+
     private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
 
         private String threadId;
 
         public AsyncGetAllMessagesToThread(String threadId) {
+            ActivitySingleThread.this.showSpinner = true;
+            spinnerOn();
             this.threadId = threadId;
         }
 
@@ -254,31 +358,12 @@ public class ActivitySingleThread extends Activity {
                     ActivitySingleThread.this, R.layout.message_layout, response);
             lv.setAdapter(adapter);
 
-            //final List<BlubbMessage> list = new ArrayList<BlubbMessage>(response);
-
-            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-                @Override
-                public void onItemClick(AdapterView<?> parent, final View view,
-                                        int position, long id) {
-/*
-                    final String item = parent.getItemAtPosition(position).toString();
-                    view.animate().setDuration(2000).alpha(0)
-                            .withEndAction(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //TODO place here code to reply to a message or something.
-                                }
-                            });
-                */
-                }
-
-            });
+            ActivitySingleThread.this.showSpinner = false;
             spinnerOff();
         }
     }
 
-    private class MessageArrayAdapter extends ArrayAdapter<BlubbMessage> {
+    public class MessageArrayAdapter extends ArrayAdapter<BlubbMessage> {
 
         HashMap<BlubbMessage, Integer> mIdMap = new HashMap<BlubbMessage, Integer>();
 
@@ -290,10 +375,25 @@ public class ActivitySingleThread extends Activity {
             }
         }
 
+        public int getMsgPosition(String msgId) {
+            Set<BlubbMessage> msgSet = mIdMap.keySet();
+            for (BlubbMessage m : msgSet) {
+                if (m.getmId().equals(msgId)) return mIdMap.get(m);
+            }
+            return 0;
+        }
+
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            BlubbMessage message = getItem(position);
-            return message.getView(ActivitySingleThread.this, parent, thread.gettCreator());
+        public View getView(int position, View convertView, final ViewGroup parent) {
+            final BlubbMessage message = getItem(position);
+            return message.getView(ActivitySingleThread.this, parent, thread.gettCreator(),
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            replyToMessage(message);
+                        }
+                    }, this
+            );
         }
 
         @Override
@@ -337,23 +437,16 @@ public class ActivitySingleThread extends Activity {
         }
     }
 
-    private class AsyncSendMessage extends AsyncTask<Void, String, BlubbMessage> {
+    private class AsyncSendMessage extends AsyncTask<String, String, BlubbMessage> {
 
         private Exception exception;
-        private String tId, mTitle, mContent;
-
-        public AsyncSendMessage(String tId, String mTitle, String mContent) {
-            this.tId = tId;
-            this.mTitle = mTitle;
-            this.mContent = mContent;
-        }
 
         @Override
-        protected BlubbMessage doInBackground(Void... blubbs) {
+        protected BlubbMessage doInBackground(String... blubbs) {
             try {
                 return getApp().getMessageManager().createMsg(
-                        ActivitySingleThread.this.getApplicationContext(), tId, mTitle, mContent);
-
+                        ActivitySingleThread.this.getApplicationContext(),
+                        blubbs);
             } catch (BlubbDBException e) {
                 this.exception = e;
                 Log.e("getAllMessages", e.getMessage());

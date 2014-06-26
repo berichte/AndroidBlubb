@@ -4,18 +4,82 @@
     android:layout_height="match_parent"
     android:background="@drawable/blubb_background2"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread">
+    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
+    tools:ignore="Overdraw">
 
-<ListView
+    <ProgressBar
+        android:id="@+id/blubb_progressbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateOnly="true"
+        android:paddingTop="?android:attr/actionBarSize"
+        android:visibility="invisible" />
+
+    <LinearLayout
+        android:id="@+id/message_input_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="false"
+        android:background="@drawable/actionbar_background">
+
+        <Button
+            android:id="@+id/x_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical|left"
+            android:layout_margin="@dimen/message_padding"
+            android:layout_weight="1"
+            android:background="@drawable/blubb_x_button"
+            android:text="x" />
+
+        <EditText
+            android:id="@+id/message_input_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|left"
+            android:layout_weight="100"
+            android:background="@drawable/message_content_back"
+            android:hint="@string/message_new_title_hint"
+            android:maxLines="2"
+            android:padding="10dp"
+            android:scrollbars="vertical"
+            android:textColor="@color/beap_dark_blue"
+            android:textColorHint="@color/beap_blue"
+            android:textSize="@dimen/blubb_text_size_small" />
+
+        <Button
+            android:id="@+id/y_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical|right"
+            android:layout_margin="@dimen/message_padding"
+            android:layout_weight="1"
+            android:background="@drawable/blubb_y_button"
+            android:text=":" />
+    </LinearLayout>
+
+
+    <ListView
         android:id="@+id/single_thread_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/message_input_bar"
         android:divider="@android:color/transparent"
         android:dividerHeight="@dimen/cards_separation_space"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="?android:attr/actionBarSize">
 
     </ListView>
+
+    <include
+        layout="@layout/message_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/message_input_bar"
+        android:visibility="invisible" />
 
 </RelativeLayout>

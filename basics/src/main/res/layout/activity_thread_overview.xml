@@ -1,20 +1,32 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/thread_ov_rl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/waterdrop_wallpaper"
     android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread">
+    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
+    tools:ignore="Overdraw">
 
 
-<Space
+    <Space
         android:id="@+id/thread_ov_topspace"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="?android:attr/actionBarSize"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <ProgressBar
+        android:id="@+id/blubb_progressbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/thread_ov_topspace"
+        android:indeterminate="true"
+        android:indeterminateOnly="true"
+        android:visibility="invisible" />
 
     <ListView
         android:id="@+id/thread_list"
@@ -22,7 +34,8 @@
         android:layout_height="match_parent"
         android:layout_below="@id/thread_ov_topspace"
         android:divider="@android:color/transparent"
-        android:dividerHeight="@dimen/cards_separation_space"
-        android:paddingTop="?android:attr/actionBarSize"></ListView>
+        android:dividerHeight="@dimen/cards_separation_space">
+
+    </ListView>
 
 </RelativeLayout>

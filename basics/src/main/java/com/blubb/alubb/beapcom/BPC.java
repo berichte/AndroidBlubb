@@ -11,29 +11,52 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.CharacterIterator;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.text.StringCharacterIterator;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-/** BPC stands for Blubb Parameter Checker
+/**
+ * BPC stands for Blubb Parameter Checker
  * Created by Benjamin Richter on 17.05.2014.
  */
 public class BPC {
+    public static final String UNDEFINED = "undefined";
+    public static final String ENCODING = "UTF-8";
+    //2014-06-25T13:40:40.312Z
+    public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+    private static DateFormat df = new SimpleDateFormat(DATE_PATTERN);
     private static final String NAME = "BPC";
-    private static final String UNDEFINED = "undefined";
-    public static final String ENCODING   = "UTF-8";
+    /**
+     * Map for escape character which need to be escaped for the DB.
+     * Key is the character from/for Android value from/for the DB.
+     */
+
+    private static final Map<String, String> ESC_MAP;
+
+    static {
+        Map<String, String> aMap = new HashMap<String, String>();
+        aMap.put("\n", "\\\n");
+        aMap.put("\t", "\\\t");
+        aMap.put("\"", "\\\"");
+        ESC_MAP = Collections.unmodifiableMap(aMap);
+    }
 
     /**
      * Checks whether a string is null or empty and throws an Exception if though.
+     *
      * @param toCheck
      * @throws com.blubb.alubb.blubexceptions.InvalidParameterException if toCheck is null or empty.
      */
     public static void checkString(String toCheck) throws InvalidParameterException {
         checkForNull(toCheck);
-        if(toCheck.equals("")) throw new InvalidParameterException();
+        if (toCheck.equals("")) throw new InvalidParameterException();
 
     }
 
@@ -41,27 +64,15 @@ public class BPC {
         if (toCheck == null) throw new BlubbNullException();
     }
 
-
-    /**
-     * Map for escape character which need to be escaped for the DB.
-     * Key is the character from/for Android value from/for the DB.
-     */
-
-    private static final Map<String, String> ESC_MAP;
-    static {
-        Map<String, String> aMap = new HashMap<String, String>();
-        aMap.put("\n", "\\\n");
-        aMap.put("\t", "\\\t");
-        ESC_MAP = Collections.unmodifiableMap(aMap);
-    }
-
     /**
      * Function to parse Escape character to the DB.
+     *
      * @param parameter String from Android
      * @return String for the BEAP-DB
      * @throws InvalidParameterException if s is empty or null.
      */
-    public static String parseStringParameterToDB(String parameter) throws InvalidParameterException {
+    public static String parseStringParameterToDB(String parameter)
+            throws InvalidParameterException {
         checkString(parameter);
         final StringBuilder result = new StringBuilder();
         final StringCharacterIterator iterator = new StringCharacterIterator(parameter);
@@ -71,6 +82,8 @@ public class BPC {
                 result.append("\\n");
             } else if (character == '\t') {
                 result.append("\\t");
+            } else if (character == '\"') {
+                result.append("\\\"");
             } else {
                 //the char is not a special one
                 //add it to the result as is
@@ -84,7 +97,6 @@ public class BPC {
     private static String encode(String s) {
         try {
             String enc = URLEncoder.encode(s, ENCODING);
-            Log.i("urlEncoding", "Encoding " + s + " to\n" + enc);
             return enc;
         } catch (UnsupportedEncodingException e) {
             Log.e(NAME, e.getMessage());
@@ -94,15 +106,15 @@ public class BPC {
 
     /**
      * Function to parse Escape character from the DB to Android
+     *
      * @param s String from BEAP-DB
      * @return String for Android.
      */
-    public static String parseStringFromDB(String s){
+    public static String parseStringFromDB(String s) {
         Set<Map.Entry<String, String>> entries = ESC_MAP.entrySet();
-        for (Iterator<Map.Entry<String, String>> it = entries.iterator(); it.hasNext();){
+        for (Iterator<Map.Entry<String, String>> it = entries.iterator(); it.hasNext(); ) {
             Map.Entry<String, String> entry = it.next();
-            if(s.contains(entry.getValue())) {
-                Log.i("BPC-parse to DB", "parsing: " + entry.getValue() + " -> " + entry.getKey());
+            if (s.contains(entry.getValue())) {
                 s.replace(entry.getValue(), entry.getKey());
             }
         }
@@ -110,11 +122,20 @@ public class BPC {
     }
 
     public static String findStringInJsonObj(JSONObject obj, String toFind) {
-        if(obj.has(toFind)) try {
+        if (obj.has(toFind)) try {
             return parseStringFromDB(obj.getString(toFind));
         } catch (JSONException e) {
             return UNDEFINED;
         }
         return UNDEFINED;
+    }
+
+    //2014-06-25T13:40:40.312Z
+    public static Date parseDate(String dateString) throws ParseException {
+        return df.parse(dateString);
+    }
+
+    public static String parseDate(Date date) {
+        return df.format(date);
     }
 }

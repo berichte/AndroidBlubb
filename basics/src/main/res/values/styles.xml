@@ -52,5 +52,5 @@
         <item name="android:textSize">@dimen/blubb_symbol_size</item>
     </style>
 
-    <dimen name="blubb_symbol_size">50dp</dimen>
+    <dimen name="blubb_symbol_size">33sp</dimen>
 </resources>

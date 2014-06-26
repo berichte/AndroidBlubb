@@ -67,41 +67,21 @@ public class MessagePullService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    /**
-     * Show a notification while this service is running.
-     */
-    private void showNotification(String mAuthor, String mTitle, String mContent) {
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.blubb_logo);
-        builder.setContentTitle(mTitle);
-        builder.setContentText(mAuthor);
-        builder.setDefaults(Notification.DEFAULT_ALL);
-
-        builder.setStyle(new NotificationCompat.BigTextStyle().bigText(mContent));
-
-        Intent resultIntent = new Intent(this, ActivityThreadOverview.class);
-
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(
-                this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        builder.setContentIntent(resultPendingIntent);
-
-        issueNotification(builder);
-    }
-
     private void issueNotification(NotificationCompat.Builder builder) {
         mNotificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         // Including the notification ID allows you to update the notification later on.
-        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+        Notification notification = builder.build();
+        notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
+        Log.w(NAME, "pushing notification");
     }
 
     private void createMessageNotification(List<BlubbMessage> messages) {
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         builder = new NotificationCompat.Builder(this);
+        builder.setAutoCancel(true);
         builder.setSmallIcon(R.drawable.blubb_logo);
-
         Intent resultIntent;
         if (messages.size() > 1) {
             String nTitle = "You received " + messages.size() + " new messages";

@@ -84,7 +84,7 @@ public class BlubbRequestManager {
 
     public static BlubbResponse logout(String sessionId) throws BlubbDBException {
         String url = URL
-                + BEAP_ID + BEAP_ID_DB + BLUBB_AND
+                + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId);
         Log.v("BuildLogout", url);

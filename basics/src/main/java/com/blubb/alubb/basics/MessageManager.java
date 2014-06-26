@@ -106,6 +106,79 @@ public class MessageManager {
         }
     }
 
+    public BlubbMessage createMsg(Context context, String... blubbs)
+            throws InvalidParameterException, BlubbDBException,
+            SessionException, BlubbDBConnectionException, PasswordInitException {
+        Log.v(NAME, "createMsg(context, tId = " + blubbs[0] + ", mTitle = " +
+                blubbs[1] + ", mContent = " + blubbs[2] + ")");
+
+        String tId = BPC.parseStringParameterToDB(blubbs[0]);
+        String mTitle = BPC.parseStringParameterToDB(blubbs[1]);
+        String mContent = BPC.parseStringParameterToDB(blubbs[2]);
+        String query;
+        if (blubbs.length > 3) {
+            String mLink = BPC.parseStringParameterToDB(blubbs[3]);
+            query = "tree.functions.createMsg(self," +
+                    tId + "," + mTitle + "," + mContent + "," + mLink + ")";
+        } else {
+            query = "tree.functions.createMsg(self," +
+                    tId + "," + mTitle + "," + mContent + ")";
+        }
+        String sessionId = SessionManager.getInstance().getSessionID(context);
+        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
+        switch (response.getStatus()) {
+            case OK:
+                JSONObject result = (JSONObject) response.getResultObj();
+                BlubbMessage message = new BlubbMessage(result);
+                DatabaseHandler db = new DatabaseHandler(context);
+                db.addMessage(message);
+                List<BlubbMessage> messages = this.loadedMessages.get(tId);
+                if (messages == null) {
+                    messages = new ArrayList<BlubbMessage>();
+                    this.loadedMessages.put(tId, messages);
+                }
+                messages.add(message);
+                return message;
+            default:
+                throw new BlubbDBException("Could not perform createMsg" +
+                        " Beap status: " + response.getStatus());
+        }
+    }
+
+    public BlubbMessage respondToMsg(Context context, String tId, String mTitle, String mContent,
+                                     String msgId)
+            throws InvalidParameterException, BlubbDBException,
+            SessionException, BlubbDBConnectionException, PasswordInitException {
+        Log.v(NAME, "createMsg(context, tId = " + tId + ", mTitle = " +
+                mTitle + ", mContent = " + mContent + ")");
+        mTitle = BPC.parseStringParameterToDB(mTitle);
+        mContent = BPC.parseStringParameterToDB(mContent);
+        String ptId = BPC.parseStringParameterToDB(tId);
+        String query = "tree.functions.createMsg(self," +
+                ptId + "," + mTitle + "," + mContent + "," + msgId + ")";
+        String sessionId = SessionManager.getInstance().getSessionID(context);
+        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
+        switch (response.getStatus()) {
+            case OK:
+                JSONObject result = (JSONObject) response.getResultObj();
+                BlubbMessage message = new BlubbMessage(result);
+                DatabaseHandler db = new DatabaseHandler(context);
+                db.addMessage(message);
+                List<BlubbMessage> messages = this.loadedMessages.get(tId);
+                if (messages == null) {
+                    messages = new ArrayList<BlubbMessage>();
+                    this.loadedMessages.put(tId, messages);
+                }
+                messages.add(message);
+                return message;
+            default:
+                throw new BlubbDBException("Could not perform createMsg" +
+                        " Beap status: " + response.getStatus());
+        }
+    }
+
     public List<BlubbMessage> getAllMessagesForThread(Context context, String tId) {
         Log.v(NAME, "getAllMessagesForThread(context, tId = " + tId);
         try {

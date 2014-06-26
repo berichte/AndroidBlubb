@@ -2,6 +2,7 @@ package com.blubb.alubb.basics;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +16,19 @@ import com.blubb.alubb.blubbbasics.BlubbApplication;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by Benjamin Richter on 17.05.2014.
  * Class representing a blubb thread where user
  * can post massages.
  */
 public class BlubbThread {
+    private static final String NAME = "BlubbThread";
+    private static DateFormat df = new SimpleDateFormat("EEEE, dd.MM.yyyy");
     /**
      * tTitle of the Thread.
      */
@@ -34,22 +42,29 @@ public class BlubbThread {
      */
     private String tCreator;
     private String tCreatorRole;
-    private String tDate;
+    //private String tDate;
+    private Date tDate;
     private String tId;
     private int tMsgCount;
     private boolean isNew;
     private boolean hasNewMsgs;
     private boolean isBig = false;
-
     /**
      * Type of this thread, e.g. Chatthread, pollThread, taskThread.
      */
     private ThreadType tType;
 
     public BlubbThread(JSONObject jsonObject) throws JSONException {
+
         this.tCreator = BPC.findStringInJsonObj(jsonObject, "tCreator");
         this.tCreatorRole = BPC.findStringInJsonObj(jsonObject, "tCreatorRole");
-        this.tDate = BPC.findStringInJsonObj(jsonObject, "tDate");
+        String date = BPC.findStringInJsonObj(jsonObject, "tDate");
+        try {
+            this.tDate = BPC.parseDate(date);
+        } catch (ParseException e) {
+            Log.e(NAME, e.getMessage());
+            this.tDate = new Date();
+        }
         this.tTitle = BPC.findStringInJsonObj(jsonObject, "tTitle");
         this.tDesc = BPC.findStringInJsonObj(jsonObject, "tDescr");
         if (jsonObject.has("tMsgCount")) this.tMsgCount = jsonObject.getInt("tMsgCount");
@@ -65,7 +80,12 @@ public class BlubbThread {
         this.tDesc = tDesc;
         this.tCreator = tCreator;
         this.tCreatorRole = tCRole;
-        this.tDate = tDate;
+        try {
+            this.tDate = BPC.parseDate(tDate);
+        } catch (ParseException e) {
+            Log.e(NAME, e.getMessage());
+            this.tDate = new Date();
+        }
         this.tMsgCount = tMsgCount;
         this.tType = findThreadType(tType);
         this.isNew = (isNew == 1) ? true : false;
@@ -95,15 +115,11 @@ public class BlubbThread {
     }
 
     public String gettDate() {
-        return tDate;
+        return BPC.parseDate(tDate);
     }
 
     public int gettMsgCount() {
         return tMsgCount;
-    }
-
-    public void setMsgCount(int msgCount) {
-        this.tMsgCount = msgCount;
     }
 
     public String gettId() {
@@ -159,9 +175,8 @@ public class BlubbThread {
     }
 
     public String getFormatedDate() {
-        return tDate.substring(0, 16).replace('T', ' ');
+        return df.format(tDate);
     }
-
 
     public View getBigView(Context context, ViewGroup parent) {
 
@@ -219,6 +234,8 @@ public class BlubbThread {
                 R.layout.thread_list_entry_small, parent, false);
         return this.setContentForHeader(layout);
     }
+
+    private enum ThreadStatus {OPEN, CLOSED, SOLVED}
 
 
 }

@@ -9,8 +9,8 @@
     <color name="beap_blue">#336699</color>
     <color name="beap_dark_blue">#223366</color>
     <color name="beap_light_gray">#eeeeee</color>
-    <color name="blubb_cards">#50eeeeee</color>
-    <color name="blubb_cards_creator">#AAeeeeee</color>
+    <color name="blubb_cards">#88eeeeee</color>
+    <color name="blubb_cards_creator">#DDeeeeee</color>
     <color name="blubb_cards_shadow">#50223366</color>
     <color name="blubb_cards_content">#85FFFFFF</color>
     <color name="blubb_cards_text">#223366</color>
@@ -24,4 +24,6 @@
     <color name="blubb_popup_menu">#AAFFFFFF</color>
     <color name="dialog_background">#aaeeeeee</color>
     <color name="dialog_background_shadow">#aa223366</color>
+    <color name="blubb_transparent">#55ffffff</color>
+    <color name="blubb_transparent_shadow">#22555555</color>
 </resources>

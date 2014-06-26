@@ -43,6 +43,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             M_DATE = "mDate",
             M_TYPE = "mType",
             M_THREAD_ID = "mThreadId",
+            M_LINK = "mLink",
             M_IS_NEW = "mIsNew";
 
     //Column names for threads
@@ -79,6 +80,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + M_DATE + " TEXT,"
                 + M_TYPE + " TEXT,"
                 + M_THREAD_ID + " TEXT,"
+                + M_LINK + " TEXT,"
                 + M_IS_NEW + " INTEGER)";
         Log.i("SQLiteDB", "Creating Message table with sql: \n" + CREATE_MESSAGES_TABLE);
         sqLiteDatabase.execSQL(CREATE_MESSAGES_TABLE);
@@ -119,6 +121,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(M_DATE, message.getmDate());
         values.put(M_TYPE, message.getmType());
         values.put(M_THREAD_ID, message.getmThread());
+        values.put(M_LINK, message.getmLink());
         int flag = (message.isNew()) ? 1 : 0;
         values.put(M_IS_NEW, flag);
         db.insert(TABLE_MESSAGES, null, values);
@@ -160,6 +163,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         M_DATE,
                         M_TYPE,
                         M_THREAD_ID,
+                        M_LINK,
                         M_IS_NEW},
                 M_ID + "=?",
                 new String[]{String.valueOf(mId)}, null, null, null, null
@@ -175,7 +179,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     cursor.getString(5),
                     cursor.getString(6),
                     cursor.getString(7),
-                    cursor.getInt(8));
+                    cursor.getString(8),
+                    cursor.getInt(9));
 
             db.close();
             return message;
@@ -246,7 +251,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getString(5),
                         cursor.getString(6),
                         cursor.getString(7),
-                        cursor.getInt(8));
+                        cursor.getString(8),
+                        cursor.getInt(9));
                 msgList.add(message);
             } while (cursor.moveToNext());
         }
@@ -267,6 +273,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         M_DATE,
                         M_TYPE,
                         M_THREAD_ID,
+                        M_LINK,
                         M_IS_NEW},      // Select * From table_messages
                 M_THREAD_ID + "=?",   // Where mThreadId = ?
                 new String[]{String.valueOf(tId)},   // ? = tId
@@ -286,7 +293,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getString(5),
                         cursor.getString(6),
                         cursor.getString(7),
-                        cursor.getInt(8));
+                        cursor.getString(8),
+                        cursor.getInt(9));
                 Log.v("SQLite", "getting msg " + message.getmId() + " from db.");
                 msgList.add(message);
             } while (cursor.moveToNext());
@@ -360,6 +368,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(M_DATE, message.getmDate());
         values.put(M_TYPE, message.getmType());
         values.put(M_THREAD_ID, message.getmThread());
+        values.put(M_LINK, message.getmLink());
         int flag = (message.isNew()) ? 1 : 0;
         values.put(M_IS_NEW, flag);
 
@@ -381,6 +390,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(M_DATE, message.getmDate());
         values.put(M_TYPE, message.getmType());
         values.put(M_THREAD_ID, message.getmThread());
+        values.put(M_LINK, message.getmLink());
 
         db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{message.getmId()});
         db.close();

@@ -59,9 +59,16 @@
     <string name="thread_title_size_warning">The title must not be longer then 40 characters! But at least 1.</string>
     <string name="thread_descr_nl_warning">The description must not have more then 3 lines.</string>
     <string name="thread_descr_size_warning">You must enter a description.</string>
-    <string name="menu_action_shutdown_title">Exit Application</string>
+    <string name="menu_action_logout">Logout</string>
     <string name="blubb_reset_button_text">Reset password</string>
     <string name="login_pw_reset_ok_toast">Your password has been reseted.\nYou can now log in with your new password.</string>
     <string name="menu_action_resetpassword_text">Reset password</string>
+    <string name="menu_action_refresh_title">Refresh</string>
+    <string name="title_blubbthread_list">BlubbMessages</string>
+    <string name="title_blubbthread_detail">BlubbThread Detail</string>
+    <string name="logout_warning_message">Do you really want to logout?</string>
+    <string name="logout_positive_btn">Jupp</string>
+    <string name="logout_negativ_btn">Nooooo!</string>
+    <string name="offline_notification_title">Unforunatly blubb is offline</string>
 
 </resources>

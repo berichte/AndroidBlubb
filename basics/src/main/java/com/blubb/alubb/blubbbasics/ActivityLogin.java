@@ -52,6 +52,15 @@ public class ActivityLogin extends Activity {
         else this.loginType = LoginType.LOGIN;
     }
 
+    private void fillInCredentialPrefs(EditText unEt, EditText pwEt) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String un = prefs.getString(getString(R.string.pref_username), "");
+        String pw = prefs.getString(getString(R.string.pref_password), "");
+        unEt.setText(un);
+        pwEt.setText(pw);
+        if (pw.equals("")) pwEt.requestFocus();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -61,6 +70,7 @@ public class ActivityLogin extends Activity {
                 username = (EditText) findViewById(R.id.blubb_login_username),
                 password = (EditText) findViewById(R.id.blubb_login_password);
         CheckBox stayloggedIn = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+        fillInCredentialPrefs(username, password);
         switch (loginType) {
             case RESET:
                 button.setText(getString(R.string.blubb_reset_button_text));
@@ -291,9 +301,11 @@ public class ActivityLogin extends Activity {
                 editor.putString(
                         ActivityLogin.this.getString(R.string.pref_password), pwPref);
                 editor.commit();
-
+                onBackPressed();
+/*
                 Intent intent = new Intent(ActivityLogin.this, ActivityThreadOverview.class);
                 ActivityLogin.this.startActivity(intent);
+                finish();*/
             }
         }
     }

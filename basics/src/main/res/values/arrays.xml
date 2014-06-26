@@ -2,26 +2,14 @@
 <resources>
     <string-array name="blubb_message_pull_entries">
         <item>off</item>
-        <item>10 sek</item>
-        <item>20 sek</item>
-        <item>30 sek</item>
-        <item>60 sek</item>
-        <item>2 min</item>
-        <item>5 min</item>
-        <item>15 min</item>
-        <item>30 min</item>
-        <item>1 h</item>
+        <item>often</item>
+        <item>medium</item>
+        <item>infrequent</item>
     </string-array>
     <string-array name="blubb_message_pull_values">
         <item>0</item>
-        <item>10</item>
-        <item>20</item>
         <item>30</item>
-        <item>60</item>
-        <item>120</item>
         <item>300</item>
-        <item>900</item>
-        <item>1800</item>
         <item>3600</item>
     </string-array>
 </resources>

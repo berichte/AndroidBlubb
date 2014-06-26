@@ -2,6 +2,7 @@ package com.blubb.alubb.basics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -301,6 +302,30 @@ public class SessionManager {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             String unId = context.getString(R.string.pref_username);
             return prefs.getString(unId, "noUser");
+        }
+    }
+
+    public void logout(Context context) {
+        SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        //prefs.edit().putString(context.getString(R.string.pref_password), "").commit();
+        prefs.edit().remove(context.getString(R.string.pref_password)).commit();
+        if (this.session != null) {
+            new AsyncLogout().execute(session.getSessionId());
+        }
+
+    }
+
+    private class AsyncLogout extends AsyncTask<String, Void, BlubbResponse> {
+
+        @Override
+        protected BlubbResponse doInBackground(String... params) {
+            try {
+                return BlubbRequestManager.logout(params[0]);
+            } catch (BlubbDBException e) {
+                Log.e(NAME, e.getMessage());
+            }
+            return null;
         }
     }
 }

@@ -6,4 +6,7 @@
         android:icon="@drawable/mail_new"
         android:showAsAction="collapseActionView"
         android:title="@string/new_message_action_text" />
+    <item
+        android:id="@+id/menu_action_refresh"
+        android:title="@string/menu_action_refresh_title" />
 </menu>

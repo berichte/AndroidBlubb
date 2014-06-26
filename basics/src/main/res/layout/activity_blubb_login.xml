@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/beap_light_gray"
     android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -10,7 +9,7 @@
     android:weightSum="1"
     tools:context="com.blubb.alubb.blubbbasics.ActivityLogin">
 
-<ImageView
+    <ImageView
         android:id="@+id/imageView"
         android:layout_width="225dp"
         android:layout_height="221dp"
@@ -34,7 +33,6 @@
         android:id="@+id/blubb_login_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password_hint"
         android:password="true"
@@ -44,7 +42,6 @@
         android:id="@+id/blubb_login_password_reset"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password_reset_hint"
         android:password="true"
@@ -55,7 +52,6 @@
         android:id="@+id/blubb_login_password_reset_confirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password__reset_confirm_hint"
         android:password="true"
@@ -66,7 +62,6 @@
         android:id="@+id/blubb_login_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/blubb_button"
         android:text="@string/action_sign_in_short"

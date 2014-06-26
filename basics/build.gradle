@@ -24,9 +24,9 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.gms:play-services:4.0.30'
+    compile 'com.google.android.gms:play-services:4.4.52'
     compile 'com.android.support:appcompat-v7:+'
-    compile 'com.android.support:support-v4:19.0.0'
+    compile 'com.android.support:support-v4:19.1.0'
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

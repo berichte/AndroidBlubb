@@ -3,7 +3,10 @@ package com.blubb.alubb.blubbbasics;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,15 +28,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbThread;
+import com.blubb.alubb.basics.DatabaseHandler;
+import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.beapcom.MessagePullService;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
@@ -51,6 +60,7 @@ public class ActivityThreadOverview extends Activity {
 
     private static final int RESULT_SETTINGS = 1,
                             RESULT_LOGIN = 2;
+    private static final int NOTIFICATION_ID = 1904;
     private static String titleInput = "", descInput = "";
     final Context context = this;
     private boolean loginSpinn = false,
@@ -58,11 +68,12 @@ public class ActivityThreadOverview extends Activity {
             getAllLocalSpinn = false,
             createThreadSpinn = false,
             storeDraft = true;
+    private MenuItem loggedInItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        requestWindowFeature(Window.FEATURE_PROGRESS);
         start();
     }
 
@@ -76,6 +87,17 @@ public class ActivityThreadOverview extends Activity {
         spinnerOn();
         asyncGetAllThreads.execute();
         startMessagePullService();
+    }
+
+    private void addHeader() {
+        ListView lv = (ListView) findViewById(R.id.thread_list);
+
+        LayoutInflater inflater = (LayoutInflater) this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout header = (LinearLayout)
+                inflater.inflate(R.layout.thread_ov_header, lv, false);
+
+        lv.addHeaderView(header);
     }
 
     private void checkForLogin() {
@@ -124,6 +146,7 @@ public class ActivityThreadOverview extends Activity {
         {
             spinnerOff();
         }
+        //addHeader();
     }
 
     @Override
@@ -137,6 +160,12 @@ public class ActivityThreadOverview extends Activity {
         switch (item.getItemId()) {
             case R.id.menu_new_thread_action:
                 newThreadDialog();
+                break;
+            case R.id.menu_action_refresh:
+                AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
+                this.getAllBeapSpinn = true;
+                spinnerOn();
+                asyncGetAllThreads.execute();
                 break;
             case R.id.menu_blubb_settings:
                 Intent i = new Intent(this, ActivitySettings.class);
@@ -154,8 +183,31 @@ public class ActivityThreadOverview extends Activity {
                         ActivityLogin.LoginType.RESET);
                 startActivityForResult(resetPwIntent, RESULT_LOGIN);
                 break;
-            case R.id.menu_action_shutdown:
-                finish();
+            case R.id.menu_action_logout:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.logout_warning_message)
+                        .setPositiveButton(R.string.logout_positive_btn, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                AlarmManager am = (AlarmManager)
+                                        getSystemService(Context.ALARM_SERVICE);
+                                PendingIntent mAlarmSender = PendingIntent.getService(
+                                        ActivityThreadOverview.this, 0,
+                                        new Intent(ActivityThreadOverview.this,
+                                                MessagePullService.class), 0
+                                );
+                                am.cancel(mAlarmSender);
+                                SessionManager.getInstance().logout(ActivityThreadOverview.this);
+                                finish();
+
+                            }
+                        })
+                        .setNegativeButton(R.string.logout_negativ_btn, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                // Create the AlertDialog object and return it
+                builder.show();
         }
         return true;
     }
@@ -246,6 +298,7 @@ public class ActivityThreadOverview extends Activity {
                 titleInput = "";
                 descInput = "";
                 dialog.cancel();
+                storeDraft = false;
             }
         });
 
@@ -256,6 +309,7 @@ public class ActivityThreadOverview extends Activity {
                 storeDraft = false;
             }
         });
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.show();
     }
 
@@ -271,16 +325,51 @@ public class ActivityThreadOverview extends Activity {
     }
 
     public void spinnerOn() {
+        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         if (shouldSpinn()) {
-            setProgressBarIndeterminateVisibility(true);
+            pb.setVisibility(View.VISIBLE);
         }
     }
 
     public void spinnerOff()
     {
+        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         if (!shouldSpinn()) {
-            setProgressBarIndeterminateVisibility(false);
+            pb.setVisibility(View.INVISIBLE);
+            //setProgressBarVisibility(false);
         }
+    }
+
+    private void showOnlineStatus() {
+        /*View layout = findViewById(R.id.thread_ov_rl);
+        layout.setBackground(getResources().getDrawable(R.drawable.waterdrop_wallpaper));*/
+    }
+
+    private void showOfflineStatus(){/*
+        View layout = findViewById(R.id.thread_ov_rl);
+        layout.setBackgroundColor(getResources().getColor(R.color.beap_medium_yellow));*/
+    }
+
+    private void cancelNotification() {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        nm.cancel(NOTIFICATION_ID);
+    }
+
+    private void createNotification(String nTitle) {
+        NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setAutoCancel(true);
+        builder.setSmallIcon(R.drawable.blubb_logo);
+        Intent resultIntent;
+        builder.setContentTitle(nTitle);
+
+        builder.setAutoCancel(true);
+
+        // Including the notification ID allows you to update the notification later on.
+        Notification notification = builder.build();
+        notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
+        nManager.notify(NOTIFICATION_ID, notification);
+        Log.w(NAME, "pushing notification");
     }
 
     private class AsyncNewThread extends AsyncTask<Void, Void, BlubbThread> {
@@ -301,6 +390,7 @@ public class ActivityThreadOverview extends Activity {
                 return getApp().getThreadManager().createThread(
                         ActivityThreadOverview.this.getApplicationContext(), title, descr);
             } catch (BlubbDBException e) {
+                createNotification(e.getMessage());
                 this.exception = e;
             } catch (InvalidParameterException e) {
                 this.exception = e;
@@ -309,6 +399,7 @@ public class ActivityThreadOverview extends Activity {
             } catch (JSONException e) {
                 this.exception = e;
             } catch (BlubbDBConnectionException e) {
+                createNotification(e.getMessage());
                 this.exception = e;
             }
             return null;
@@ -322,6 +413,7 @@ public class ActivityThreadOverview extends Activity {
                         "tTitle: " + thread.getThreadTitle();
                 Log.i("AsyncNewThread", msg);
                 Toast.makeText(ActivityThreadOverview.this, msg, Toast.LENGTH_LONG).show();
+                cancelNotification();
             } // if null there has been a toast.
             handleException(exception);
             AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
@@ -362,60 +454,54 @@ public class ActivityThreadOverview extends Activity {
     }
 
     /**
-    private class AsyncGetLocalThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
-
-        @Override
-        protected List<BlubbThread> doInBackground(Void... voids) {
-            Log.v("AsyncGetAllLocalThreads", "execute()");
-            return getApp().getThreadManager().getAllThreadsFromSqlite(
-                        ThreadOverview.this.getApplicationContext());
-        }
-
-        @Override
-        protected void onPostExecute(final List<BlubbThread> response) {
-            Log.v("AsyncGetAllLocalThreads", "received " + response.size() + " threads.");
-            ListView lv = (ListView) findViewById(R.id.thread_list);
-            final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-                    ThreadOverview.this, R.layout.thread_list_entry, response);
-            lv.setAdapter(adapter);
-
-            lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, final View view,
-                                        int position, long id) {
-                    Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
-                    assert parent.getItemAtPosition(position) != null;
-                    BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
-                    String threadId = bThread.gettId();
-                    intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
-                    String tTitle = bThread.getThreadTitle();
-                    intent.putExtra(SingleThreadActivity.EXTRA_THREAD_TITLE, tTitle);
-                    String tCreator = bThread.gettCreator();
-                    intent.putExtra(SingleThreadActivity.EXTRA_THREAD_CREATOR, tCreator);
-                    String tDesc = bThread.gettDesc();
-                    intent.putExtra(SingleThreadActivity.EXTRA_THREAD_DESCRIPTION, tDesc);
-                    ThreadOverview.this.startActivity(intent);
-                }
-
-            });
-            lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
-
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view,
-                                               int position, long id) {
-                    BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
-                    thread.toggleViewSize();
-                    @SuppressWarnings("unchecked")
-                    ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
-                            parent.getAdapter();
-                    adapter.notifyDataSetChanged();
-                    return true;
-                }
-            });
-            getAllLocalSpinn = false;
-            spinnerOff();
-        }
-    } */
+     * private class AsyncGetLocalThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
+     *
+     * @Override protected List<BlubbThread> doInBackground(Void... voids) {
+     * Log.v("AsyncGetAllLocalThreads", "execute()");
+     * return getApp().getThreadManager().getAllThreadsFromSqlite(
+     * ThreadOverview.this.getApplicationContext());
+     * }
+     * @Override protected void onPostExecute(final List<BlubbThread> response) {
+     * Log.v("AsyncGetAllLocalThreads", "received " + response.size() + " threads.");
+     * ListView lv = (ListView) findViewById(R.id.thread_list);
+     * final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
+     * ThreadOverview.this, R.layout.thread_list_entry, response);
+     * lv.setAdapter(adapter);
+     * <p/>
+     * lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+     * @Override public void onItemClick(AdapterView<?> parent, final View view,
+     * int position, long id) {
+     * Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
+     * assert parent.getItemAtPosition(position) != null;
+     * BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
+     * String threadId = bThread.gettId();
+     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
+     * String tTitle = bThread.getThreadTitle();
+     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_TITLE, tTitle);
+     * String tCreator = bThread.gettCreator();
+     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_CREATOR, tCreator);
+     * String tDesc = bThread.gettDesc();
+     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_DESCRIPTION, tDesc);
+     * ThreadOverview.this.startActivity(intent);
+     * }
+     * <p/>
+     * });
+     * lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
+     * @Override public boolean onItemLongClick(AdapterView<?> parent, View view,
+     * int position, long id) {
+     * BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
+     * thread.toggleViewSize();
+     * @SuppressWarnings("unchecked") ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
+     * parent.getAdapter();
+     * adapter.notifyDataSetChanged();
+     * return true;
+     * }
+     * });
+     * getAllLocalSpinn = false;
+     * spinnerOff();
+     * }
+     * }
+     */
 
     private class AsyncGetAllThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
 
@@ -433,14 +519,14 @@ public class ActivityThreadOverview extends Activity {
             final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
                     ActivityThreadOverview.this, R.layout.thread_list_entry, response);
 
-            if(adapter.getCount() > response.size()) {
+            if (adapter.getCount() > response.size()) {
                 spinnerOff();
                 return;
             }
 
             lv.setAdapter(adapter);
 
-            lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, final View view,
                                         int position, long id) {
@@ -506,14 +592,22 @@ public class ActivityThreadOverview extends Activity {
         protected void onPostExecute(Boolean isLoggedIn) {
             // if there was no exception toast will be null - everything is alright.
             if (!isLoggedIn) {
-                Toast.makeText(context, exception.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, exception.getMessage(), Toast.LENGTH_LONG).show();
                 // if the exception is a ConnectionException don't let user perform manual login
-                /*if (exception.getClass().equals(SessionException.class)) {
-                    Intent intent = new Intent(ActivityThreadOverview.this, ActivityLogin.class);
-                    intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE, ActivityLogin.LoginType.LOGIN);
-                    ActivityThreadOverview.this.startActivity(intent);
-                }*/
-            }
+                if (exception.getClass().equals(SessionException.class)) {
+                    DatabaseHandler db = new DatabaseHandler(ActivityThreadOverview.this);
+                    int counter = db.getThreadCount();
+                    if(counter == 0) {
+                        Intent intent = new Intent(ActivityThreadOverview.this, ActivityLogin.class);
+                        intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE, ActivityLogin.LoginType.LOGIN);
+                        ActivityThreadOverview.this.startActivity(intent);
+                    }
+                }
+                showOfflineStatus();
+                //createNotification("Oh no we are offline. :-C ");
+            } else {
+                showOnlineStatus();
+            } //cancelNotification();
             loginSpinn = false;
             spinnerOff();
         }
