@@ -8,7 +8,6 @@ import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -17,7 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -26,7 +24,6 @@ import java.util.List;
 public class ThreadManager {
     private static final String NAME = "ThreadManager";
 
-    private static int threadsAtBeap = 0;
     private static ThreadManager tManager;
 
     private ThreadManager() {
@@ -35,15 +32,13 @@ public class ThreadManager {
 
     public static ThreadManager getInstance() {
         Log.v(NAME, "get Instance called.");
-        if(tManager == null) tManager = new ThreadManager();
+        if (tManager == null) tManager = new ThreadManager();
         return tManager;
     }
 
     public List<BlubbThread> getAllThreads(Context context) {
         try {
             this.getAllThreadsFromBeap(context);
-        } catch (InvalidParameterException e) {
-            Log.e(NAME, e.getMessage());
         } catch (SessionException e) {
             Log.e(NAME, e.getMessage());
         } catch (BlubbDBException e) {
@@ -57,7 +52,7 @@ public class ThreadManager {
     }
 
     public List<BlubbThread> getNewThreads(Context context)
-            throws InvalidParameterException, SessionException, BlubbDBException,
+            throws SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
         Log.v(NAME, "getNewThreads(context)");
         List<BlubbThread> threads = getAllThreads(context);
@@ -68,19 +63,8 @@ public class ThreadManager {
         return newThreads;
     }
 
-    private List<BlubbThread> removeAll(List<BlubbThread> list, List<BlubbThread> toRemove) {
-        HashMap<String, BlubbThread> threads = new HashMap<String, BlubbThread>();
-        for(BlubbThread t: list) {
-            threads.put(t.gettId(), t);
-        }
-        for(BlubbThread t: toRemove) {
-            threads.remove(t.gettId());
-        }
-        return new ArrayList<BlubbThread>(threads.values());
-    }
-
     public List<BlubbThread> getAllThreadsFromBeap(Context context)
-            throws InvalidParameterException, SessionException, BlubbDBException,
+            throws SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
         Log.v(NAME, "getAllThreadsFromBeap(context)");
         List<BlubbThread> beapThreads = new ArrayList<BlubbThread>();
@@ -95,7 +79,7 @@ public class ThreadManager {
         switch (response.getStatus()) {
             case OK:
                 JSONArray jsonArray = (JSONArray) response.getResultObj();
-                for(int i = 0; i < jsonArray.length(); i++) {
+                for (int i = 0; i < jsonArray.length(); i++) {
                     BlubbThread t = new BlubbThread(jsonArray.getJSONObject(i));
                     putThreadToSqliteFromBeap(context, t);
                     beapThreads.add(t);
@@ -128,8 +112,8 @@ public class ThreadManager {
         Log.v(NAME, "putThreadToSqlite(context, thread=" + thread.gettId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbThread t = db.getThread(thread.gettId());
-        if(t != null) {
-            if(!thread.equals(t)){
+        if (t != null) {
+            if (!thread.equals(t)) {
                 db.updateThread(thread);
             }
         } else {
@@ -146,20 +130,20 @@ public class ThreadManager {
     }
 
     public BlubbThread getThread(Context context, String tId)
-            throws SessionException, InvalidParameterException, BlubbDBException,
+            throws SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
         Log.v(NAME, "getThread(context, tId");
         List<BlubbThread> threads = getAllThreadsFromSqlite(context);
         BlubbThread thread = getThread(threads, tId);
-        if(thread != null) return thread;
+        if (thread != null) return thread;
         threads = getAllThreadsFromBeap(context);
         return getThread(threads, tId);
     }
 
     private BlubbThread getThread(List<BlubbThread> threads, String tId) {
         Log.v(NAME, "getThread(list, tId");
-        for (BlubbThread t: threads) {
-            if(t.gettId().equals(tId)) {
+        for (BlubbThread t : threads) {
+            if (t.gettId().equals(tId)) {
                 Log.v(NAME, "Found Thread: " + tId);
                 return t;
             }
@@ -173,18 +157,17 @@ public class ThreadManager {
      * creates a new Thread at beap. if all goes well the thread will
      * be added to the sqlite db and the hole BlubbThread will be returned.
      *
-     * @param context actual context.
-     * @param tTitle title for the thread
+     * @param context      actual context.
+     * @param tTitle       title for the thread
      * @param tDescription description for the thread
      * @return the BlubbThread returned from Beap
-     * @throws InvalidParameterException if title or desc are not valid.
      * @throws BlubbDBException
      * @throws SessionException if it's not possible to log in
-     * @throws JSONException if there should be returned a wrong kind of result.
+     * @throws JSONException    if there should be returned a wrong kind of result.
      */
     public BlubbThread createThread(
             Context context, String tTitle, String tDescription)
-            throws InvalidParameterException, BlubbDBException,
+            throws BlubbDBException,
             SessionException, JSONException, BlubbDBConnectionException {
         Log.v(NAME, "createThread(context, tTitle = " +
                 tTitle + ", tDescription = " + tDescription + ")");

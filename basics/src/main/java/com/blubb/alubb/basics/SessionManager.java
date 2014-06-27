@@ -13,7 +13,6 @@ import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.beapcom.QuickCheck;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -68,7 +67,7 @@ public class SessionManager {
         return instance;
     }
 
-    public String getSessionID(Context context) throws InvalidParameterException,
+    public String getSessionID(Context context) throws
             SessionException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         return getSession(context).getSessionId();
     }
@@ -83,7 +82,7 @@ public class SessionManager {
      * @throws SessionException if no Session is available
      */
     private SessionInfo getSession(Context context) throws SessionException,
-            InvalidParameterException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
+            BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getSession(context)");
         // check whether there's a sessionInfo
         if (this.session == null) {
@@ -99,7 +98,7 @@ public class SessionManager {
     }
 
     private int refreshSession(Context context) throws BlubbDBException,
-            InvalidParameterException, SessionException, BlubbDBConnectionException,
+            SessionException, BlubbDBConnectionException,
             PasswordInitException {
         Log.v(NAME, "refreshSession(context)");
         //execute a refresh with beap
@@ -125,7 +124,7 @@ public class SessionManager {
         return (this.timeWhenSessionIsExpired < now);
     }
 
-    private int checkSession(Context context) throws InvalidParameterException,
+    private int checkSession(Context context) throws
             SessionException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "checkSession(context)");
         BlubbResponse blubbResponse =
@@ -144,7 +143,7 @@ public class SessionManager {
     }
 
     public boolean login(String username, String password)
-            throws InvalidParameterException, BlubbDBException,
+            throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "login(usename = " + username +
                 ", passwordLength = " + password.length() + ")");
@@ -159,12 +158,11 @@ public class SessionManager {
      *
      * @param appContext the blubb application context.
      * @return the sessionInfo from the sessionLogin
-     * @throws InvalidParameterException if prefUsername or prefPassword are not valid.
-     * @throws BlubbDBException          if something went wrong with the DB
-     * @throws SessionException          if there are no username or password in the Preferences -
-     *                                   user needs to log in manually.
+     * @throws BlubbDBException if something went wrong with the DB
+     * @throws SessionException if there are no username or password in the Preferences -
+     *                          user needs to log in manually.
      */
-    private SessionInfo loginWithPrefs(Context appContext) throws InvalidParameterException,
+    private SessionInfo loginWithPrefs(Context appContext) throws
             BlubbDBException, SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "loginWithPrefs(appContext)");
         // try a sessionLogin with preferences
@@ -219,8 +217,7 @@ public class SessionManager {
         this.timeWhenSessionIsExpired = now;
     }
 
-    public QuickCheck quickCheck(Context context) throws
-            InvalidParameterException, SessionException,
+    public QuickCheck quickCheck(Context context) throws SessionException,
             BlubbDBException, BlubbDBConnectionException,
             JSONException, PasswordInitException {
         checkCounter(context);
@@ -263,8 +260,7 @@ public class SessionManager {
         editor.commit();
     }
 
-    private int[] check(Context context) throws
-            InvalidParameterException, SessionException,
+    private int[] check(Context context) throws SessionException,
             BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "check(context)");
         try {

@@ -69,11 +69,13 @@ public class BPC {
      *
      * @param parameter String from Android
      * @return String for the BEAP-DB
-     * @throws InvalidParameterException if s is empty or null.
      */
-    public static String parseStringParameterToDB(String parameter)
-            throws InvalidParameterException {
-        checkString(parameter);
+    public static String parseStringParameterToDB(String parameter) {
+        try {
+            checkString(parameter);
+        } catch (InvalidParameterException e) {
+            return "";
+        }
         final StringBuilder result = new StringBuilder();
         final StringCharacterIterator iterator = new StringCharacterIterator(parameter);
         char character = iterator.current();

@@ -45,7 +45,6 @@ import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.beapcom.MessagePullService;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -59,7 +58,7 @@ public class ActivityThreadOverview extends Activity {
     private static final String NAME = "ThreadOverview";
 
     private static final int RESULT_SETTINGS = 1,
-                            RESULT_LOGIN = 2;
+            RESULT_LOGIN = 2;
     private static final int NOTIFICATION_ID = 1904;
     private static String titleInput = "", descInput = "";
     final Context context = this;
@@ -71,13 +70,13 @@ public class ActivityThreadOverview extends Activity {
     private MenuItem loggedInItem;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_PROGRESS);
         start();
     }
 
-    private void start(){
+    private void start() {
 
         setContentView(R.layout.activity_thread_overview);
         checkForLogin();
@@ -124,12 +123,12 @@ public class ActivityThreadOverview extends Activity {
         String intervalStr = sharedPrefs.getString(intName, "0");
 
         int interval = Integer.parseInt(intervalStr);
-        if(interval==0) return;
+        if (interval == 0) return;
 
         long firstTime = SystemClock.elapsedRealtime();
 
         am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                firstTime, interval*1000, mAlarmSender);
+                firstTime, interval * 1000, mAlarmSender);
     }
 
     @Override
@@ -138,12 +137,9 @@ public class ActivityThreadOverview extends Activity {
         Log.v(NAME, "onResume()");
         start();
         startMessagePullService();
-        if (shouldSpinn())
-        {
+        if (shouldSpinn()) {
             spinnerOn();
-        }
-        else
-        {
+        } else {
             spinnerOff();
         }
         //addHeader();
@@ -331,8 +327,7 @@ public class ActivityThreadOverview extends Activity {
         }
     }
 
-    public void spinnerOff()
-    {
+    public void spinnerOff() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         if (!shouldSpinn()) {
             pb.setVisibility(View.INVISIBLE);
@@ -345,7 +340,7 @@ public class ActivityThreadOverview extends Activity {
         layout.setBackground(getResources().getDrawable(R.drawable.waterdrop_wallpaper));*/
     }
 
-    private void showOfflineStatus(){/*
+    private void showOfflineStatus() {/*
         View layout = findViewById(R.id.thread_ov_rl);
         layout.setBackgroundColor(getResources().getColor(R.color.beap_medium_yellow));*/
     }
@@ -391,8 +386,6 @@ public class ActivityThreadOverview extends Activity {
                         ActivityThreadOverview.this.getApplicationContext(), title, descr);
             } catch (BlubbDBException e) {
                 createNotification(e.getMessage());
-                this.exception = e;
-            } catch (InvalidParameterException e) {
                 this.exception = e;
             } catch (SessionException e) {
                 this.exception = e;
@@ -567,6 +560,7 @@ public class ActivityThreadOverview extends Activity {
     private class AsyncCheckLogin extends AsyncTask<Void, Void, Boolean> {
 
         private Exception exception;
+
         @Override
         protected Boolean doInBackground(Void... params) {
             Log.v(NAME, "AsyncLogin");
@@ -574,8 +568,6 @@ public class ActivityThreadOverview extends Activity {
                 getApp().getSessionManager().getSessionID(
                         ActivityThreadOverview.this.getApplicationContext());
                 return true;
-            } catch (InvalidParameterException e) {
-                this.exception = e;
             } catch (SessionException e) {
                 this.exception = e;
             } catch (BlubbDBException e) {
@@ -597,7 +589,7 @@ public class ActivityThreadOverview extends Activity {
                 if (exception.getClass().equals(SessionException.class)) {
                     DatabaseHandler db = new DatabaseHandler(ActivityThreadOverview.this);
                     int counter = db.getThreadCount();
-                    if(counter == 0) {
+                    if (counter == 0) {
                         Intent intent = new Intent(ActivityThreadOverview.this, ActivityLogin.class);
                         intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE, ActivityLogin.LoginType.LOGIN);
                         ActivityThreadOverview.this.startActivity(intent);

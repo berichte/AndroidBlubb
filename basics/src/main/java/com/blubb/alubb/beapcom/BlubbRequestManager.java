@@ -121,7 +121,7 @@ public class BlubbRequestManager {
     }
 
     public static int[] quickCheck(Context context, String sessionId) throws BlubbDBException,
-            InvalidParameterException, SessionException {
+            SessionException {
         try {
             String query = "tree.functions.quickCheck(self)";
             BlubbResponse blubbResponse = BlubbRequestManager.query(query, sessionId);

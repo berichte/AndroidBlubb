@@ -21,7 +21,6 @@ import com.blubb.alubb.blubbbasics.ActivitySingleThread;
 import com.blubb.alubb.blubbbasics.ActivityThreadOverview;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -144,8 +143,6 @@ public class MessagePullService extends Service {
             SessionManager sManager = SessionManager.getInstance();
             try {
                 return sManager.quickCheck(MessagePullService.this);
-            } catch (InvalidParameterException e) {
-                Log.e(NAME, e.getMessage());
             } catch (SessionException e) {
                 Log.e(NAME, e.getMessage());
             } catch (BlubbDBException e) {

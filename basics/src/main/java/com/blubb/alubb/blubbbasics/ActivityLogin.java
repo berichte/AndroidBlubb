@@ -29,7 +29,6 @@ import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -262,8 +261,6 @@ public class ActivityLogin extends Activity {
                     return getApp().getSessionManager()
                             .getSessionID(ActivityLogin.this.getApplicationContext());
                 }
-            } catch (InvalidParameterException e) {
-                return e.getMessage();
             } catch (BlubbDBException e) {
                 return e.getMessage();
             } catch (SessionException e) {

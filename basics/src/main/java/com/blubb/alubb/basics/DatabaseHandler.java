@@ -53,6 +53,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             T_DESC = "tDescription",
             T_CREATOR = "tCreator",
             T_C_ROLE = "tCreatorRole",
+            T_STATUS = "tStatus",
             T_DATE = "tDate",
             T_MSG_COUNT = "tMsgCount",
             T_TYPE = "tType",
@@ -91,6 +92,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + T_DESC + " TEXT,"
                 + T_CREATOR + " TEXT,"
                 + T_C_ROLE + " TEXT,"
+                + T_STATUS + " TEXT,"
                 + T_DATE + " TEXT,"
                 + T_MSG_COUNT + " INTEGER,"
                 + T_TYPE + " TEXT,"
@@ -138,6 +140,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(T_DESC, thread.gettDesc());
         values.put(T_CREATOR, thread.gettCreator());
         values.put(T_C_ROLE, thread.gettCreatorRole());
+        values.put(T_STATUS, thread.gettStatusString());
         values.put(T_DATE, thread.gettDate());
         values.put(T_MSG_COUNT, thread.gettMsgCount());
         values.put(T_TYPE, thread.gettType().name());
@@ -201,6 +204,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         T_DESC,
                         T_CREATOR,
                         T_C_ROLE,
+                        T_STATUS,
                         T_DATE,
                         T_MSG_COUNT,
                         T_TYPE,
@@ -219,10 +223,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     cursor.getString(3),
                     cursor.getString(4),
                     cursor.getString(5),
-                    cursor.getInt(6),
-                    cursor.getString(7),
-                    cursor.getInt(8),
-                    cursor.getInt(9));
+                    cursor.getString(6),
+                    cursor.getInt(7),
+                    cursor.getString(8),
+                    cursor.getInt(9),
+                    cursor.getInt(10));
 
             db.close();
             return thread;
@@ -320,10 +325,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         cursor.getString(3),
                         cursor.getString(4),
                         cursor.getString(5),
-                        cursor.getInt(6),
-                        cursor.getString(7),
-                        cursor.getInt(8),
-                        cursor.getInt(9));
+                        cursor.getString(6),
+                        cursor.getInt(7),
+                        cursor.getString(8),
+                        cursor.getInt(9),
+                        cursor.getInt(10));
                 tList.add(thread);
             } while (cursor.moveToNext());
         }
@@ -407,6 +413,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(T_DESC, thread.gettDesc());
         values.put(T_CREATOR, thread.gettCreator());
         values.put(T_C_ROLE, thread.gettCreatorRole());
+        values.put(T_STATUS, thread.gettStatusString());
         values.put(T_DATE, thread.gettDate());
         values.put(T_MSG_COUNT, thread.gettMsgCount());
         values.put(T_TYPE, thread.gettType().name());
@@ -430,6 +437,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(T_DESC, thread.gettDesc());
         values.put(T_CREATOR, thread.gettCreator());
         values.put(T_C_ROLE, thread.gettCreatorRole());
+        values.put(T_STATUS, thread.gettStatusString());
         values.put(T_DATE, thread.gettDate());
         values.put(T_MSG_COUNT, thread.gettMsgCount());
         values.put(T_TYPE, thread.gettType().name());

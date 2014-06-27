@@ -28,6 +28,8 @@ import java.util.Date;
  */
 public class BlubbThread {
     private static final String NAME = "BlubbThread";
+    private static final String TS_SOLVED = "solved", TS_CLOSED = "closed", TS_OPEN = "open";
+
     private static DateFormat df = new SimpleDateFormat("EEEE, dd.MM.yyyy");
     /**
      * tTitle of the Thread.
@@ -42,7 +44,8 @@ public class BlubbThread {
      */
     private String tCreator;
     private String tCreatorRole;
-    //private String tDate;
+    private ThreadStatus tStatus;
+    ;
     private Date tDate;
     private String tId;
     private int tMsgCount;
@@ -53,6 +56,7 @@ public class BlubbThread {
      * Type of this thread, e.g. Chatthread, pollThread, taskThread.
      */
     private ThreadType tType;
+    private View bigView, smallView;
 
     public BlubbThread(JSONObject jsonObject) throws JSONException {
 
@@ -70,16 +74,18 @@ public class BlubbThread {
         if (jsonObject.has("tMsgCount")) this.tMsgCount = jsonObject.getInt("tMsgCount");
         this.tId = BPC.findStringInJsonObj(jsonObject, "tId");
         this.tType = findThreadType(BPC.findStringInJsonObj(jsonObject, "tType"));
+        this.tStatus = parseThreadStatus(BPC.findStringInJsonObj(jsonObject, "tStatus"));
     }
 
     public BlubbThread(String tId, String tTitle, String tDesc,
-                       String tCreator, String tCRole,
+                       String tCreator, String tCRole, String tStatus,
                        String tDate, int tMsgCount, String tType, int isNew, int hasNewMsg) {
         this.tId = tId;
         this.tTitle = tTitle;
         this.tDesc = tDesc;
         this.tCreator = tCreator;
         this.tCreatorRole = tCRole;
+        settStatus(tStatus);
         try {
             this.tDate = BPC.parseDate(tDate);
         } catch (ParseException e) {
@@ -96,6 +102,13 @@ public class BlubbThread {
         if (tType.equals("Thread")) return ThreadType.CHAT_THREAD;
 
         return ThreadType.UNDEFINED;
+    }
+
+    private ThreadStatus parseThreadStatus(String threadStatus) {
+        Log.v(NAME, "parseThreadStatus(tStatus=" + threadStatus + ")");
+        if (threadStatus.equals(TS_CLOSED)) return ThreadStatus.CLOSED;
+        if (threadStatus.equals(TS_SOLVED)) return ThreadStatus.SOLVED;
+        else return ThreadStatus.OPEN;
     }
 
     public String toString() {
@@ -132,6 +145,29 @@ public class BlubbThread {
 
     public String getThreadTitle() {
         return this.tTitle;
+    }
+
+    public String gettStatusString() {
+        switch (this.tStatus) {
+            case CLOSED:
+                return TS_CLOSED;
+            case SOLVED:
+                return TS_SOLVED;
+            default:
+                return TS_OPEN;
+        }
+    }
+
+    public void settStatus(String tStatus) {
+        this.tStatus = parseThreadStatus(tStatus);
+    }
+
+    public ThreadStatus getThreadStatus() {
+        return this.tStatus;
+    }
+
+    public void settStatus(ThreadStatus tStatus) {
+        this.tStatus = tStatus;
     }
 
     public void setHasNewMsgs(boolean hasNewMsgs) {
@@ -179,6 +215,11 @@ public class BlubbThread {
     }
 
     public View getBigView(Context context, ViewGroup parent) {
+        if (this.bigView == null) this.bigView = createBigView(context, parent);
+        return bigView;
+    }
+
+    private View createBigView(Context context, ViewGroup parent) {
 
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -207,6 +248,17 @@ public class BlubbThread {
         } else {
             tIcon.setTextColor(tIcon.getContext().getResources().getColor(R.color.beap_dark_blue));
         }
+        switch (tStatus) {
+            case CLOSED:
+                tIcon.setText("Z");
+                break;
+            case SOLVED:
+                tIcon.setText("y");
+                break;
+            default:
+                tIcon.setText("U");
+                break;
+        }
         return tIcon;
     }
 
@@ -228,6 +280,11 @@ public class BlubbThread {
     }
 
     public View getSmallView(Context context, ViewGroup parent) {
+        if (this.smallView == null) this.smallView = createSmallView(context, parent);
+        return this.smallView;
+    }
+
+    private View createSmallView(Context context, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout layout = (LinearLayout) inflater.inflate(
@@ -235,7 +292,9 @@ public class BlubbThread {
         return this.setContentForHeader(layout);
     }
 
-    private enum ThreadStatus {OPEN, CLOSED, SOLVED}
-
+    //private String tDate;
+    public enum ThreadStatus {
+        OPEN, SOLVED, CLOSED
+    }
 
 }

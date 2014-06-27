@@ -8,7 +8,6 @@ import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -27,10 +26,9 @@ public class MessageManager {
     private static final String NAME = "MessageManager";
 
     private static MessageManager manager;
-    private HashMap<String, List<BlubbMessage>> loadedMessages;
 
     private MessageManager() {
-        this.loadedMessages = new HashMap<String, List<BlubbMessage>>();
+
     }
 
     public static MessageManager getInstance() {
@@ -39,7 +37,7 @@ public class MessageManager {
     }
 
     public List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
-            throws BlubbDBException, InvalidParameterException,
+            throws BlubbDBException,
             JSONException, SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getNewMessagesFromAllThreads(context)");
 
@@ -63,7 +61,7 @@ public class MessageManager {
     }
 
     private List<BlubbMessage> getNewMessagesForThread(Context context, BlubbThread thread)
-            throws BlubbDBException, InvalidParameterException,
+            throws BlubbDBException,
             JSONException, SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getNewMessagesForThread(context, thread = " + thread.gettId());
         List<BlubbMessage> messages = getAllMessagesForThread(context, thread.gettId());
@@ -74,40 +72,8 @@ public class MessageManager {
         return newMsgs;
     }
 
-    public BlubbMessage createMsg(Context context, String tId, String mTitle, String mContent)
-            throws InvalidParameterException, BlubbDBException,
-            SessionException, BlubbDBConnectionException, PasswordInitException {
-        Log.v(NAME, "createMsg(context, tId = " + tId + ", mTitle = " +
-                mTitle + ", mContent = " + mContent + ")");
-        mTitle = BPC.parseStringParameterToDB(mTitle);
-        mContent = BPC.parseStringParameterToDB(mContent);
-        String ptId = BPC.parseStringParameterToDB(tId);
-        String query = "tree.functions.createMsg(self," +
-                ptId + "," + mTitle + "," + mContent + ")";
-        String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
-        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
-        switch (response.getStatus()) {
-            case OK:
-                JSONObject result = (JSONObject) response.getResultObj();
-                BlubbMessage message = new BlubbMessage(result);
-                DatabaseHandler db = new DatabaseHandler(context);
-                db.addMessage(message);
-                List<BlubbMessage> messages = this.loadedMessages.get(tId);
-                if (messages == null) {
-                    messages = new ArrayList<BlubbMessage>();
-                    this.loadedMessages.put(tId, messages);
-                }
-                messages.add(message);
-                return message;
-            default:
-                throw new BlubbDBException("Could not perform createMsg" +
-                        " Beap status: " + response.getStatus());
-        }
-    }
-
     public BlubbMessage createMsg(Context context, String... blubbs)
-            throws InvalidParameterException, BlubbDBException,
+            throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "createMsg(context, tId = " + blubbs[0] + ", mTitle = " +
                 blubbs[1] + ", mContent = " + blubbs[2] + ")");
@@ -133,45 +99,6 @@ public class MessageManager {
                 BlubbMessage message = new BlubbMessage(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.addMessage(message);
-                List<BlubbMessage> messages = this.loadedMessages.get(tId);
-                if (messages == null) {
-                    messages = new ArrayList<BlubbMessage>();
-                    this.loadedMessages.put(tId, messages);
-                }
-                messages.add(message);
-                return message;
-            default:
-                throw new BlubbDBException("Could not perform createMsg" +
-                        " Beap status: " + response.getStatus());
-        }
-    }
-
-    public BlubbMessage respondToMsg(Context context, String tId, String mTitle, String mContent,
-                                     String msgId)
-            throws InvalidParameterException, BlubbDBException,
-            SessionException, BlubbDBConnectionException, PasswordInitException {
-        Log.v(NAME, "createMsg(context, tId = " + tId + ", mTitle = " +
-                mTitle + ", mContent = " + mContent + ")");
-        mTitle = BPC.parseStringParameterToDB(mTitle);
-        mContent = BPC.parseStringParameterToDB(mContent);
-        String ptId = BPC.parseStringParameterToDB(tId);
-        String query = "tree.functions.createMsg(self," +
-                ptId + "," + mTitle + "," + mContent + "," + msgId + ")";
-        String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
-        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
-        switch (response.getStatus()) {
-            case OK:
-                JSONObject result = (JSONObject) response.getResultObj();
-                BlubbMessage message = new BlubbMessage(result);
-                DatabaseHandler db = new DatabaseHandler(context);
-                db.addMessage(message);
-                List<BlubbMessage> messages = this.loadedMessages.get(tId);
-                if (messages == null) {
-                    messages = new ArrayList<BlubbMessage>();
-                    this.loadedMessages.put(tId, messages);
-                }
-                messages.add(message);
                 return message;
             default:
                 throw new BlubbDBException("Could not perform createMsg" +
@@ -184,8 +111,6 @@ public class MessageManager {
         try {
             // this makes an update for the messages
             getAllMessagesForThreadFromBeap(context, tId);
-        } catch (InvalidParameterException e) {
-            Log.e(NAME, e.getMessage());
         } catch (BlubbDBException e) {
             Log.e(NAME, e.getMessage());
         } catch (SessionException e) {
@@ -202,7 +127,7 @@ public class MessageManager {
     }
 
     private List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
-            throws InvalidParameterException, BlubbDBException, SessionException,
+            throws BlubbDBException, SessionException,
             JSONException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getAllMessagesForThreadFromBeap(context, tId = " + tId);
         tId = BPC.parseStringParameterToDB(tId);
@@ -246,9 +171,42 @@ public class MessageManager {
     private List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
         DatabaseHandler db = new DatabaseHandler(context);
         List<BlubbMessage> messages = db.getMessagesForThread(tId);
-        this.loadedMessages.put(tId, messages);
         return messages;
 
     }
+
+    public String setMsg(Context context, BlubbMessage message)
+            throws BlubbDBException, PasswordInitException,
+            SessionException, BlubbDBConnectionException {
+
+        String mId = BPC.parseStringParameterToDB(message.getmId());
+        String mTitle = BPC.parseStringParameterToDB(message.getmTitle());
+        String mContent = BPC.parseStringParameterToDB(message.getmContent());
+        String mLink = "";
+        String query = "";
+        if (!message.getmLink().equals(BPC.UNDEFINED)) {
+            mLink = BPC.parseStringParameterToDB(message.getmLink());
+            query = "tree.functions.setMsg(self," + mId + "," + mTitle + "," + mContent
+                    + "," + mLink + ")";
+        } else {
+            query = "tree.functions.setMsg(self," + mId + "," + mTitle + "," + mContent + ")";
+        }
+        String sessionId = SessionManager.getInstance().getSessionID(context);
+        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
+        switch (response.getStatus()) {
+            case OK:
+                JSONObject result = (JSONObject) response.getResultObj();
+                BlubbMessage changedMessage = new BlubbMessage(result);
+                DatabaseHandler db = new DatabaseHandler(context);
+                db.updateMessage(message);
+                return response.getStatusDescr();
+            default:
+                throw new BlubbDBException("Could not perform setMsg" +
+                        " Beap status: " + response.getStatus());
+        }
+
+    }
+
 
 }

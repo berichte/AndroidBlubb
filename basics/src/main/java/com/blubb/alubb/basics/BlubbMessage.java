@@ -116,6 +116,10 @@ public class BlubbMessage {
         return mTitle;
     }
 
+    public void setmTitle(String mTitle) {
+        this.mTitle = mTitle;
+    }
+
     public String getmId() {
         return mId;
     }
@@ -132,6 +136,11 @@ public class BlubbMessage {
         return mCreatorRole;
     }
 
+    public String getmPicString() {
+        if (mLink.equals(BPC.UNDEFINED)) return "U";
+        else return "@";
+    }
+
     public Date getMessageDate() {
         return mDate;
     }
@@ -144,6 +153,10 @@ public class BlubbMessage {
         return mContent;
     }
 
+    public void setmContent(String mContent) {
+        this.mContent = mContent;
+    }
+
     public String getFormatedDate() {
         return df.format(mDate);
     }
@@ -152,9 +165,9 @@ public class BlubbMessage {
         return BPC.parseDate(mDate);
     }
 
-    private View createView(Context context, final ViewGroup parent,
-                            String tCreator, View.OnClickListener replyClickListener,
-                            final ActivitySingleThread.MessageArrayAdapter adapter) {
+    public View createView(Context context, final ViewGroup parent,
+                           String tCreator, View.OnClickListener replyClickListener,
+                           final ActivitySingleThread.MessageArrayAdapter adapter) {
         Log.i(NAME, "parentType: " + parent.getClass().getName());
         View messageView;
         LayoutInflater inflater = (LayoutInflater) context
@@ -260,5 +273,11 @@ public class BlubbMessage {
 
     public String getmLink() {
         return mLink;
+    }
+
+    public void setOnContentLongClickListener(View.OnLongClickListener listener) {
+        if (msgView == null) return;
+        View content = msgView.findViewById(R.id.message_content_tv);
+        content.setOnLongClickListener(listener);
     }
 }
