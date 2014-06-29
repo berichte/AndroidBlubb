@@ -30,6 +30,7 @@ import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.MessageManager;
+import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
@@ -151,7 +152,7 @@ public class ActivitySingleThread extends Activity {
                         String titleString = titleView.getText().toString();
                         String conteString = contentView.getText().toString();
 
-                        new AsyncSendMessage().execute(threadId, titleString, conteString);
+                        new AsyncSendMessage().execute(titleString, conteString, "", threadId);
                         showInput(false, inputET);
                         clearTVs(titleView, contentView, inputET);
                         msgLayout.setVisibility(View.INVISIBLE);
@@ -289,7 +290,8 @@ public class ActivitySingleThread extends Activity {
             public void onClick(View v) {
                 String titleString = replyTo.getmTitle();
                 String conteString = contentView.getText().toString();
-                new AsyncSendMessage().execute(threadId, titleString, conteString, replyTo.getmId());
+                new AsyncSendMessage().execute(titleString, conteString,
+                        replyTo.getmId(), threadId);
                 showInput(false, inputET);
                 clearTVs(titleView, contentView, inputET);
                 msgLayout.setVisibility(View.INVISIBLE);
@@ -315,6 +317,7 @@ public class ActivitySingleThread extends Activity {
         atSign.setText("@");
         atSign.setVisibility(View.VISIBLE);
     }
+
 
     private void changeMessage(final BlubbMessage toChange) {
         final Button yBtn = (Button) findViewById(R.id.y_button),
@@ -432,21 +435,23 @@ public class ActivitySingleThread extends Activity {
             }
         });
         showInput(true, inputET);
-        /*EditText input = (EditText) findViewById(R.id.message_input_et);
-        input.requestFocus();
+    }
 
-        final View layout = findViewById(R.id.message_input_ll);
-        final ViewGroup parent = (ViewGroup) layout.getParent();
-        final int index = parent.indexOfChild(layout);
-        parent.removeView(layout);
-        final View msgLayout = toChange.createView(this, parent, thread.gettCreator(), null, null);
-        parent.addView(msgLayout, index);
+    private void createPrivateMessage(final BlubbMessage message) {
+
         final Button yBtn = (Button) findViewById(R.id.y_button),
                 xBtn = (Button) findViewById(R.id.x_button);
         final EditText inputET = (EditText) findViewById(R.id.message_input_et);
-        final TextView titleView = (TextView) msgLayout.findViewById(R.id.message_title_tv);
-        final TextView contentView = (TextView) msgLayout.findViewById(R.id.message_content_tv);
+        final TextView titleView = (TextView) findViewById(R.id.message_input_title_tv);
+        final TextView contentView = (TextView) findViewById(R.id.message_input_content_tv);
 
+
+        final View msgLayout = findViewById(R.id.message_input_ll);
+        msgLayout.setVisibility(View.VISIBLE);
+        final TextView privateTitle = (TextView) findViewById(R.id.message_input_creator_tv);
+        privateTitle.setText("Private message to " + message.getmCreator());
+
+        privateTitle.setVisibility(View.VISIBLE);
         contentView.setMovementMethod(new ScrollingMovementMethod());
         inputET.setMovementMethod(new ScrollingMovementMethod());
 
@@ -454,6 +459,7 @@ public class ActivitySingleThread extends Activity {
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
         BlubbApplication.setLayoutFont(tf, xBtn);
+
 
         inputET.addTextChangedListener(new TextWatcher() {
             @Override
@@ -487,6 +493,7 @@ public class ActivitySingleThread extends Activity {
                         xBtn.setText(".");
                         inputET.setText(contentView.getText());
                         inputET.setHint(getString(R.string.message_new_content_hint));
+                        msgLayout.setVisibility(View.VISIBLE);
                         break;
                     case CONTENT:
                         inputState = InputState.TITLE;
@@ -494,19 +501,17 @@ public class ActivitySingleThread extends Activity {
                         xBtn.setText("x");
                         String titleString = titleView.getText().toString();
                         String conteString = contentView.getText().toString();
+                        String privateCreatorThread = "@" + message.getmCreator();
+                        String privateSenderThread = "@" + SessionManager.getInstance()
+                                .getActiveUsername();
 
-                        toChange.setmTitle(titleString);
-                        toChange.setmContent(conteString);
-
-                        new AsyncSetMessage().execute(toChange);
-
+                        new AsyncSendMessage().execute(titleString, conteString, "",
+                                privateCreatorThread, privateSenderThread);
                         showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET);
+                        clearTVs(titleView, contentView, inputET, privateTitle);
+                        msgLayout.setVisibility(View.INVISIBLE);
+                        privateTitle.setVisibility(View.INVISIBLE);
                         inputET.setHint(getString(R.string.message_new_title_hint));
-
-                        parent.removeView(msgLayout);
-                        parent.addView(layout, index);
-
                         startInputView();
                         break;
                 }
@@ -518,10 +523,12 @@ public class ActivitySingleThread extends Activity {
                 switch (inputState) {
                     case TITLE:
                         showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET);
-                        parent.removeView(msgLayout);
-                        parent.addView(layout, index);
+                        clearTVs(titleView, contentView, inputET, privateTitle);
+                        msgLayout.setVisibility(View.INVISIBLE);
+                        privateTitle.setVisibility(View.INVISIBLE);
+                        xBtn.requestFocus();
                         startInputView();
+                        showInput(false, inputET);
                         break;
                     case CONTENT:
                         inputState = InputState.TITLE;
@@ -532,7 +539,8 @@ public class ActivitySingleThread extends Activity {
                         break;
                 }
             }
-        });*/
+        });
+        showInput(true, inputET);
     }
 
     private void clearTVs(TextView... views) {
@@ -614,6 +622,12 @@ public class ActivitySingleThread extends Activity {
                         public void onClick(View v) {
                             replyToMessage(message);
                         }
+                    },
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            createPrivateMessage(message);
+                        }
                     }, this
             );
             message.setOnContentLongClickListener(new View.OnLongClickListener() {
@@ -639,6 +653,7 @@ public class ActivitySingleThread extends Activity {
         }
 
     }
+
 
     private class AsyncGetThread extends AsyncTask<Void, String, BlubbThread> {
         private Exception e;

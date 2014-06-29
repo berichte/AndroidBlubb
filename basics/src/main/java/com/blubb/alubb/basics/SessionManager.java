@@ -67,6 +67,10 @@ public class SessionManager {
         return instance;
     }
 
+    public String getActiveUsername() {
+        return tempUsername;
+    }
+
     public String getSessionID(Context context) throws
             SessionException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         return getSession(context).getSessionId();

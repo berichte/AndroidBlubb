@@ -103,7 +103,11 @@ public class BlubbMessage {
             JSONArray threads = object.getJSONArray("mThread");
             if (threads.length() == 1) return (String) threads.get(0);
             else {
-                //TODO return it with personal thread id.
+                String username = SessionManager.getInstance().getActiveUsername();
+                String privateThreadName = "@" + username;
+                for (int i = 0; i < threads.length(); i++) {
+                    if (threads.get(i).equals(privateThreadName)) return (String) threads.get(i);
+                }
                 return (String) threads.get(0);
             }
         } catch (JSONException e) {
@@ -167,6 +171,7 @@ public class BlubbMessage {
 
     public View createView(Context context, final ViewGroup parent,
                            String tCreator, View.OnClickListener replyClickListener,
+                           View.OnClickListener privateMsgClickListener,
                            final ActivitySingleThread.MessageArrayAdapter adapter) {
         Log.i(NAME, "parentType: " + parent.getClass().getName());
         View messageView;
@@ -201,6 +206,7 @@ public class BlubbMessage {
         mTitle.setText(this.getmTitle());
         mContent.setText(Html.fromHtml(this.getmContent()));
         mCreator.setText(this.getmCreator());
+        mCreator.setOnClickListener(privateMsgClickListener);
         mDate.setText(this.getFormatedDate());
         mRole.setText(this.getmCreatorRole());
 
@@ -231,11 +237,12 @@ public class BlubbMessage {
 
     public View getView(Context context, final ViewGroup parent,
                         String tCreator, View.OnClickListener replyClickListener,
+                        View.OnClickListener privateMsgClickListener,
                         final ActivitySingleThread.MessageArrayAdapter adapter) {
         if (msgView == null) {
             linkPos = adapter.getMsgPosition(mLink);
             msgView = createView(context, parent, tCreator, replyClickListener,
-                    adapter);
+                    privateMsgClickListener, adapter);
         }
         return msgView;
     }

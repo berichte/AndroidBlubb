@@ -78,17 +78,21 @@ public class MessageManager {
         Log.v(NAME, "createMsg(context, tId = " + blubbs[0] + ", mTitle = " +
                 blubbs[1] + ", mContent = " + blubbs[2] + ")");
 
-        String tId = BPC.parseStringParameterToDB(blubbs[0]);
-        String mTitle = BPC.parseStringParameterToDB(blubbs[1]);
-        String mContent = BPC.parseStringParameterToDB(blubbs[2]);
+        String mTitle = BPC.parseStringParameterToDB(blubbs[0]);
+        String mContent = BPC.parseStringParameterToDB(blubbs[1]);
+        String mLink = BPC.parseStringParameterToDB(blubbs[2]);
+        String tId = "[";
+        for (int i = 3; i < blubbs.length - 1; i++) {
+            tId = tId + BPC.parseStringParameterToDB(blubbs[i]) + ",";
+        }
+        tId = tId + BPC.parseStringParameterToDB(blubbs[blubbs.length - 1]) + "]";
         String query;
-        if (blubbs.length > 3) {
-            String mLink = BPC.parseStringParameterToDB(blubbs[3]);
-            query = "tree.functions.createMsg(self," +
-                    tId + "," + mTitle + "," + mContent + "," + mLink + ")";
-        } else {
+        if (mLink.equals("")) {
             query = "tree.functions.createMsg(self," +
                     tId + "," + mTitle + "," + mContent + ")";
+        } else {
+            query = "tree.functions.createMsg(self," +
+                    tId + "," + mTitle + "," + mContent + "," + mLink + ")";
         }
         String sessionId = SessionManager.getInstance().getSessionID(context);
         BlubbResponse response = BlubbRequestManager.query(query, sessionId);
