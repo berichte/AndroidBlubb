@@ -24,14 +24,21 @@ import java.util.Set;
 
 /**
  * BPC stands for Blubb Parameter Checker
+ * This is a collection of functions for checking and parsing string and date parameter
+ * from and to the beapDB.
+ *
  * Created by Benjamin Richter on 17.05.2014.
  */
 public class BPC {
+
     public static final String UNDEFINED = "undefined";
     public static final String ENCODING = "UTF-8";
     //2014-06-25T13:40:40.312Z
     public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
     private static DateFormat df = new SimpleDateFormat(DATE_PATTERN);
+    /**
+     * Name for Logging purposes
+     */
     private static final String NAME = "BPC";
     /**
      * Map for escape character which need to be escaped for the DB.

@@ -36,16 +36,17 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.SessionManager;
-import com.blubb.alubb.beapcom.MessagePullService;
+import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
 import org.json.JSONException;
@@ -68,6 +69,7 @@ public class ActivityThreadOverview extends Activity {
             createThreadSpinn = false,
             storeDraft = true;
     private MenuItem loggedInItem;
+    private BlubbThread.ThreadStatus tempStatus = BlubbThread.ThreadStatus.OPEN;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -309,7 +311,148 @@ public class ActivityThreadOverview extends Activity {
         dialog.show();
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private void editThreadDialog(final BlubbThread thread) {
+        final Dialog dialog = new Dialog(ActivityThreadOverview.this);
+
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogLayout = inflater.inflate(R.layout.edit_thread_dialog, null);
+        dialog.setContentView(dialogLayout);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        View divider = dialog.findViewById(
+                dialog.getContext().getResources()
+                        .getIdentifier("android:id/titleDivider", null, null)
+        );
+        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
+        // builder.setView(dialogLayout);
+
+        //builder.setInverseBackgroundForced(true);
+        assert dialogLayout != null;
+        final EditText title = (EditText) dialogLayout.findViewById(
+                R.id.thread_list_item_title),
+                descr = (EditText) dialogLayout.findViewById(
+                        R.id.thread_list_item_description);
+        TextView creatorTv = (TextView) dialogLayout.findViewById(R.id.thread_list_item_author);
+        creatorTv.setText(thread.gettCreator());
+
+        title.setText(thread.getThreadTitle());
+        descr.setText(thread.gettDesc());
+
+        Spinner spinner = (Spinner) dialog.findViewById(R.id.spinner2);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.thread_status,
+                android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        tempStatus = BlubbThread.ThreadStatus.OPEN;
+                        break;
+                    case 1:
+                        tempStatus = BlubbThread.ThreadStatus.SOLVED;
+                        break;
+                    case 2:
+                        tempStatus = BlubbThread.ThreadStatus.CLOSED;
+                        break;
+                }
+            }
+
+            /**
+             * Callback method to be invoked when the selection disappears from this
+             * view. The selection can disappear for instance when touch is activated
+             * or when the adapter becomes empty.
+             *
+             * @param parent The AdapterView that now contains no selected item.
+             */
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        Button yBtn = (Button) dialogLayout.findViewById(
+                R.id.y_button_dialog);
+        Button xBtn = (Button) dialogLayout.findViewById(
+                R.id.x_button_dialog);
+
+        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, yBtn, xBtn);
+
+        if (storeDraft) {
+            title.setText(titleInput);
+            descr.setText(descInput);
+        }
+        storeDraft = true;
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                Log.d(NAME, "onCancel(Dialog)");
+                titleInput = title.getText().toString();
+                descInput = descr.getText().toString();
+            }
+        });
+
+        yBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                String titleString = title.getText().toString(),
+                        descString = descr.getText().toString();
+                if (titleString.length() > 40 || titleString.length() == 0) {
+                    String message = ActivityThreadOverview.this.getString(
+                            R.string.thread_title_size_warning);
+                    Toast.makeText(ActivityThreadOverview.this, message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                char[] de = descString.toCharArray();
+                int nlCounter = 0;
+                for (char c : de) {
+                    if (c == '\n') nlCounter++;
+                }
+                if (nlCounter > 2) {
+                    String message = ActivityThreadOverview.this.getString(
+                            R.string.thread_descr_nl_warning);
+                    Toast.makeText(ActivityThreadOverview.this,
+                            message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (descString.length() < 1) {
+                    String message = ActivityThreadOverview.this.getString(
+                            R.string.thread_descr_size_warning);
+                    Toast.makeText(ActivityThreadOverview.this,
+                            message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                thread.settTitle(title.getText().toString());
+                thread.settDesc(descr.getText().toString());
+                AsyncSetThread asyncSetThread = new AsyncSetThread(thread);
+                createThreadSpinn = true;
+                spinnerOn();
+                asyncSetThread.execute();
+                titleInput = "";
+                descInput = "";
+                dialog.cancel();
+                storeDraft = false;
+            }
+        });
+
+        xBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.cancel();
+                storeDraft = false;
+            }
+        });
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dialog.show();
+    }
+
     private void handleException(Exception e) {
+        // TODO Get messages for the different kinds of exceptions.
+        // For exception handling see: http://stackoverflow.com/questions/1739515/asynctask-and-error-handling-on-android
+        // and: https://groups.google.com/forum/#!topic/android-developers/_6PZxYn411M
         if (e != null) {
             Log.e(NAME, e.getMessage());
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -430,8 +573,20 @@ public class ActivityThreadOverview extends Activity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            BlubbThread blubbThread = getItem(position);
-            return blubbThread.getView(ActivityThreadOverview.this, parent);
+            final BlubbThread blubbThread = getItem(position);
+            final View tView = blubbThread.getView(ActivityThreadOverview.this, parent);
+            // TODO use a button for the editing
+            TextView content = (TextView) tView.findViewById(R.id.thread_list_item_description);
+            if (content != null) {
+                content.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        editThreadDialog(blubbThread);
+                        return false;
+                    }
+                });
+            }
+            return tView;
         }
 
         @Override
@@ -558,8 +713,11 @@ public class ActivityThreadOverview extends Activity {
     }
 
     private class AsyncCheckLogin extends AsyncTask<Void, Void, Boolean> {
-
-        private Exception exception;
+        /**
+         * In case an e is thrown while executing doInBackground(..),
+         * the e can be accessed onPostExecute(..).
+         */
+        private Exception e;
 
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -568,25 +726,18 @@ public class ActivityThreadOverview extends Activity {
                 getApp().getSessionManager().getSessionID(
                         ActivityThreadOverview.this.getApplicationContext());
                 return true;
-            } catch (SessionException e) {
-                this.exception = e;
-            } catch (BlubbDBException e) {
-                this.exception = e;
-            } catch (BlubbDBConnectionException e) {
-                this.exception = e;
-            } catch (PasswordInitException e) {
-                Log.e(NAME, e.getMessage() + " can not happen at this point!");
+            } catch (Exception e) {
+                this.e = e;
             }
             return false;
         }
 
         @Override
         protected void onPostExecute(Boolean isLoggedIn) {
-            // if there was no exception toast will be null - everything is alright.
+            // if there was no e toast will be null - everything is alright.
             if (!isLoggedIn) {
-                Toast.makeText(context, exception.getMessage(), Toast.LENGTH_LONG).show();
-                // if the exception is a ConnectionException don't let user perform manual login
-                if (exception.getClass().equals(SessionException.class)) {
+                handleException(e);// if the e is a ConnectionException don't let user perform manual login
+                if (e.getClass().equals(SessionException.class)) {
                     DatabaseHandler db = new DatabaseHandler(ActivityThreadOverview.this);
                     int counter = db.getThreadCount();
                     if (counter == 0) {
@@ -603,5 +754,42 @@ public class ActivityThreadOverview extends Activity {
             loginSpinn = false;
             spinnerOff();
         }
+    }
+
+    private class AsyncSetThread extends AsyncTask<Void, Void, String> {
+        /**
+         * In case an e is thrown while executing doInBackground(..),
+         * the e can be accessed onPostExecute(..).
+         */
+        private Exception e;
+
+        private BlubbThread thread;
+
+        public AsyncSetThread(BlubbThread thread) {
+            this.thread = thread;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                return ThreadManager.getInstance()
+                        .setThread(ActivityThreadOverview.this, thread);
+            } catch (Exception e) {
+                this.e = e;
+            }
+            return "";
+        }
+
+        protected void onPostExecute(String response) {
+            if (e != null) ActivityThreadOverview.this.handleException(e);
+            else {
+                // In case there has an e been caught response will be empty.
+                onResume();
+                Toast.makeText(ActivityThreadOverview.this,
+                        response, Toast.LENGTH_LONG).show();
+            }
+        }
+
+
     }
 }

@@ -34,6 +34,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/message_right_ll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
@@ -71,15 +72,13 @@
             android:textSize="@dimen/blubb_text_size_large" />
 
 
-        <TextView
-            android:id="@+id/message_content_tv"
+        <View
+            android:id="@+id/message_content_v"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_weight="10"
             android:background="@drawable/message_content_back"
-            android:padding="8dp"
-            android:text="mContent"
-            android:textColor="@color/blubb_cards_content_text"
-            android:textSize="@dimen/blubb_text_size_small" />
+            android:padding="@dimen/message_padding" />
 
         <Button
             android:id="@+id/message_reply_btn"
@@ -88,7 +87,6 @@
             android:layout_gravity="right"
             android:layout_marginRight="@dimen/message_padding"
             android:layout_marginTop="@dimen/message_padding"
-            android:layout_weight="10"
             android:background="@drawable/blubb_button_small"
             android:text="O"
             android:textColor="@color/beap_blue" />

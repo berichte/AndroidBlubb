@@ -21,7 +21,7 @@
     <string name="title_activity_write_message">WriteMessage</string>
     <string name="single_thread_new_message_send_button_text">Send</string>
     <string name="thread_overview_new_thread_button_text">create a new thread</string>
-    <string name="thread_new_title_hint">here goes the thread title</string>
+    <string name="thread_new_title_hint">Title of your thread</string>
     <string name="thread_new_descr_hint">put in a simple description for your thread</string>
     <string name="thread_new_send_button_text">y</string>
     <string name="thread_new_cancel_button_text">x</string>
@@ -49,9 +49,9 @@
     <string name="message_new_title_hint">Message subject</string>
     <string name="message_new_content_hint">say something</string>
     <string name="message_new_send_button_text">Y</string>
-    <string name="menu_action_new_thread_text">new thread</string>
+    <string name="menu_action_new_thread_text">New thread</string>
     <string name="application_font">Exo2.0-Regular.otf</string>
-    <string name="new_message_action_text">create a new message</string>
+    <string name="new_message_action_text">Create a new message</string>
     <string name="password_init_dialog_title">You must set your own password before you can proceed.</string>
     <string name="password_init_dialog_old_password_hint">Your init password</string>
     <string name="password_init_dialog_new_password_hint">Your new password</string>

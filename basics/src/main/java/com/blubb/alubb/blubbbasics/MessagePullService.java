@@ -1,4 +1,4 @@
-package com.blubb.alubb.beapcom;
+package com.blubb.alubb.blubbbasics;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -17,8 +17,7 @@ import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.SessionManager;
-import com.blubb.alubb.blubbbasics.ActivitySingleThread;
-import com.blubb.alubb.blubbbasics.ActivityThreadOverview;
+import com.blubb.alubb.beapcom.QuickCheck;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
@@ -97,7 +96,7 @@ public class MessagePullService extends Service {
         } else if (messages.size() == 1) {
             BlubbMessage message = messages.get(0);
             builder.setContentTitle(message.getmCreator() + "\n" + message.getmTitle());
-            builder.setContentText(message.getmContent());
+            builder.setContentText(message.getmContent().getStringRepresentation());
 
             resultIntent = new Intent(this, ActivitySingleThread.class);
 

@@ -9,48 +9,97 @@ import org.json.JSONObject;
 
 /**
  * Created by Benjamin Richter on 22.05.2014.
- * General Response object
+ * General Response object representing the response from beap.
  */
 public class BlubbResponse {
-    public static final String TAG = "BlubbResponse";
+
+    /**
+     * Name for Logging purposes
+     */
+    public static final String NAME = "BlubbResponse";
+
+    /**
+     * Reply status for this response.
+     */
     private BeapReplyStatus status;
-    private String statusDescr;
+
+    /**
+     * The status description.
+     */
+    private String statusDesc;
+
+    /**
+     * The result json object.
+     */
     private Object resultObj;
+
+    /**
+     * SessionInfo object for this response.
+     */
     private SessionInfo sessionInfo;
 
+    /**
+     * Constructor for the response via a json object.
+     *
+     * @param jsonResponse Must be a valid json object formed like:
+     *                     {
+     *                     BeapStatus:     200,
+     *                     StatusDescr:    "OK",
+     *                     Result :        [ ...  ], //Array of json objects.
+     *                     sessInfo :      { ... }
+     *                     }
+     */
     public BlubbResponse(String jsonResponse) {
         JSONObject response;
         try {
             response = new JSONObject(jsonResponse);
             this.status = this.parseReply(response.getInt("BeapStatus"));
-            // RA.getString(R.string.json_beap_status)));
-
-            this.statusDescr = response.getString("StatusDescr");
-            //RA.getString(R.string.json_beap_status_desc));
+            this.statusDesc = response.getString("StatusDescr");
+            this.sessionInfo = parseSessionInfo(response);
             if (status.equals(BeapReplyStatus.OK)) {
                 this.resultObj = this.parseResponseObject(response);
             }
         } catch (JSONException e) {
             Log.e("json exception", e.getMessage());
-            this.status = BeapReplyStatus.CONNECTION_ERROR;
-
+            this.status = BeapReplyStatus.UNKNOWN_STATUS;
         }
-        Log.v(TAG, "Constructed new BlubbResponse - Status: " + status);
+        Log.v(NAME, "Constructed new BlubbResponse - Status: " + status);
 
     }
 
+    /**
+     * Get the BeapReplyStatus.
+     *
+     * @return BeapReplyStatus.
+     */
     public BeapReplyStatus getStatus() {
         return status;
     }
 
-    public String getStatusDescr() {
-        return statusDescr;
+    /**
+     * Get the status description.
+     *
+     * @return String with the status description.
+     */
+    public String getStatusDesc() {
+        return statusDesc;
     }
 
+    /**
+     * Get the result of the response. This can either be a json array, a json object or an integer.
+     *
+     * @return The result object.
+     */
     public Object getResultObj() {
         return resultObj;
     }
 
+    /**
+     * Parse the beap status integer to a BeapReplyStatus.
+     *
+     * @param replyStatus Integer value representing a certain status of the response.
+     * @return BeapReplyStatus according to the given integer.
+     */
     private BeapReplyStatus parseReply(int replyStatus) {
         switch (replyStatus) {
             case 200:
@@ -80,16 +129,30 @@ public class BlubbResponse {
         }
     }
 
-    private Object parseResponseObject(JSONObject json) {
-
+    /**
+     * Get the session info out of a beap response.
+     *
+     * @param response The response json object with the session info object.
+     * @return A SessionInfo with the data from the response or if the response is not valid
+     * an 'empty' SessionInfo.
+     */
+    private SessionInfo parseSessionInfo(JSONObject response) {
         try {
-            JSONObject obj = json.getJSONObject("sessInfo");
-            this.sessionInfo = new SessionInfo(obj);
+            JSONObject obj = response.getJSONObject("sessInfo");
+            return new SessionInfo(obj);
         } catch (JSONException e) {
             Log.e("parsing json", "there's no session info.");
+            return new SessionInfo();
         }
+    }
 
-
+    /**
+     * Parse a json object to either a json array, json object or an integer.
+     *
+     * @param json
+     * @return
+     */
+    private Object parseResponseObject(JSONObject json) {
         Object o = null;
         if (json.has("Result")) {
             try {
@@ -112,11 +175,15 @@ public class BlubbResponse {
                 }
             }
             return o;
-
         }
         return null;
     }
 
+    /**
+     * Get the SessionInfo.
+     *
+     * @return SessionInfo from this response.
+     */
     public SessionInfo getSessionInfo() {
         return sessionInfo;
     }

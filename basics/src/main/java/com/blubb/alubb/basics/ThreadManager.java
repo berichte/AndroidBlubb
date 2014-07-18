@@ -211,4 +211,32 @@ public class ThreadManager {
         thread.setHasNewMsgs(false);
         db.updateThread(thread);
     }
+
+    public String setThread(Context context, BlubbThread thread)
+            throws BlubbDBException, PasswordInitException,
+            SessionException, BlubbDBConnectionException {
+
+        String tId = BPC.parseStringParameterToDB(thread.gettId());
+        String tTitle = BPC.parseStringParameterToDB(thread.getThreadTitle());
+        String tDesc = BPC.parseStringParameterToDB(thread.gettDesc());
+        String tStatus = BPC.parseStringParameterToDB(thread.gettStatusString());
+        String query = "tree.functions.setThread(self," + tId + "," + tTitle + "," + tDesc
+                + "," + tStatus + ")";
+
+        String sessionId = SessionManager.getInstance().getSessionID(context);
+        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
+        switch (response.getStatus()) {
+            case OK:
+                JSONObject result = (JSONObject) response.getResultObj();
+                BlubbThread changedThread = new BlubbThread(result);
+                DatabaseHandler db = new DatabaseHandler(context);
+                db.updateThread(changedThread);
+                return response.getStatusDesc();
+            default:
+                throw new BlubbDBException("Could not perform setMsg" +
+                        " Beap status: " + response.getStatus());
+        }
+
+    }
 }

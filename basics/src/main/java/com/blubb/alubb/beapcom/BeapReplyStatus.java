@@ -2,7 +2,7 @@ package com.blubb.alubb.beapcom;
 
 /**
  * Created by Benjamin Richter on 17.05.2014.
- * enum for the diffent kinds of DB Replies.
+ * Enum for the different  beapDB Replies.
  */
 public enum BeapReplyStatus {
     /**

@@ -37,7 +37,7 @@ public class ActivityLogin extends Activity {
     public static final String EXTRA_LOGIN_TYPE = "loginType";
     public static final String USERNAME_PREFAB = "username_prefab",
             PASSWORD_PREFAB = "password_prefab";
-    ;
+    private Dialog initDialog;
     private LoginType loginType;
     private String username, password;
 
@@ -135,17 +135,17 @@ public class ActivityLogin extends Activity {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void showPasswordInitDialog() {
-        final Dialog dialog = new Dialog(this);
+        initDialog = new Dialog(this);
 
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.password_init_dialog, null);
-        dialog.setContentView(dialogLayout);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        View divider = dialog.findViewById(
-                dialog.getContext().getResources()
+        initDialog.setContentView(dialogLayout);
+        initDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        View divider = initDialog.findViewById(
+                initDialog.getContext().getResources()
                         .getIdentifier("android:id/titleDivider", null, null)
         );
-        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
+        //divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
         // builder.setView(dialogLayout);
 
         //builder.setInverseBackgroundForced(true);
@@ -227,7 +227,7 @@ public class ActivityLogin extends Activity {
         xBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.cancel();
+                initDialog.cancel();
             }
         });
         confirmPassword.setOnKeyListener(new View.OnKeyListener() {
@@ -243,7 +243,7 @@ public class ActivityLogin extends Activity {
                 return false;
             }
         });
-        dialog.show();
+        initDialog.show();
     }
 
     public enum LoginType {LOGIN, RESET, INIT}
@@ -335,13 +335,18 @@ public class ActivityLogin extends Activity {
                     editor.putString(USERNAME_PREFAB, "");
                     editor.putString(PASSWORD_PREFAB, "");
                     editor.commit();
+                    if (initDialog != null) {
+                        initDialog.cancel();
+                        initDialog = null;
+                    }
                     break;
                 default:
                     Toast.makeText(ActivityLogin.this,
-                            response.getStatusDescr(), Toast.LENGTH_SHORT).show();
+                            response.getStatusDesc(), Toast.LENGTH_LONG).show();
                     loginType = LoginType.RESET;
                     break;
             }
+
             ActivityLogin.this.onResume();
         }
     }

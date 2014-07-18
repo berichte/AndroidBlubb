@@ -20,27 +20,57 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * A Singleton class managing the access to BlubbMessages.
+ * It's the bridge between user interface, beapDB and the local sqlite database.
+ * If new messages are available at beapDB the local sqlite database will be updated automatically.
  * Created by Benni on 31.05.2014.
  */
 public class MessageManager {
+    /**
+     * Name for Logging purposes
+     */
     private static final String NAME = "MessageManager";
 
+    /**
+     * Instance of the MessageManager to realize the singleton pattern.
+     */
     private static MessageManager manager;
 
+    /**
+     * Private constructor to realize the singleton pattern.
+     */
     private MessageManager() {
-
     }
 
+    /**
+     * Get the one and only MessageManager instance,
+     * easy accessible through the MessageManager class.
+     *
+     * @return The MessageManager object.
+     */
     public static MessageManager getInstance() {
         if (manager == null) manager = new MessageManager();
         return manager;
     }
 
+    /**
+     * Get all messages from all threads where isNew is true.
+     * The message count of all local and all threads on beapDB are compared,
+     * when there is a difference on a thread getNewMsgsForThread(..) will be called
+     * and all new messages for a thread added to the returning list.
+     *
+     * @param context The application context from which the method is called.
+     * @return A list of BlubbMessages with isNew true.
+     * @throws BlubbDBException           TODO add throw declarations.
+     * @throws JSONException
+     * @throws SessionException
+     * @throws BlubbDBConnectionException
+     * @throws PasswordInitException
+     */
     public List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
             throws BlubbDBException,
             JSONException, SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getNewMessagesFromAllThreads(context)");
-
         List<BlubbThread> localThreads = ThreadManager.getInstance()
                 .getAllThreadsFromSqlite(context);
         HashMap<String, BlubbThread> hashThreads = new HashMap<String, BlubbThread>();
@@ -52,17 +82,29 @@ public class MessageManager {
 
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         for (BlubbThread t : threads) {
-            BlubbThread lT = hashThreads.get(t.gettId());
-            if (t.gettMsgCount() > lT.gettMsgCount()) {
+            BlubbThread localThread = hashThreads.get(t.gettId());
+            if (t.gettMsgCount() > localThread.gettMsgCount()) {
                 messages.addAll(this.getNewMessagesForThread(context, t));
             }
         }
         return messages;
     }
 
+    /**
+     * Get new messages of a thread.
+     *
+     * @param context The application context from which the method is called.
+     * @param thread  The thread of which the new messages shall be returned.
+     * @return List of BlubbMessages with m.tId = thread.tId and m.isNew = true.
+     * @throws BlubbDBException           TODO add exception description.
+     * @throws PasswordInitException
+     * @throws BlubbDBConnectionException
+     * @throws JSONException
+     * @throws SessionException
+     */
     private List<BlubbMessage> getNewMessagesForThread(Context context, BlubbThread thread)
-            throws BlubbDBException,
-            JSONException, SessionException, BlubbDBConnectionException, PasswordInitException {
+            throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
+            JSONException, SessionException {
         Log.v(NAME, "getNewMessagesForThread(context, thread = " + thread.gettId());
         List<BlubbMessage> messages = getAllMessagesForThread(context, thread.gettId());
         List<BlubbMessage> newMsgs = new ArrayList<BlubbMessage>();
@@ -72,20 +114,32 @@ public class MessageManager {
         return newMsgs;
     }
 
-    public BlubbMessage createMsg(Context context, String... blubbs)
+    /**
+     * Creates a new message on the beapDB, on a positive response the message will be
+     * added to the sqlite database.
+     *
+     * @param context          The application context from which the method is called.
+     * @param messageParameter String parameter for the new message: {mTitle, mContent, mLink, tId1, tId2,...}
+     * @return The new created BlubbMessage object.
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws SessionException           TODO add exception descriptions from sessionManager.getSession().
+     * @throws BlubbDBConnectionException
+     * @throws PasswordInitException
+     */
+    public BlubbMessage createMsg(Context context, String... messageParameter)
             throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
-        Log.v(NAME, "createMsg(context, tId = " + blubbs[0] + ", mTitle = " +
-                blubbs[1] + ", mContent = " + blubbs[2] + ")");
+        Log.v(NAME, "createMsg(context, tId = " + messageParameter[0] + ", mTitle = " +
+                messageParameter[1] + ", mContent = " + messageParameter[2] + ")");
 
-        String mTitle = BPC.parseStringParameterToDB(blubbs[0]);
-        String mContent = BPC.parseStringParameterToDB(blubbs[1]);
-        String mLink = BPC.parseStringParameterToDB(blubbs[2]);
+        String mTitle = BPC.parseStringParameterToDB(messageParameter[0]);
+        String mContent = BPC.parseStringParameterToDB(messageParameter[1]);
+        String mLink = BPC.parseStringParameterToDB(messageParameter[2]);
         String tId = "[";
-        for (int i = 3; i < blubbs.length - 1; i++) {
-            tId = tId + BPC.parseStringParameterToDB(blubbs[i]) + ",";
+        for (int i = 3; i < messageParameter.length - 1; i++) {
+            tId = tId + BPC.parseStringParameterToDB(messageParameter[i]) + ",";
         }
-        tId = tId + BPC.parseStringParameterToDB(blubbs[blubbs.length - 1]) + "]";
+        tId = tId + BPC.parseStringParameterToDB(messageParameter[messageParameter.length - 1]) + "]";
         String query;
         if (mLink.equals("")) {
             query = "tree.functions.createMsg(self," +
@@ -110,26 +164,38 @@ public class MessageManager {
         }
     }
 
-    public List<BlubbMessage> getAllMessagesForThread(Context context, String tId) {
+    /**
+     * Get all messages for a thread.
+     *
+     * @param context The application context from which the method is called.
+     * @param tId     The id of the thread.
+     * @return A list of BlubbMessages belonging to the thread.
+     * @throws BlubbDBException           TODO add Exception description to the docu.
+     * @throws PasswordInitException
+     * @throws BlubbDBConnectionException
+     * @throws SessionException
+     * @throws JSONException
+     */
+    public List<BlubbMessage> getAllMessagesForThread(Context context, String tId)
+            throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
+            SessionException, JSONException {
         Log.v(NAME, "getAllMessagesForThread(context, tId = " + tId);
-        try {
-            // this makes an update for the messages
-            getAllMessagesForThreadFromBeap(context, tId);
-        } catch (BlubbDBException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (SessionException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (JSONException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (BlubbDBConnectionException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (PasswordInitException e) {
-            Log.e(NAME, e.getMessage());
-        }
-
+        getAllMessagesForThreadFromBeap(context, tId);
         return getAllMessagesForThreadFromSqlite(context, tId);
     }
 
+    /**
+     * Get all messages for a thread from beapDB.
+     *
+     * @param context The application context from which the method is called.
+     * @param tId     The id of the thread.
+     * @return A list of BlubbMessages from the beapDB and not locally stored.
+     * @throws BlubbDBException           if the response status is not 'OK'. TODO add exception descriptions
+     * @throws SessionException
+     * @throws JSONException
+     * @throws BlubbDBConnectionException
+     * @throws PasswordInitException
+     */
     private List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
             throws BlubbDBException, SessionException,
             JSONException, BlubbDBConnectionException, PasswordInitException {
@@ -157,6 +223,13 @@ public class MessageManager {
         }
     }
 
+    /**
+     * Put a message to the sqlite database. If the db contains a message with the same id it will
+     * be updated otherwise it will be added.
+     *
+     * @param context The application context from which the method is called.
+     * @param message The message which will be stored at the sqlite database.
+     */
     private void putMessageToSqliteFromBeap(Context context, BlubbMessage message) {
         Log.v(NAME, "putMessageToSqliteFromBeap(context, message = " + message.getmId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
@@ -172,22 +245,41 @@ public class MessageManager {
         }
     }
 
+    /**
+     * Get all messages for a thread, stored in the local sqlite database.
+     *
+     * @param context The application context from which the method is called.
+     * @param tId     The id of the thread.
+     * @return A List of BlubbMessages from the sqlite database.
+     */
     private List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
         DatabaseHandler db = new DatabaseHandler(context);
-        List<BlubbMessage> messages = db.getMessagesForThread(tId);
-        return messages;
+        return db.getMessagesForThread(tId);
 
     }
 
+    /**
+     * Changes a message at beapDB and the local sqlite database.
+     *
+     * @param context The application context from which the method is called.
+     * @param message The message with the new title and content.
+     * @return The status description of the blubbResponse.
+     * @throws BlubbDBException           if the response status is not 'OK'.TODO add exception descriptions.
+     * @throws PasswordInitException
+     * @throws SessionException
+     * @throws BlubbDBConnectionException
+     */
     public String setMsg(Context context, BlubbMessage message)
             throws BlubbDBException, PasswordInitException,
             SessionException, BlubbDBConnectionException {
 
         String mId = BPC.parseStringParameterToDB(message.getmId());
         String mTitle = BPC.parseStringParameterToDB(message.getmTitle());
-        String mContent = BPC.parseStringParameterToDB(message.getmContent());
-        String mLink = "";
-        String query = "";
+
+        String mContent = BPC.parseStringParameterToDB(message.getmContent()
+                .getStringRepresentation());
+        String mLink;
+        String query;
         if (!message.getmLink().equals(BPC.UNDEFINED)) {
             mLink = BPC.parseStringParameterToDB(message.getmLink());
             query = "tree.functions.setMsg(self," + mId + "," + mTitle + "," + mContent
@@ -200,17 +292,12 @@ public class MessageManager {
         Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         switch (response.getStatus()) {
             case OK:
-                JSONObject result = (JSONObject) response.getResultObj();
-                BlubbMessage changedMessage = new BlubbMessage(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.updateMessage(message);
-                return response.getStatusDescr();
+                return response.getStatusDesc();
             default:
                 throw new BlubbDBException("Could not perform setMsg" +
                         " Beap status: " + response.getStatus());
         }
-
     }
-
-
 }

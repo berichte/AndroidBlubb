@@ -11,15 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Benni on 30.05.2014.
+ * Local database to store BlubbMessages and BlubbThreads to provide the possibility to
+ * read messages even offline.
+ * Created by Benjamin Richter on 30.05.2014.
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
-
-    public static final String N = "SQLite";
+    /**
+     * Name of the class for logging purposes.
+     */
+    public static final String N = "DatabaseHandler";
     /**
      * Database version
      */
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     /**
      * Database name
      */
@@ -33,20 +37,52 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     private static final String TABLE_THREADS = "threads";
 
-    //Column names for messages
+    /**
+     * Column names for messages
+     */
     private static final String
+            /** Id of the message. */
             M_ID = "mId",
-            M_TITLE = "mTitle",
-            M_CONTENT = "mContent",
-            M_ROLE = "mRole",
-            M_CREATOR = "mCreator",
-            M_DATE = "mDate",
-            M_TYPE = "mType",
-            M_THREAD_ID = "mThreadId",
-            M_LINK = "mLink",
-            M_IS_NEW = "mIsNew";
+    /**
+     * Optional title.
+     */
+    M_TITLE = "mTitle",
+    /**
+     * Content.
+     */
+    M_CONTENT = "mContent",
+    /**
+     * Role of the user who created this message.
+     */
+    M_ROLE = "mRole",
+    /**
+     * Id of the creator of a message.
+     */
+    M_CREATOR = "mCreator",
+    /**
+     * Date when this message was created at the BeapDB.
+     */
+    M_DATE = "mDate",
+    /**
+     * Type of message.
+     */
+    M_TYPE = "mType",
+    /**
+     * Id of the thread within which the message has been created.
+     */
+    M_THREAD_ID = "mThreadId",
+    /**
+     * A link to another message, if not null the message is a reply.
+     */
+    M_LINK = "mLink",
+    /**
+     * True if the user has not yet seen this message.
+     */
+    M_IS_NEW = "mIsNew";
 
-    //Column names for threads
+    /**
+     * Column names for threads.
+     */
     private static final String
             T_ID = "tId",
             T_TITLE = "tTitle",
@@ -60,10 +96,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             T_IS_NEW = "tIsNew",
             T_HAS_NEW_M = "tHasNewMsg";
 
+    /**
+     * Constructor for the DatabaseHandler.
+     *
+     * @param context within which the Sqlite database will be created.
+     */
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * Deletes the hole database.
+     *
+     * @param context within which the Sqlite database is created and will be deleted.
+     */
     public static void deleteDatabase(Context context) {
         context.deleteDatabase(DATABASE_NAME);
     }
@@ -110,6 +156,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
+    /**
+     * Add a single new BlubbMessage to the Sqlite database. The message id must be unique!
+     *
+     * @param message which will be stored in the database.
+     */
     public void addMessage(BlubbMessage message) {
         Log.v(N, "addMessage(message = " + message.getmId() + ")");
         SQLiteDatabase db = this.getWritableDatabase();
@@ -117,7 +168,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(M_ID, message.getmId());
         values.put(M_TITLE, message.getmTitle());
-        values.put(M_CONTENT, message.getmContent());
+        values.put(M_CONTENT, message.getmContent().getStringRepresentation());
         values.put(M_ROLE, message.getmCreatorRole());
         values.put(M_CREATOR, message.getmCreator());
         values.put(M_DATE, message.getmDate());
@@ -130,6 +181,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    /**
+     * Adds a single BlubbThread to the Sqlite database. The thread id must be unique!
+     *
+     * @param thread which will be stored in the database.
+     */
     public void addThread(BlubbThread thread) {
         Log.v(N, "addThread(thread = " + thread.gettId() + ")");
         SQLiteDatabase db = this.getWritableDatabase();
@@ -153,6 +209,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    /**
+     * Get a BlubbMessage from the Sqlite database.
+     *
+     * @param mId Unique id of the message.
+     * @return BlubbMessage object with the id provided.
+     */
     public BlubbMessage getMessage(String mId) {
         Log.v(N, "getMessage(mId = " + mId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
@@ -194,6 +256,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return null;
     }
 
+    /**
+     * Get a BlubbThread from the Sqlite database.
+     *
+     * @param tId Unique id of the thread.
+     * @return BlubbThread object with the id provided.
+     */
     public BlubbThread getThread(String tId) {
         Log.v(N, "getThread(tId = " + tId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
@@ -237,6 +305,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return null;
     }
 
+    /**
+     * Get all BlubbMessages stored in the Sqlite database.
+     *
+     * @return A list with all BlubbMessage objects stored in the database.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     public List<BlubbMessage> getAllMessages() {
         Log.v(N, "getAllMessages()");
         List<BlubbMessage> msgList = new ArrayList<BlubbMessage>();
@@ -265,6 +339,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return msgList;
     }
 
+    /**
+     * Get all BlubbMessages to a thread.
+     *
+     * @param tId Id of the thread.
+     * @return List of BlubbMessages which were created within the thread with the given id.
+     */
     public List<BlubbMessage> getMessagesForThread(String tId) {
         Log.v(N, "getMessagesForThread(tId = " + tId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
@@ -284,7 +364,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[]{String.valueOf(tId)},   // ? = tId
                 null, null, null, null
         );
-
         List<BlubbMessage> msgList = new ArrayList<BlubbMessage>();
         Log.v(N, "Found " + cursor.getCount() + " messages for thread.");
         if (cursor.moveToFirst()) {
@@ -308,6 +387,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return msgList;
     }
 
+    /**
+     * Get all BlubbThreads stored in the Sqlite database.
+     *
+     * @return List with all BlubbThreads stored in the database.
+     */
     public List<BlubbThread> getAllThreads() {
         Log.v(N, "getAllThreads()");
         List<BlubbThread> tList = new ArrayList<BlubbThread>();
@@ -337,6 +421,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tList;
     }
 
+    /**
+     * Set the read flag of a BlubbMessage to true.
+     *
+     * @param mId Id of the message which had been read.
+     */
     public void setMessageRead(String mId) {
         Log.v(N, "setMessageRead(mId = " + mId + ")");
         SQLiteDatabase db = this.getWritableDatabase();
@@ -344,10 +433,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(M_IS_NEW, 0);
 
-        int id = db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{mId});
+        db.update(TABLE_MESSAGES, values, M_ID + "=?", new String[]{mId});
         db.close();
     }
 
+    /**
+     * Set the hasNewMsgs flag of a thread.
+     *
+     * @param tId        Id of the thread.
+     * @param hasNewMsgs value which should be set.
+     */
     public void setThreadNewMsgs(String tId, boolean hasNewMsgs) {
         Log.v(N, "setThreadNewMsgs(thread = " + tId + ")");
         SQLiteDatabase db = this.getWritableDatabase();
@@ -361,6 +456,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    /**
+     * Update the values of a stored BlubbMessage, e.g. when the content has been changed.
+     *
+     * @param message BlubbMessage object with some changed values, which will be stored to the db.
+     */
     public void updateMessage(BlubbMessage message) {
         Log.v(N, "updateMessage(message = " + message.getmId());
         SQLiteDatabase db = this.getWritableDatabase();
@@ -368,7 +468,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(M_ID, message.getmId());
         values.put(M_TITLE, message.getmTitle());
-        values.put(M_CONTENT, message.getmContent());
+        values.put(M_CONTENT, message.getmContent().getStringRepresentation());
         values.put(M_ROLE, message.getmCreatorRole());
         values.put(M_CREATOR, message.getmCreator());
         values.put(M_DATE, message.getmDate());
@@ -383,6 +483,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "Updated message " + message.getmId());
     }
 
+    /**
+     * Update the values of a stored BlubbMessage, e.g. when the content has been changed.
+     * This is without the isNew flag.
+     *
+     * @param message BlubbMessage object with some changed values, which will be stored to the db.
+     */
     public void updateMessageFromBeap(BlubbMessage message) {
         Log.v(N, "updateMessageFromBeap(message = " + message.getmId());
         SQLiteDatabase db = this.getWritableDatabase();
@@ -390,7 +496,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(M_ID, message.getmId());
         values.put(M_TITLE, message.getmTitle());
-        values.put(M_CONTENT, message.getmContent());
+        values.put(M_CONTENT, message.getmContent().getStringRepresentation());
         values.put(M_ROLE, message.getmCreatorRole());
         values.put(M_CREATOR, message.getmCreator());
         values.put(M_DATE, message.getmDate());
@@ -403,6 +509,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "Updated message " + message.getmId());
     }
 
+    /**
+     * Update the values of a stored BlubbThread, e.g. when the description has been changed.
+     *
+     * @param thread BlubbThread object with some changed values.
+     */
     public void updateThread(BlubbThread thread) {
         Log.v(N, "updateThread(thread = " + thread.gettId());
         SQLiteDatabase db = this.getWritableDatabase();
@@ -427,6 +538,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "Updated thread " + thread.gettId());
     }
 
+    /**
+     * Update the values of a stored BlubbThread, e.g. when the description has been changed.
+     * Without the isNew or hasNewMsgs flags.
+     *
+     * @param thread BlubbThread object with some changed values.
+     */
     public void updateThreadFromBeap(BlubbThread thread) {
         Log.v(N, "updateThreadFromBeap(thread = " + thread.gettId());
         SQLiteDatabase db = this.getWritableDatabase();
@@ -447,6 +564,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Log.v(N, "Updated thread " + thread.gettId());
     }
 
+    /**
+     * @return Number of messages stored in the Sqlite database.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     public int getMessageCount() {
         String countQuery = "SELECT * FROM " + TABLE_MESSAGES;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -455,6 +576,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cursor.getCount();
     }
 
+    /**
+     * @return Number of threads stored in the Sqlite database.
+     */
     public int getThreadCount() {
         String countQuery = "SELECT * FROM " + TABLE_THREADS;
         SQLiteDatabase db = this.getReadableDatabase();
