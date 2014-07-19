@@ -45,7 +45,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-
+/**
+ *
+ */
 public class ActivitySingleThread extends Activity {
     public static final String NAME = "SingleThreadActivity";
     public static final String EXTRA_THREAD_ID = "threadId";
@@ -624,8 +626,13 @@ public class ActivitySingleThread extends Activity {
         @Override
         protected List<BlubbMessage> doInBackground(Void... voids) {
             Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
-            return getApp().getMessageManager().getAllMessagesForThread(
-                    ActivitySingleThread.this.getApplicationContext(), this.threadId);
+            try {
+                return MessageManager.getInstance().getAllMessagesForThread(
+                        ActivitySingleThread.this.getApplicationContext(), this.threadId);
+            } catch (Exception e) {
+                this.e = e;
+            }
+            return null;
         }
 
         @Override
@@ -742,11 +749,11 @@ public class ActivitySingleThread extends Activity {
         private Exception exception;
 
         @Override
-        protected BlubbMessage doInBackground(String... blubbs) {
+        protected BlubbMessage doInBackground(String... parameter) {
             try {
-                return getApp().getMessageManager().createMsg(
+                return MessageManager.getInstance().createMsg(
                         ActivitySingleThread.this.getApplicationContext(),
-                        blubbs);
+                        parameter);
             } catch (BlubbDBException e) {
                 this.exception = e;
                 Log.e("getAllMessages", e.getMessage());

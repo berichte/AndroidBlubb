@@ -30,7 +30,7 @@ public class BlubbHttpRequest {
     public static String request(String url) {
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response;
-        String responseString = null;
+        String responseString;
         Log.v("BlubbHttpRequest", "Starting request");
         try {
             response = httpclient.execute(new HttpGet(url));
@@ -63,7 +63,7 @@ public class BlubbHttpRequest {
      * @return A beap response with beap status 407 - connection error.
      */
     private static String handleHttpException(Exception e) {
-        String response = "{\n" +
+        return "{\n" +
                 "\"BeapStatus\" : 407,\n " +
                 "\"StatusDescr\": " + e.getMessage() + ",\n " +
                 "\"sessInfo\" : {\n" +
@@ -73,7 +73,6 @@ public class BlubbHttpRequest {
                 "\"sessActive\" : false,\n" +
                 "\"expires\" : \"\"\n" +
                 "}}{\n";
-        return response;
     }
 
 }

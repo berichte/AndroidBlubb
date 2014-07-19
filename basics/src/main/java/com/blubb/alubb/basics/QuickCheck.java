@@ -1,7 +1,4 @@
-package com.blubb.alubb.beapcom;
-
-import com.blubb.alubb.basics.BlubbMessage;
-import com.blubb.alubb.basics.BlubbThread;
+package com.blubb.alubb.basics;
 
 import java.util.List;
 
@@ -43,7 +40,6 @@ public class QuickCheck {
      * @return True if the thread list or the message list is not empty.
      */
     public boolean hasResult() {
-        if (threads.isEmpty() && messages.isEmpty()) return false;
-        return true;
+        return !(threads.isEmpty() && messages.isEmpty());
     }
 }

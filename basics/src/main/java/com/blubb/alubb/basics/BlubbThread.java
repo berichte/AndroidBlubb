@@ -25,6 +25,7 @@ import java.util.Date;
  * can post different kinds of messages.
  * 'Thread' means in the whole doc the BlubbThread and not java.lang.Thread.
  */
+@SuppressWarnings("ALL")
 public class BlubbThread {
     /**
      * Name for Logging purposes

@@ -96,7 +96,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/message_content_back"
-                android:inputType="textMultiLine"
                 android:maxLines="7"
                 android:padding="8dp"
                 android:scrollbars="vertical"

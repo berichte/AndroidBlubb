@@ -1,23 +1,24 @@
 package com.blubb.alubb.beapcom;
 
-import android.content.Context;
 import android.util.Log;
-
-import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.InvalidParameterException;
-import com.blubb.alubb.blubexceptions.SessionException;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 /**
+ * Collection of functions to provide request urls to beap, e.g. the url for a login.
+ * <p/>
  * Created by Benjamin Richter on 23.05.2014.
  */
 public class BlubbRequestManager {
+    /**
+     * Name for Logging purposes.
+     */
     private static final String NAME = BlubbRequestManager.class.getName();
+    /**
+     * URL to the beap server, prefix for all urls created and all other parts for the
+     * different urls except the parameter of course.
+     */
     private static final String URL = "http://blubb.traeumtgerade.de:9980/?",
             BEAP_ID = "BeapId=",
             BEAP_ACTION = "Action=",
@@ -29,8 +30,7 @@ public class BlubbRequestManager {
             BEAP_ACTION_LOGOUT = "logout",
             BEAP_ACTION_CHECK = "check",
             BEAP_ACTION_QUERY = "query",
-    // TODO set the right action for password reset in.
-    BEAP_ACTION_RESET_PW = "setOwnPwd",
+            BEAP_ACTION_RESET_PW = "setOwnPwd",
             BEAP_QUERY_STR = "queryStr=",
 
     BEAP_ID_SESSION = "BeapSession",
@@ -49,8 +49,14 @@ public class BlubbRequestManager {
     // uName=Der-Praktikant&amp;
     // uPwd=test
 
-    public static BlubbResponse login(String username, String password)
-            throws BlubbDBException {
+    /**
+     * Builds a login url with the username and password and executes the request.
+     *
+     * @param username String containing the username.
+     * @param password String containing the password corresponding to the username.
+     * @return A BlubbResponse from the executed request.
+     */
+    public static BlubbResponse login(String username, String password) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGIN + BLUBB_AND
@@ -61,9 +67,14 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
-    //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=check&sessId=a634cca33cc52b1252ba9
-    public static BlubbResponse checkSession(Context context, String sessionId)
-            throws BlubbDBException {
+    /**
+     * Builds a checkSession url and executes the request, e.g. like this:
+     * http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=check&sessId=a634cca33cc52b1252ba9
+     *
+     * @param sessionId String with the session id of the session to be refreshed.
+     * @return BlubbResponse from the executed request.
+     */
+    public static BlubbResponse checkSession(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_CHECK + BLUBB_AND
@@ -72,8 +83,14 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
-    //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=refresh&sessId=a634cca33cc52b1252ba9
-    public static BlubbResponse refreshSession(String sessionId) throws BlubbDBException {
+    /**
+     * Makes a session refresh.
+     * http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&Action=refresh&sessId=a634cca33cc52b1252ba9
+     *
+     * @param sessionId String with the session id of the session to be refreshed.
+     * @return BlubbResponse from the executed request.
+     */
+    public static BlubbResponse refreshSession(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
@@ -82,7 +99,13 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
-    public static BlubbResponse logout(String sessionId) throws BlubbDBException {
+    /**
+     * Performs a logout for a session.
+     *
+     * @param sessionId String with the session id of the session to be refreshed.
+     * @return BlubbResponse from the executed request.
+     */
+    public static BlubbResponse logout(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
@@ -91,9 +114,18 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
-    public static BlubbResponse resetPassword(String username, String oldPw, String newPw,
-                                              String confirmPw) throws BlubbDBException {
-        //TODO check how to pass the passwords and modify the url.
+    /**
+     * Builds a url to reset the password of a user and executes the request.
+     *
+     * @param username  String containing the username.
+     * @param oldPw     String containing the old password of the user.
+     * @param newPw     String containing the new password of the user.
+     * @param confirmPw String containing the new password of the user again, the server verifies
+     *                  whether the passwords are equal.
+     * @return BlubbResponse from the executed request.
+     */
+    public static BlubbResponse resetPassword(
+            String username, String oldPw, String newPw, String confirmPw) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_RESET_PW + BLUBB_AND
@@ -108,8 +140,22 @@ public class BlubbRequestManager {
     //http://blubb.traeumtgerade.de:9980/?BeapId=BeapDB&sessId=a634cca33cc52b1252ba9&Action=query
     // &queryStr=tree.functions.getAllThreads(self)
 
-    public static BlubbResponse query(String query, String sessionId)
-            throws BlubbDBException {
+    /**
+     * Builds the url for a query to the beapDB and executes it.
+     * To execute a query on the beapDB a valid sessionId is mandatory.
+     *
+     * @param query     String containing the query to the beapDB:
+     *                  - 'tree.functions.getAllThreads(self)'
+     *                  - 'tree.functions.createThread(self,"tTitle","tDescription")'
+     *                  - 'tree.functions.setThread(self,"tId","tTitle","tDescription","tStatus")'
+     *                  - 'tree.functions.quickCheck(self)'
+     *                  - 'tree.functions.getMsgsForThread(self,"tId")'
+     *                  - 'tree.functions.createMsg(self,"tId","mTitle","mContent","mLink")'
+     *                  - 'tree.functions.setMsg(self,"mId","mTitle","mContent","mLink")'
+     * @param sessionId String with the sessionId of the session which executes the query on beapDB.
+     * @return BlubbResponse from the executed request containing a result for the executed query.
+     */
+    public static BlubbResponse query(String query, String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_DB + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId) + BLUBB_AND
@@ -120,32 +166,25 @@ public class BlubbRequestManager {
         return executeRequest(url);
     }
 
-    public static int[] quickCheck(Context context, String sessionId) throws BlubbDBException,
-            SessionException {
-        try {
-            String query = "tree.functions.quickCheck(self)";
-            BlubbResponse blubbResponse = BlubbRequestManager.query(query, sessionId);
-            switch (blubbResponse.getStatus()) {
-                case OK:
-                    // with status ok result object will be a json array.
-                    JSONArray array = (JSONArray) blubbResponse.getResultObj();
-                    return new int[]{
-                            (Integer) array.get(0),
-                            (Integer) array.get(1)};
-                default:
-                    throw new BlubbDBException("Could not perform quickCheck" +
-                            " Beap status: " + blubbResponse.getStatus());
-            }
-        } catch (JSONException e) {
-            throw new BlubbDBException("Received wrong Json object for quickCheck query.");
-        }
-
-    }
-
+    /**
+     * The parameter send to beap must be url encoded. This function puts the parameter key and
+     * the encoded value in one string.
+     *
+     * @param para  Name of the parameter at beap (not beapDB).
+     * @param value Parameter value which needs to be encoded.
+     * @return String containing key and encoded value, e.g.
+     * "uName=" + "Der-Blubb" => "uName=Der-Blubb".
+     */
     public static String getParameter(String para, String value) {
         return para + encode(value);
     }
 
+    /**
+     * Makes a url encoding with utf-8 for a string.
+     *
+     * @param s String which will be encoded.
+     * @return Encoded string.
+     */
     private static String encode(String s) {
         try {
             String enc = URLEncoder.encode(s, ENCODING);
@@ -157,17 +196,17 @@ public class BlubbRequestManager {
         }
     }
 
-    private static BlubbResponse executeRequest(String url)
-            throws BlubbDBException {
+    /**
+     * Executes a BlubbHttpRequest with the provided url.
+     *
+     * @param url Url which will be send with the request
+     * @return BlubbResponse object build from the http response if it contains a valid json object.
+     */
+    private static BlubbResponse executeRequest(String url) {
         Log.v(NAME, "Executing http-request:\n" + url);
         // request via http
         String httpResponse = BlubbHttpRequest.request(url);
         //parse the response to an object
         return new BlubbResponse(httpResponse);
-    }
-
-    public static String parameterCheck(String para) throws InvalidParameterException {
-        BPC.checkString(para);
-        return "\"" + para + "\"";
     }
 }

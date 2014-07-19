@@ -1,10 +1,9 @@
 package com.blubb.alubb.blubexceptions;
 
-import com.blubb.alubb.R;
-
 /**
  * Created by Benjamin Richter on 17.05.2014.
+ * <p/>
+ * Exception thrown if a parameter is not initialized (null).
  */
 public class BlubbNullException extends InvalidParameterException {
-    protected static int messageID = R.string.BlubbNullException;
 }

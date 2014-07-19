@@ -61,15 +61,20 @@ public class MessageManager {
      *
      * @param context The application context from which the method is called.
      * @return A list of BlubbMessages with isNew true.
-     * @throws BlubbDBException           TODO add throw declarations.
-     * @throws JSONException
-     * @throws SessionException
-     * @throws BlubbDBConnectionException
-     * @throws PasswordInitException
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
      */
     public List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
-            throws BlubbDBException,
-            JSONException, SessionException, BlubbDBConnectionException, PasswordInitException {
+            throws BlubbDBException, JSONException,
+            SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getNewMessagesFromAllThreads(context)");
         List<BlubbThread> localThreads = ThreadManager.getInstance()
                 .getAllThreadsFromSqlite(context);
@@ -96,11 +101,16 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param thread  The thread of which the new messages shall be returned.
      * @return List of BlubbMessages with m.tId = thread.tId and m.isNew = true.
-     * @throws BlubbDBException           TODO add exception description.
-     * @throws PasswordInitException
-     * @throws BlubbDBConnectionException
-     * @throws JSONException
-     * @throws SessionException
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws JSONException              if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
      */
     private List<BlubbMessage> getNewMessagesForThread(Context context, BlubbThread thread)
             throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
@@ -122,9 +132,13 @@ public class MessageManager {
      * @param messageParameter String parameter for the new message: {mTitle, mContent, mLink, tId1, tId2,...}
      * @return The new created BlubbMessage object.
      * @throws BlubbDBException           if the response status is not 'OK'.
-     * @throws SessionException           TODO add exception descriptions from sessionManager.getSession().
-     * @throws BlubbDBConnectionException
-     * @throws PasswordInitException
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
      */
     public BlubbMessage createMsg(Context context, String... messageParameter)
             throws BlubbDBException,
@@ -170,11 +184,16 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param tId     The id of the thread.
      * @return A list of BlubbMessages belonging to the thread.
-     * @throws BlubbDBException           TODO add Exception description to the docu.
-     * @throws PasswordInitException
-     * @throws BlubbDBConnectionException
-     * @throws SessionException
-     * @throws JSONException
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws JSONException              if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      */
     public List<BlubbMessage> getAllMessagesForThread(Context context, String tId)
             throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
@@ -190,11 +209,16 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param tId     The id of the thread.
      * @return A list of BlubbMessages from the beapDB and not locally stored.
-     * @throws BlubbDBException           if the response status is not 'OK'. TODO add exception descriptions
-     * @throws SessionException
-     * @throws JSONException
-     * @throws BlubbDBConnectionException
-     * @throws PasswordInitException
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws JSONException              if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
      */
     private List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
             throws BlubbDBException, SessionException,
@@ -264,10 +288,14 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param message The message with the new title and content.
      * @return The status description of the blubbResponse.
-     * @throws BlubbDBException           if the response status is not 'OK'.TODO add exception descriptions.
-     * @throws PasswordInitException
-     * @throws SessionException
-     * @throws BlubbDBConnectionException
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
+     *                                    getSessionID().
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
      */
     public String setMsg(Context context, BlubbMessage message)
             throws BlubbDBException, PasswordInitException,

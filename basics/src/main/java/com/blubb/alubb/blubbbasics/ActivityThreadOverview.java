@@ -27,13 +27,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -45,73 +43,93 @@ import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.ThreadManager;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
-import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
-import org.json.JSONException;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
+/**
+ * Central activity which shows the threads available for the logged in user.
+ * From this point of the user interface every other screen is accessible.
+ */
 public class ActivityThreadOverview extends Activity {
+    /**
+     * Name for Logging purposes.
+     */
     private static final String NAME = "ThreadOverview";
 
+    /**
+     * If >= 0, this code will be returned in onActivityResult() when the activity exits.
+     * This is the value for the settings and the login.
+     */
     private static final int RESULT_SETTINGS = 1,
             RESULT_LOGIN = 2;
+
+    /**
+     * Unique id for the notification send from the ThreadOverview.
+     */
     private static final int NOTIFICATION_ID = 1904;
+
+    /**
+     * Fields for the input of the thread title and description for the new thread dialog.
+     * If the user disables the input dialog and clicks again 'new Thread' these will be set to the
+     * EditText of the dialog.
+     */
     private static String titleInput = "", descInput = "";
-    final Context context = this;
-    private boolean loginSpinn = false,
-            getAllBeapSpinn = false,
-            getAllLocalSpinn = false,
-            createThreadSpinn = false,
+
+    /**
+     * Boolean values to deside whether the spinner for loading threads should be displayed.
+     */
+    private boolean showSpinnerForLogin = false,
+            showSpinnerForGetAllBeapThreads = false,
+            showSpinnerForCreateThread = false,
             storeDraft = true;
-    private MenuItem loggedInItem;
-    private BlubbThread.ThreadStatus tempStatus = BlubbThread.ThreadStatus.OPEN;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_PROGRESS);
+        //requestWindowFeature(Window.FEATURE_PROGRESS);
         start();
     }
 
+    /**
+     * Start the thread overview.
+     * Set the content view, check for login, load the threads and start the message pull service.
+     */
     private void start() {
-
         setContentView(R.layout.activity_thread_overview);
         checkForLogin();
-
-        AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
-        this.getAllBeapSpinn = true;
+        showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
+        AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
+        this.showSpinnerForGetAllBeapThreads = true;
         spinnerOn();
-        asyncGetAllThreads.execute();
+        asyncGetAllThreadsFromBeap.execute();
         startMessagePullService();
     }
 
-    private void addHeader() {
-        ListView lv = (ListView) findViewById(R.id.thread_list);
-
-        LayoutInflater inflater = (LayoutInflater) this
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout header = (LinearLayout)
-                inflater.inflate(R.layout.thread_ov_header, lv, false);
-
-        lv.addHeaderView(header);
-    }
-
+    /**
+     * Start the AsyncTask to check whether the login is valid.
+     */
     private void checkForLogin() {
         Log.v(NAME, "checkForLogin()");
-        this.loginSpinn = true;
+        this.showSpinnerForLogin = true;
         spinnerOn();
         new AsyncCheckLogin().execute();
     }
 
+    /**
+     * Get the custom BlubbApplication, e.g. to handle exceptions.
+     *
+     * @return The custom Application instance.
+     */
     private BlubbApplication getApp() {
         return (BlubbApplication) getApplication();
     }
 
+    /**
+     * Starts the message pull service with the parameter of the settings.
+     */
     private void startMessagePullService() {
         Log.v(NAME, "startMessagePullService()");
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -133,6 +151,9 @@ public class ActivityThreadOverview extends Activity {
                 firstTime, interval * 1000, mAlarmSender);
     }
 
+    /**
+     * Handles whether the spinner should be displayed.
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -147,12 +168,31 @@ public class ActivityThreadOverview extends Activity {
         //addHeader();
     }
 
+    /**
+     * Set the menu of thread_overview_actions.
+     *
+     * @param menu The menu for this activity.
+     * @return True if the menu could be set.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.thread_overview_actions, menu);
         return true;
     }
 
+    /**
+     * Starts the actions intended for the menu items.
+     * - menu_new_thread_action -> starts the new thread dialog.
+     * - menu_action_refresh    -> reloads the threads from the beapDB.
+     * - menu_blubb_settings    -> starts the settings activity.
+     * - menu_action_login      -> starts the login activity with extra LoginType.LOGIN.
+     * - menu_action_resetpassw -> starts the login activity with extra LoginType.RESET.
+     * - menu_action_logout     -> starts a dialog for performing a logout and disable the
+     * message pull service.
+     *
+     * @param item Menu item selected.
+     * @return True if action could be performed.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -160,10 +200,11 @@ public class ActivityThreadOverview extends Activity {
                 newThreadDialog();
                 break;
             case R.id.menu_action_refresh:
-                AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
-                this.getAllBeapSpinn = true;
+                showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
+                AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
+                this.showSpinnerForGetAllBeapThreads = true;
                 spinnerOn();
-                asyncGetAllThreads.execute();
+                asyncGetAllThreadsFromBeap.execute();
                 break;
             case R.id.menu_blubb_settings:
                 Intent i = new Intent(this, ActivitySettings.class);
@@ -210,6 +251,10 @@ public class ActivityThreadOverview extends Activity {
         return true;
     }
 
+    /**
+     * Shows a new thread dialog. The user can set the title and the description of a new thread.
+     * If the user clicks the y-Button a AsyncNewThread will be started.
+     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void newThreadDialog() {
         final Dialog dialog = new Dialog(ActivityThreadOverview.this);
@@ -286,13 +331,12 @@ public class ActivityThreadOverview extends Activity {
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                AsyncNewThread asyncNewThread = new AsyncNewThread(
-                        title.getText().toString(),
-                        descr.getText().toString()
-                );
-                createThreadSpinn = true;
+                AsyncNewThread asyncNewThread = new AsyncNewThread();
+                showSpinnerForCreateThread = true;
                 spinnerOn();
-                asyncNewThread.execute();
+                asyncNewThread.execute(
+                        title.getText().toString(),
+                        descr.getText().toString());
                 titleInput = "";
                 descInput = "";
                 dialog.cancel();
@@ -311,6 +355,13 @@ public class ActivityThreadOverview extends Activity {
         dialog.show();
     }
 
+    /**
+     * Shows a edit thread dialog. The user can alter either the title and the description for a
+     * thread. If the user clicks the y-Button a AsyncSetThread will be started.
+     * TODO add the thread status
+     *
+     * @param thread The BlubbThread which will be modified.
+     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void editThreadDialog(final BlubbThread thread) {
         final Dialog dialog = new Dialog(ActivityThreadOverview.this);
@@ -324,9 +375,7 @@ public class ActivityThreadOverview extends Activity {
                         .getIdentifier("android:id/titleDivider", null, null)
         );
         divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-        // builder.setView(dialogLayout);
 
-        //builder.setInverseBackgroundForced(true);
         assert dialogLayout != null;
         final EditText title = (EditText) dialogLayout.findViewById(
                 R.id.thread_list_item_title),
@@ -348,13 +397,10 @@ public class ActivityThreadOverview extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0:
-                        tempStatus = BlubbThread.ThreadStatus.OPEN;
                         break;
                     case 1:
-                        tempStatus = BlubbThread.ThreadStatus.SOLVED;
                         break;
                     case 2:
-                        tempStatus = BlubbThread.ThreadStatus.CLOSED;
                         break;
                 }
             }
@@ -428,7 +474,7 @@ public class ActivityThreadOverview extends Activity {
                 thread.settTitle(title.getText().toString());
                 thread.settDesc(descr.getText().toString());
                 AsyncSetThread asyncSetThread = new AsyncSetThread(thread);
-                createThreadSpinn = true;
+                showSpinnerForCreateThread = true;
                 spinnerOn();
                 asyncSetThread.execute();
                 titleInput = "";
@@ -449,20 +495,19 @@ public class ActivityThreadOverview extends Activity {
         dialog.show();
     }
 
-    private void handleException(Exception e) {
-        // TODO Get messages for the different kinds of exceptions.
-        // For exception handling see: http://stackoverflow.com/questions/1739515/asynctask-and-error-handling-on-android
-        // and: https://groups.google.com/forum/#!topic/android-developers/_6PZxYn411M
-        if (e != null) {
-            Log.e(NAME, e.getMessage());
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
+    /**
+     * @return True if showSpinnerForGetAllBeapThreads, showSpinnerForLogin or
+     * showSpinnerForCreateThread are true.
+     */
     private boolean shouldSpinn() {
-        return (getAllBeapSpinn || getAllLocalSpinn || loginSpinn || createThreadSpinn);
+        return (showSpinnerForGetAllBeapThreads
+                || showSpinnerForLogin || showSpinnerForCreateThread);
     }
 
+    /**
+     * Sets the blubb_progressbar visible. The blubb_progressbar indicates whether a
+     * AsyncTask from ThreadOverview is running.
+     */
     public void spinnerOn() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         if (shouldSpinn()) {
@@ -470,6 +515,10 @@ public class ActivityThreadOverview extends Activity {
         }
     }
 
+    /**
+     * Sets the blubb_progressbar invisible. The blubb_progressbar indicates whether a
+     * AsyncTask from ThreadOverview is running.
+     */
     public void spinnerOff() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         if (!shouldSpinn()) {
@@ -478,31 +527,27 @@ public class ActivityThreadOverview extends Activity {
         }
     }
 
-    private void showOnlineStatus() {
-        /*View layout = findViewById(R.id.thread_ov_rl);
-        layout.setBackground(getResources().getDrawable(R.drawable.waterdrop_wallpaper));*/
-    }
-
-    private void showOfflineStatus() {/*
-        View layout = findViewById(R.id.thread_ov_rl);
-        layout.setBackgroundColor(getResources().getColor(R.color.beap_medium_yellow));*/
-    }
-
+    /**
+     * Cancel a notification with the NOTIFICATION_ID.
+     */
     private void cancelNotification() {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(NOTIFICATION_ID);
     }
 
-    private void createNotification(String nTitle) {
+    /**
+     * Create a notification which shows notificationMessage.
+     *
+     * @param notificationMessage The message that will be shown with the notification.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private void createNotification(String notificationMessage) {
         NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setAutoCancel(true);
         builder.setSmallIcon(R.drawable.blubb_logo);
-        Intent resultIntent;
-        builder.setContentTitle(nTitle);
-
+        builder.setContentTitle(notificationMessage);
         builder.setAutoCancel(true);
-
         // Including the notification ID allows you to update the notification later on.
         Notification notification = builder.build();
         notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
@@ -510,39 +555,100 @@ public class ActivityThreadOverview extends Activity {
         Log.w(NAME, "pushing notification");
     }
 
-    private class AsyncNewThread extends AsyncTask<Void, Void, BlubbThread> {
+    /**
+     * Fills the thread ListView with the threads from the list
+     * and sets a OnItemClickListener and OnItemLongClickListener to it.
+     * OnItemClick -> start a ActivitySingleThread for this thread.
+     * OnItemLongClick -> toggle between the view style of the thread, big or small.
+     *
+     * @param threads Threads that will be displayed at the ListView.
+     */
+    private void showThreadInList(List<BlubbThread> threads) {
+        ListView lv = (ListView) findViewById(R.id.thread_list);
 
-        String title, descr;
-        Exception exception;
+        final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
+                ActivityThreadOverview.this, R.layout.thread_list_entry, threads);
 
-        public AsyncNewThread(String title, String descr) {
-            this.title = title;
-            this.descr = descr;
+        if (adapter.getCount() > threads.size()) {
+            spinnerOff();
+            return;
         }
 
-        @Override
-        protected BlubbThread doInBackground(Void... voids) {
-            Log.v("AsyncNewThread", "execute()");
+        lv.setAdapter(adapter);
 
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view,
+                                    int position, long id) {
+                Intent intent = new Intent(ActivityThreadOverview.this, ActivitySingleThread.class);
+                assert parent.getItemAtPosition(position) != null;
+                BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
+                String threadId = bThread.gettId();
+                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
+                String tTitle = bThread.getThreadTitle();
+                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_TITLE, tTitle);
+                String tCreator = bThread.gettCreator();
+                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_CREATOR, tCreator);
+                String tDesc = bThread.gettDesc();
+                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_DESCRIPTION, tDesc);
+                ActivityThreadOverview.this.startActivity(intent);
+            }
+
+        });
+        lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view,
+                                           int position, long id) {
+                BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
+                thread.toggleViewSize();
+                @SuppressWarnings("unchecked")
+                ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
+                        parent.getAdapter();
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+    }
+
+    /**
+     * AsyncTask to create a new thread at beapDB and if successful at the local sqlite database.
+     */
+    private class AsyncNewThread extends AsyncTask<String, Void, BlubbThread> {
+
+        /**
+         * Exception field for the exception handling.
+         */
+        Exception exception;
+
+        /**
+         * Executes the creation of a new BlubbThread on a background java.lang.Thread.
+         *
+         * @param parameter First must be the title, second the description of the new thread.
+         * @return The newly created BlubbThread.
+         */
+        @Override
+        protected BlubbThread doInBackground(String... parameter) {
+            Log.v("AsyncNewThread", "execute()");
+            String title = parameter[0],
+                    description = parameter[1];
             try {
-                return getApp().getThreadManager().createThread(
-                        ActivityThreadOverview.this.getApplicationContext(), title, descr);
-            } catch (BlubbDBException e) {
-                createNotification(e.getMessage());
-                this.exception = e;
-            } catch (SessionException e) {
-                this.exception = e;
-            } catch (JSONException e) {
-                this.exception = e;
-            } catch (BlubbDBConnectionException e) {
-                createNotification(e.getMessage());
+                return ThreadManager.getInstance().createThread(
+                        ActivityThreadOverview.this.getApplicationContext(), title, description);
+            } catch (Exception e) {
                 this.exception = e;
             }
             return null;
         }
 
+        /**
+         * Handles exceptions and if the creation of the thread was successful makes a toast.
+         *
+         * @param thread That has been created.
+         */
         @Override
         protected void onPostExecute(BlubbThread thread) {
+            getApp().handleException(exception);
             if (thread != null) {
                 String msg = "Created new Thread:\n" +
                         "tId: " + thread.gettId() + "\n" +
@@ -551,26 +657,52 @@ public class ActivityThreadOverview extends Activity {
                 Toast.makeText(ActivityThreadOverview.this, msg, Toast.LENGTH_LONG).show();
                 cancelNotification();
             } // if null there has been a toast.
-            handleException(exception);
-            AsyncGetAllThreads asyncGetAllThreads = new AsyncGetAllThreads();
-            asyncGetAllThreads.execute();
-            createThreadSpinn = false;
+
+            showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
+                    ActivityThreadOverview.this));
+            AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
+            asyncGetAllThreadsFromBeap.execute();
+            showSpinnerForCreateThread = false;
             spinnerOff();
         }
     }
 
+    /**
+     * Array adapter for the ListView of the threads.
+     */
     private class ThreadArrayAdapter extends ArrayAdapter<BlubbThread> {
 
+        /**
+         * HashMap to find the id of a thread.
+         * Key is the BlubbThread, value the integer of the id of the thread in the
+         * array adapter.
+         */
         HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
 
-        public ThreadArrayAdapter(Context context, int textViewResourceId,
+        /**
+         * Constructor for the ThreadArrayAdapter.
+         *
+         * @param context  The current context.
+         * @param resource The resource ID for a layout file containing a TextView to use when
+         *                 instantiating views.
+         * @param objects  The list of BlubbThreads to represent in the ListView.
+         */
+        public ThreadArrayAdapter(Context context, int resource,
                                   List<BlubbThread> objects) {
-            super(context, textViewResourceId, objects);
+            super(context, resource, objects);
             for (int i = 0; i < objects.size(); ++i) {
                 mIdMap.put(objects.get(i), i);
             }
         }
 
+        /**
+         * Gets the view of a BlubbThread at a certain position in the ThreadArrayAdapter.
+         *
+         * @param position    Integer representing the position of a thread.
+         * @param convertView Just used for the override.
+         * @param parent      That will be the ThreadViews parent view.
+         * @return The View representing a BlubbThread.
+         */
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             final BlubbThread blubbThread = getItem(position);
@@ -589,6 +721,12 @@ public class ActivityThreadOverview extends Activity {
             return tView;
         }
 
+        /**
+         * Get the id of a BlubbThread at a certain position.
+         *
+         * @param position Integer representing the position of a thread.
+         * @return The id of a BlubbThread in the ThreadArrayAdapter.
+         */
         @Override
         public long getItemId(int position) {
             BlubbThread item = getItem(position);
@@ -602,120 +740,47 @@ public class ActivityThreadOverview extends Activity {
     }
 
     /**
-     * private class AsyncGetLocalThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
-     *
-     * @Override protected List<BlubbThread> doInBackground(Void... voids) {
-     * Log.v("AsyncGetAllLocalThreads", "execute()");
-     * return getApp().getThreadManager().getAllThreadsFromSqlite(
-     * ThreadOverview.this.getApplicationContext());
-     * }
-     * @Override protected void onPostExecute(final List<BlubbThread> response) {
-     * Log.v("AsyncGetAllLocalThreads", "received " + response.size() + " threads.");
-     * ListView lv = (ListView) findViewById(R.id.thread_list);
-     * final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-     * ThreadOverview.this, R.layout.thread_list_entry, response);
-     * lv.setAdapter(adapter);
-     * <p/>
-     * lv.setOnItemClickListener( new AdapterView.OnItemClickListener() {
-     * @Override public void onItemClick(AdapterView<?> parent, final View view,
-     * int position, long id) {
-     * Intent intent = new Intent(ThreadOverview.this, SingleThreadActivity.class);
-     * assert parent.getItemAtPosition(position) != null;
-     * BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
-     * String threadId = bThread.gettId();
-     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_ID, threadId);
-     * String tTitle = bThread.getThreadTitle();
-     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_TITLE, tTitle);
-     * String tCreator = bThread.gettCreator();
-     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_CREATOR, tCreator);
-     * String tDesc = bThread.gettDesc();
-     * intent.putExtra(SingleThreadActivity.EXTRA_THREAD_DESCRIPTION, tDesc);
-     * ThreadOverview.this.startActivity(intent);
-     * }
-     * <p/>
-     * });
-     * lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
-     * @Override public boolean onItemLongClick(AdapterView<?> parent, View view,
-     * int position, long id) {
-     * BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
-     * thread.toggleViewSize();
-     * @SuppressWarnings("unchecked") ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
-     * parent.getAdapter();
-     * adapter.notifyDataSetChanged();
-     * return true;
-     * }
-     * });
-     * getAllLocalSpinn = false;
-     * spinnerOff();
-     * }
-     * }
+     * AsyncTask which will get all Threads from the beapDB and update the sqlite database.
      */
-
-    private class AsyncGetAllThreads extends AsyncTask<Void, Void, List<BlubbThread>> {
+    private class AsyncGetAllThreadsFromBeap extends AsyncTask<Void, Void, List<BlubbThread>> {
+        /**
+         * Exception field for the exception handling.
+         */
+        Exception e;
 
         @Override
         protected List<BlubbThread> doInBackground(Void... voids) {
             Log.v("AsyncGetAllThreads", "execute()");
-            return getApp().getThreadManager().getAllThreads(
-                    ActivityThreadOverview.this.getApplicationContext());
+            try {
+                return ThreadManager.getInstance().getAllThreadsFromBeap(
+                        ActivityThreadOverview.this.getApplicationContext());
+            } catch (Exception e) {
+                this.e = e;
+                return new ArrayList<BlubbThread>();
+            }
         }
 
+        /**
+         * Handles the exception, shows the thread in the thread list and stops the spinner.
+         *
+         * @param response List of BlubbThreads received from the beapDB.
+         */
         @Override
         protected void onPostExecute(final List<BlubbThread> response) {
-            ListView lv = (ListView) findViewById(R.id.thread_list);
-
-            final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-                    ActivityThreadOverview.this, R.layout.thread_list_entry, response);
-
-            if (adapter.getCount() > response.size()) {
-                spinnerOff();
-                return;
-            }
-
-            lv.setAdapter(adapter);
-
-            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, final View view,
-                                        int position, long id) {
-                    Intent intent = new Intent(ActivityThreadOverview.this, ActivitySingleThread.class);
-                    assert parent.getItemAtPosition(position) != null;
-                    BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
-                    String threadId = bThread.gettId();
-                    intent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
-                    String tTitle = bThread.getThreadTitle();
-                    intent.putExtra(ActivitySingleThread.EXTRA_THREAD_TITLE, tTitle);
-                    String tCreator = bThread.gettCreator();
-                    intent.putExtra(ActivitySingleThread.EXTRA_THREAD_CREATOR, tCreator);
-                    String tDesc = bThread.gettDesc();
-                    intent.putExtra(ActivitySingleThread.EXTRA_THREAD_DESCRIPTION, tDesc);
-                    ActivityThreadOverview.this.startActivity(intent);
-                }
-
-            });
-            lv.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
-
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view,
-                                               int position, long id) {
-                    BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
-                    thread.toggleViewSize();
-                    @SuppressWarnings("unchecked")
-                    ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
-                            parent.getAdapter();
-                    adapter.notifyDataSetChanged();
-                    return true;
-                }
-            });
-            getAllBeapSpinn = false;
+            getApp().handleException(e);
+            showThreadInList(response);
+            showSpinnerForGetAllBeapThreads = false;
             spinnerOff();
         }
     }
 
+    /**
+     * AsyncTask to check whether the login can be performed, if no valid login parameter are
+     * available and there are no threads in the sqlite db, the login screen will be started.
+     */
     private class AsyncCheckLogin extends AsyncTask<Void, Void, Boolean> {
         /**
-         * In case an e is thrown while executing doInBackground(..),
-         * the e can be accessed onPostExecute(..).
+         * In case an e is thrown while executing doInBackground(..).
          */
         private Exception e;
 
@@ -723,7 +788,7 @@ public class ActivityThreadOverview extends Activity {
         protected Boolean doInBackground(Void... params) {
             Log.v(NAME, "AsyncLogin");
             try {
-                getApp().getSessionManager().getSessionID(
+                SessionManager.getInstance().getSessionID(
                         ActivityThreadOverview.this.getApplicationContext());
                 return true;
             } catch (Exception e) {
@@ -734,59 +799,69 @@ public class ActivityThreadOverview extends Activity {
 
         @Override
         protected void onPostExecute(Boolean isLoggedIn) {
+            getApp().handleException(e);
             // if there was no e toast will be null - everything is alright.
             if (!isLoggedIn) {
-                handleException(e);// if the e is a ConnectionException don't let user perform manual login
+                // if the e is a ConnectionException don't let user perform manual login
                 if (e.getClass().equals(SessionException.class)) {
                     DatabaseHandler db = new DatabaseHandler(ActivityThreadOverview.this);
                     int counter = db.getThreadCount();
                     if (counter == 0) {
-                        Intent intent = new Intent(ActivityThreadOverview.this, ActivityLogin.class);
-                        intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE, ActivityLogin.LoginType.LOGIN);
+                        Intent intent = new Intent(ActivityThreadOverview.this,
+                                ActivityLogin.class);
+                        intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE,
+                                ActivityLogin.LoginType.LOGIN);
                         ActivityThreadOverview.this.startActivity(intent);
                     }
                 }
-                showOfflineStatus();
-                //createNotification("Oh no we are offline. :-C ");
-            } else {
-                showOnlineStatus();
-            } //cancelNotification();
-            loginSpinn = false;
+            }
+            showSpinnerForLogin = false;
             spinnerOff();
         }
     }
 
-    private class AsyncSetThread extends AsyncTask<Void, Void, String> {
+    /**
+     * AsyncTask to modify a thread at beapDB. If successful a Toast will be made.
+     */
+    private class AsyncSetThread extends AsyncTask<Void, Void, Boolean> {
         /**
-         * In case an e is thrown while executing doInBackground(..),
-         * the e can be accessed onPostExecute(..).
+         * In case an e is thrown while executing doInBackground(..).
          */
         private Exception e;
 
+        /**
+         * BlubbThread that will be modified.
+         */
         private BlubbThread thread;
 
+        /**
+         * Constructor for the AsyncSetThread.
+         *
+         * @param thread The BlubbThread which will be modified.
+         */
         public AsyncSetThread(BlubbThread thread) {
             this.thread = thread;
         }
 
         @Override
-        protected String doInBackground(Void... params) {
+        protected Boolean doInBackground(Void... params) {
             try {
                 return ThreadManager.getInstance()
                         .setThread(ActivityThreadOverview.this, thread);
             } catch (Exception e) {
                 this.e = e;
             }
-            return "";
+            return false;
         }
 
-        protected void onPostExecute(String response) {
-            if (e != null) ActivityThreadOverview.this.handleException(e);
-            else {
-                // In case there has an e been caught response will be empty.
+        @Override
+        protected void onPostExecute(Boolean response) {
+            getApp().handleException(e);
+            if (response) {
                 onResume();
                 Toast.makeText(ActivityThreadOverview.this,
-                        response, Toast.LENGTH_LONG).show();
+                        getResources().getString(R.string.set_thread_succsessful_text),
+                        Toast.LENGTH_LONG).show();
             }
         }
 

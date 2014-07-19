@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="InvalidParameterException">The given parameter is not valid.</string>
-    <string name="BlubbException">There went something terribly wrong. Run, run as fast as you can! 8(</string>
-    <string name="BlubbNullException">A parameter must not be null.</string>
-    <string name="unknown_blubb_user_role">Unknown blubb user role.</string>
+    <string name="invalid_parameter_exception_message">The given parameter is not valid.\nPlease enter again and ensure it is not empty.</string>
+    <string name="blubb_db_exception_message">There went something terribly wrong. Run, run as fast as you can! 8-o </string>
+    <string name="blubb_null_exception_message">A parameter must not be null.\nPlease enter again and ensure it is not empty.</string>
+    <string name="blubb_db_connection_exception_message">Could not contact server.\nPlease check your internet connection.</string>
+    <string name="password_init_exception_message">Your password has not been initialized yet.\nPlease reset your password.</string>
+    <string name="session_exception_message">Could not perform a login.\nPlease log in manually and check whether your username and password are correct.</string>
+    <string name="unknown_exception_message">An unknown exception occurred.\nIf this happens again please contact your service.</string>
 
 </resources>

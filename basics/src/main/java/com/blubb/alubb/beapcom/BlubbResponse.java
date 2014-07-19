@@ -16,7 +16,7 @@ public class BlubbResponse {
     /**
      * Name for Logging purposes
      */
-    public static final String NAME = "BlubbResponse";
+    private static final String NAME = "BlubbResponse";
 
     /**
      * Reply status for this response.

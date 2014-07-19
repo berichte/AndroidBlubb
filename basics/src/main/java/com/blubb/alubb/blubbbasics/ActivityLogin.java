@@ -26,21 +26,49 @@ import android.widget.Toast;
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.SessionManager;
-import com.blubb.alubb.beapcom.BlubbResponse;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
-import com.blubb.alubb.blubexceptions.BlubbDBException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
-import com.blubb.alubb.blubexceptions.SessionException;
 
+/**
+ * Activity that displays the login screen, the initialize password and the reset password dialog.
+ * <p/>
+ * Created by Benjamin Richter
+ */
 public class ActivityLogin extends Activity {
+
+    /**
+     * Name for Logging purposes.
+     */
     public static final String NAME = "BlubbLoginActivity";
+
+    /**
+     * Name for the extra of the intent for decide witch login screen should be shown,
+     * either the regular login with username and password or the extendet to reset the pw.
+     */
     public static final String EXTRA_LOGIN_TYPE = "loginType";
+
+    /**
+     * Username and password preferences key.
+     */
     public static final String USERNAME_PREFAB = "username_prefab",
             PASSWORD_PREFAB = "password_prefab";
+    /**
+     * Dialog shown if the user needs to initialize the password.
+     */
     private Dialog initDialog;
+    /**
+     * The login type for this login screen.
+     */
     private LoginType loginType;
+    /**
+     * Temporarily held Strings of the username and password.
+     */
     private String username, password;
 
+    /**
+     * Set the content view, get the login type from the intend and set the LoginType field.
+     *
+     * @param savedInstanceState The saved instance state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +79,12 @@ public class ActivityLogin extends Activity {
         else this.loginType = LoginType.LOGIN;
     }
 
+    /**
+     * Fill in the EditTexts the username and the password from the preferences.
+     *
+     * @param unEt EditText for the username.
+     * @param pwEt EditText for the password.
+     */
     private void fillInCredentialPrefs(EditText unEt, EditText pwEt) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String un = prefs.getString(getString(R.string.pref_username), "");
@@ -60,6 +94,10 @@ public class ActivityLogin extends Activity {
         if (pw.equals("")) pwEt.requestFocus();
     }
 
+    /**
+     * Show the login screen according to the LoginType, either the simple login or
+     * the password reset.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -97,13 +135,22 @@ public class ActivityLogin extends Activity {
         }
     }
 
+    /**
+     * Get the custom BlubbApplication, e.g. to handle exceptions.
+     *
+     * @return The BlubbApplication.
+     */
     private BlubbApplication getApp() {
         return (BlubbApplication) getApplication();
     }
 
+    /**
+     * Add the ButtonListener for the login button, which performs a login with
+     * the username and password in the EditTexts if clicked.
+     */
     private void addLoginButtonListener() {
-        Button testButton = (Button) findViewById(R.id.blubb_login_button);
-        testButton.setOnClickListener(new View.OnClickListener() {
+        Button loginButton = (Button) findViewById(R.id.blubb_login_button);
+        loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -118,6 +165,15 @@ public class ActivityLogin extends Activity {
         });
     }
 
+    /**
+     * Execute a login via a AsyncLogin. If the username has changed the sqlite
+     * database will be deleted, though a user can only see the threads and messages
+     * that he needs.
+     *
+     * @param username String containing the username, if this is different from the
+     *                 username of the prefabs the database will be reset for the new user.
+     * @param password String containing the password.
+     */
     private void login(String username, String password) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
                 this.getApplicationContext());
@@ -133,6 +189,9 @@ public class ActivityLogin extends Activity {
         new AsyncLogin().execute(params);
     }
 
+    /**
+     * Show the dialog for the password initialisation.
+     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void showPasswordInitDialog() {
         initDialog = new Dialog(this);
@@ -141,14 +200,6 @@ public class ActivityLogin extends Activity {
         View dialogLayout = inflater.inflate(R.layout.password_init_dialog, null);
         initDialog.setContentView(dialogLayout);
         initDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        View divider = initDialog.findViewById(
-                initDialog.getContext().getResources()
-                        .getIdentifier("android:id/titleDivider", null, null)
-        );
-        //divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-        // builder.setView(dialogLayout);
-
-        //builder.setInverseBackgroundForced(true);
         assert dialogLayout != null;
         final EditText username = (EditText) dialogLayout.findViewById(
                 R.id.password_init_dialog_username_te),
@@ -246,35 +297,42 @@ public class ActivityLogin extends Activity {
         initDialog.show();
     }
 
-    public enum LoginType {LOGIN, RESET, INIT}
+    /**
+     * Enumeration for the different kinds of logins, e.g. regular login and password reset.
+     */
+    public enum LoginType {
+        LOGIN, RESET
+    }
 
+    /**
+     * AsyncTask to perform a login. The username must be the first and the password the second
+     * parameter.
+     */
     public class AsyncLogin extends AsyncTask<String, Void, String> {
 
         PasswordInitException passwordInitException;
+        Exception e;
 
         @Override
         protected String doInBackground(String... params) {
             String username = params[0],
                     password = params[1];
             try {
-                if (getApp().getSessionManager().login(username, password)) {
-                    return getApp().getSessionManager()
+                if (SessionManager.getInstance().login(username, password)) {
+                    return SessionManager.getInstance()
                             .getSessionID(ActivityLogin.this.getApplicationContext());
                 }
-            } catch (BlubbDBException e) {
-                return e.getMessage();
-            } catch (SessionException e) {
-                return e.getMessage();
-            } catch (BlubbDBConnectionException e) {
-                return e.getMessage();
             } catch (PasswordInitException e) {
                 this.passwordInitException = e;
+            } catch (Exception e) {
+                this.e = e;
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(String response) {
+            getApp().handleException(e);
             if (passwordInitException != null) {
                 showPasswordInitDialog();
                 return;
@@ -299,57 +357,59 @@ public class ActivityLogin extends Activity {
                         ActivityLogin.this.getString(R.string.pref_password), pwPref);
                 editor.commit();
                 onBackPressed();
-/*
-                Intent intent = new Intent(ActivityLogin.this, ActivityThreadOverview.class);
-                ActivityLogin.this.startActivity(intent);
-                finish();*/
             }
         }
     }
 
-    private class AsyncResetPassword extends AsyncTask<String, Void, BlubbResponse> {
+    /**
+     * AsyncTask to perform a password reset.
+     * The username must be the first, the old password the second, the new password
+     * the third and the fourth parameter must be the verification of the new password.
+     */
+    private class AsyncResetPassword extends AsyncTask<String, Void, Boolean> {
+        private Exception e;
+
         @Override
-        protected BlubbResponse doInBackground(String... params) {
-            if (params.length != 4) return null;
+        protected Boolean doInBackground(String... params) {
+            if (params.length != 4) return false;
             String un = params[0],
                     oldPw = params[1],
                     newPw = params[2],
                     conPw = params[3];
             try {
                 return SessionManager.getInstance().resetPassword(un, oldPw, newPw, conPw);
-            } catch (BlubbDBException e) {
-                Log.e(NAME, e.getMessage());
+            } catch (Exception e) {
+                this.e = e;
+                return false;
             }
-            return null;
         }
 
-        protected void onPostExecute(BlubbResponse response) {
-            switch (response.getStatus()) {
-                case OK:
-                    String toastText = getString(R.string.login_pw_reset_ok_toast);
-                    Toast.makeText(ActivityLogin.this, toastText, Toast.LENGTH_SHORT).show();
-                    loginType = LoginType.LOGIN;
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(
-                            ActivityLogin.this);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString(USERNAME_PREFAB, "");
-                    editor.putString(PASSWORD_PREFAB, "");
-                    editor.commit();
-                    if (initDialog != null) {
-                        initDialog.cancel();
-                        initDialog = null;
-                    }
-                    break;
-                default:
-                    Toast.makeText(ActivityLogin.this,
-                            response.getStatusDesc(), Toast.LENGTH_LONG).show();
-                    loginType = LoginType.RESET;
-                    break;
+        @Override
+        protected void onPostExecute(Boolean response) {
+            getApp().handleException(e);
+            if (response) {
+                String toastText = getString(R.string.login_pw_reset_ok_toast);
+                Toast.makeText(ActivityLogin.this, toastText, Toast.LENGTH_SHORT).show();
+                loginType = LoginType.LOGIN;
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(
+                        ActivityLogin.this);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(USERNAME_PREFAB, "");
+                editor.putString(PASSWORD_PREFAB, "");
+                editor.commit();
+                if (initDialog != null) {
+                    initDialog.cancel();
+                    initDialog = null;
+                }
+            } else {
+                Toast.makeText(ActivityLogin.this,
+                        getResources().getString(R.string.unknown_exception_message),
+                        Toast.LENGTH_LONG).show();
+                loginType = LoginType.RESET;
             }
-
             ActivityLogin.this.onResume();
         }
     }
-
-
 }
+
+

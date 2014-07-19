@@ -19,43 +19,88 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A Singleton class managing the access to BlubbThreads.
+ * It's the bridge for threads between user interface, beapDB and the local sqlite database.
+ * If new threads are available at beapDB the local sqlite database will be updated automatically.
+ * (Threads in this context always mean BlubbThreads not the java.lang.Thread class)
+ * <p/>
  * Created by Benjamin Richter on 24.05.2014.
  */
 public class ThreadManager {
+    /**
+     * Name for logging purposes.
+     */
     private static final String NAME = "ThreadManager";
 
+    /**
+     * Instance of the ThreadManager to realize the singleton pattern.
+     */
     private static ThreadManager tManager;
 
+    /**
+     * Private constructor to realize the singleton pattern.
+     */
     private ThreadManager() {
         Log.v(NAME, "Creating ThreadManager.");
     }
 
+    /**
+     * Get the one and only ThreadManager instance,
+     * easy accessible through the ThreadManager class.
+     *
+     * @return The ThreadManager object.
+     */
     public static ThreadManager getInstance() {
         Log.v(NAME, "get Instance called.");
         if (tManager == null) tManager = new ThreadManager();
         return tManager;
     }
 
-    public List<BlubbThread> getAllThreads(Context context) {
-        try {
-            this.getAllThreadsFromBeap(context);
-        } catch (SessionException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (BlubbDBException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (JSONException e) {
-            Log.e(NAME, e.getMessage());
-        } catch (BlubbDBConnectionException e) {
-            Log.e(NAME, e.getMessage());
-        }
+    /**
+     * Gets first the threads from beapDB and updates the sqlite database then gets all threads
+     * from sqlite.
+     *
+     * @param context The applications context.
+     * @return List of all available BlubbThreads.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     */
+    public List<BlubbThread> getAllThreads(Context context)
+            throws BlubbDBException, BlubbDBConnectionException, SessionException, JSONException {
+        this.getAllThreadsFromBeap(context);
         return this.getAllThreadsFromSqlite(context);
     }
 
-    public List<BlubbThread> getNewThreads(Context context)
-            throws SessionException, BlubbDBException,
-            JSONException, BlubbDBConnectionException {
+    /**
+     * Get all threads with the 'isNew' tag set to true.
+     *
+     * @param context The applications context.
+     * @return List of BlubbThreads the user has not seen yet.
+     */
+    public List<BlubbThread> getNewThreads(Context context) {
         Log.v(NAME, "getNewThreads(context)");
-        List<BlubbThread> threads = getAllThreads(context);
+        List<BlubbThread> threads;
+        try {
+            threads = getAllThreads(context);
+        } catch (BlubbDBException e) {
+            threads = getAllThreadsFromSqlite(context);
+            Log.e(NAME, e.getClass().getName() + ": " + e.getMessage());
+        } catch (BlubbDBConnectionException e) {
+            threads = getAllThreadsFromSqlite(context);
+            Log.e(NAME, e.getClass().getName() + ": " + e.getMessage());
+        } catch (SessionException e) {
+            threads = getAllThreadsFromSqlite(context);
+            Log.e(NAME, e.getClass().getName() + ": " + e.getMessage());
+        } catch (JSONException e) {
+            threads = getAllThreadsFromSqlite(context);
+            Log.e(NAME, e.getClass().getName() + ": " + e.getMessage());
+        }
         List<BlubbThread> newThreads = new ArrayList<BlubbThread>();
         for (BlubbThread t : threads) {
             if (t.isNew()) newThreads.add(t);
@@ -63,6 +108,20 @@ public class ThreadManager {
         return newThreads;
     }
 
+    /**
+     * Get all threads from the beapDB.
+     *
+     * @param context The applications context.
+     * @return List of BlubbThreads instantly from the beapDB server.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     */
     public List<BlubbThread> getAllThreadsFromBeap(Context context)
             throws SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
@@ -93,6 +152,13 @@ public class ThreadManager {
         }
     }
 
+    /**
+     * Put a thread to the sqlite database, either this creates a new or updates an existing entry.
+     * This updates not the isNew or hasNewEntries fields.
+     *
+     * @param context The applications context.
+     * @param thread  The BlubbThread object which will be stored at the sqlite database.
+     */
     private void putThreadToSqliteFromBeap(Context context, BlubbThread thread) {
         Log.v(NAME, "putThreadToSqlite(context, thread=" + thread.gettId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
@@ -108,6 +174,12 @@ public class ThreadManager {
         }
     }
 
+    /**
+     * Put a thread to the sqlite database, either this creates a new or updates an existing entry.
+     *
+     * @param context The applications context.
+     * @param thread  The BlubbThread object which will be stored at the sqlite database.
+     */
     private void putThreadToSqlite(Context context, BlubbThread thread) {
         Log.v(NAME, "putThreadToSqlite(context, thread=" + thread.gettId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
@@ -121,6 +193,12 @@ public class ThreadManager {
         }
     }
 
+    /**
+     * Get all the threads stored on the local sqlite database.
+     *
+     * @param context The applications context.
+     * @return List of BlubbThreads from the sqlite database.
+     */
     public List<BlubbThread> getAllThreadsFromSqlite(Context context) {
         DatabaseHandler db = new DatabaseHandler(context);
         Log.v(NAME, "getAllThreadsFromSqlite(context)");
@@ -129,19 +207,41 @@ public class ThreadManager {
         return list;
     }
 
+    /**
+     * Get a single thread either from sqlite or if not available from the beapDB.
+     *
+     * @param context The applications context.
+     * @param tId     String containing the thread id of the thread needed.
+     * @return BlubbThread object according to the tId.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     */
     public BlubbThread getThread(Context context, String tId)
             throws SessionException, BlubbDBException,
             JSONException, BlubbDBConnectionException {
-        Log.v(NAME, "getThread(context, tId");
+        Log.v(NAME, "getThreadFromList(context, tId");
         List<BlubbThread> threads = getAllThreadsFromSqlite(context);
-        BlubbThread thread = getThread(threads, tId);
+        BlubbThread thread = getThreadFromList(threads, tId);
         if (thread != null) return thread;
         threads = getAllThreadsFromBeap(context);
-        return getThread(threads, tId);
+        return getThreadFromList(threads, tId);
     }
 
-    private BlubbThread getThread(List<BlubbThread> threads, String tId) {
-        Log.v(NAME, "getThread(list, tId");
+    /**
+     * Get a thread according to it's thread id from a list of threads.
+     *
+     * @param threads List of BlubbThreads.
+     * @param tId     String containing the thread id of the thread needed.
+     * @return BlubbThread object according to the tId.
+     */
+    private BlubbThread getThreadFromList(List<BlubbThread> threads, String tId) {
+        Log.v(NAME, "getThreadFromList(list, tId");
         for (BlubbThread t : threads) {
             if (t.gettId().equals(tId)) {
                 Log.v(NAME, "Found Thread: " + tId);
@@ -152,23 +252,22 @@ public class ThreadManager {
         return null;
     }
 
-
     /**
-     * creates a new Thread at beap. if all goes well the thread will
-     * be added to the sqlite db and the hole BlubbThread will be returned.
+     * Creates a new Thread at beap. If everything goes well the thread will
+     * be added to the sqlite db and the whole new BlubbThread object will be returned.
      *
-     * @param context      actual context.
-     * @param tTitle       title for the thread
-     * @param tDescription description for the thread
-     * @return the BlubbThread returned from Beap
-     * @throws BlubbDBException
-     * @throws SessionException if it's not possible to log in
-     * @throws JSONException    if there should be returned a wrong kind of result.
+     * @param context      The applications context.
+     * @param tTitle       String containing the title for the thread.
+     * @param tDescription String containing the description for the thread.
+     * @return The created BlubbThread.
+     * @throws BlubbDBException if the response status is not 'OK'.
+     * @throws SessionException if it was not possible to log in, probably the username or password
+     *                          is wrong.
      */
     public BlubbThread createThread(
             Context context, String tTitle, String tDescription)
             throws BlubbDBException,
-            SessionException, JSONException, BlubbDBConnectionException {
+            SessionException, BlubbDBConnectionException {
         Log.v(NAME, "createThread(context, tTitle = " +
                 tTitle + ", tDescription = " + tDescription + ")");
         // first parse the incoming strings to tTitle -> "tTitle"
@@ -204,6 +303,12 @@ public class ThreadManager {
         }
     }
 
+    /**
+     * Call this if a thread is shown on the user interface and the thread is not longer a new one.
+     *
+     * @param context  The applications context.
+     * @param threadId String with the threads id.
+     */
     public void readingThread(Context context, String threadId) {
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbThread thread = db.getThread(threadId);
@@ -212,7 +317,20 @@ public class ThreadManager {
         db.updateThread(thread);
     }
 
-    public String setThread(Context context, BlubbThread thread)
+    /**
+     * Updates the thread at beapDB and the sqlite database.
+     *
+     * @param context The applications context.
+     * @param thread  The BlubbThread object which will be updated.
+     * @return
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the response status is not 'OK'.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     */
+    public Boolean setThread(Context context, BlubbThread thread)
             throws BlubbDBException, PasswordInitException,
             SessionException, BlubbDBConnectionException {
 
@@ -232,7 +350,7 @@ public class ThreadManager {
                 BlubbThread changedThread = new BlubbThread(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.updateThread(changedThread);
-                return response.getStatusDesc();
+                return true;
             default:
                 throw new BlubbDBException("Could not perform setMsg" +
                         " Beap status: " + response.getStatus());

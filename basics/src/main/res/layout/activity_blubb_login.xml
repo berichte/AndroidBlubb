@@ -14,6 +14,7 @@
         android:layout_width="225dp"
         android:layout_height="221dp"
         android:layout_gravity="center_horizontal|top"
+        android:contentDescription="@string/blubb_logo_content_description"
         android:paddingTop="?android:attr/actionBarSize"
         android:src="@drawable/blubb_logo_big" />
 

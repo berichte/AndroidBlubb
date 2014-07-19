@@ -10,9 +10,9 @@ import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BeapReplyStatus;
 import com.blubb.alubb.beapcom.BlubbRequestManager;
 import com.blubb.alubb.beapcom.BlubbResponse;
-import com.blubb.alubb.beapcom.QuickCheck;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
+import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
@@ -23,29 +23,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The SessionManager manages all matters with the beap session.
+ * <p/>
  * Created by Benjamin Richter on 23.05.2014.
  */
 public class SessionManager {
     /**
-     * Name of this class for logging
+     * Name of this class for logging.
      */
     private static final String NAME = "SessionManager";
+    /**
+     * Preferences name for the message and thread counter.
+     */
     private static final String M_COUNT_PREF = "mCount",
             T_COUNT_PREF = "tCount";
     /**
-     * Instance of SessionManager - for Singleton pattern.
+     * Instance of SessionManager to realize the singleton pattern.
      */
     private static SessionManager instance;
     /**
-     * actual SessionInfo object
+     * Actual SessionInfo object
      */
     private SessionInfo session;
     /**
-     * System time in long when the session will be expired.
+     * System time when the session will be expired.
      */
     private long timeWhenSessionIsExpired;
     /**
-     * username and password used last for login.
+     * Last username and password used for login.
      */
     private String tempUsername, tempPassword;
     /**
@@ -57,9 +62,17 @@ public class SessionManager {
      */
     private int mCount;
 
+    /**
+     * Private constructor in order to realize the singleton pattern.
+     */
     private SessionManager() {
     }
 
+    /**
+     * Get the one and only SessionManager object.
+     *
+     * @return SessionManager instance.
+     */
     public static SessionManager getInstance() {
         if (instance == null) {
             instance = new SessionManager();
@@ -67,32 +80,55 @@ public class SessionManager {
         return instance;
     }
 
+    /**
+     * Get the username of the user logged in.
+     *
+     * @return String containing the actual users username.
+     */
     public String getActiveUsername() {
         return tempUsername;
     }
 
+    /**
+     * Get the session id currently in use. This will perform a login or session refresh if the
+     * session is not valid or will expire soon.
+     *
+     * @param context The applications context.
+     * @return String containing the current session id.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
     public String getSessionID(Context context) throws
-            SessionException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
+            SessionException, BlubbDBConnectionException, PasswordInitException {
         return getSession(context).getSessionId();
     }
 
     /**
-     * Checks for a valid session. If Login preferences are available will log you in otherwise
-     * will throw a SessionException - let user do sessionLogin then and provide the SessionManager
-     * with a SessionInfo-Object
+     * Checks for a valid session. If Login preferences are available will log in otherwise
+     * will throw a SessionException - let user do sessionLogin which will provide the
+     * SessionManager with a SessionInfo-Object.
      *
-     * @param context Android-Context for this
-     * @return valid SessionId string for Beap.
-     * @throws SessionException if no Session is available
+     * @param context The applications context.
+     * @return A up-to-date SessionInfo object.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
      */
     private SessionInfo getSession(Context context) throws SessionException,
-            BlubbDBException, BlubbDBConnectionException, PasswordInitException {
+            BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getSession(context)");
         // check whether there's a sessionInfo
         if (this.session == null) {
             // if not try a sessionLogin with preferences
             this.session = loginWithPrefs(context);
-            int exMinutes = checkSession(context);
+            int exMinutes = checkSession();
             this.setTimeTillSessionExpires(exMinutes);
         } else if (this.willSessionExpireSoon()) {
             int exMinutes = refreshSession(context);
@@ -101,7 +137,19 @@ public class SessionManager {
         return this.session;
     }
 
-    private int refreshSession(Context context) throws BlubbDBException,
+    /**
+     * Preforms a refresh for the current session.
+     *
+     * @param context The applications context.
+     * @return Integer value of the minutes left till this session expires.
+     * @throws SessionException           if there are no username or password in the Preferences and
+     *                                    user needs to log in manually.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
+    private int refreshSession(Context context) throws
             SessionException, BlubbDBConnectionException,
             PasswordInitException {
         Log.v(NAME, "refreshSession(context)");
@@ -115,30 +163,47 @@ public class SessionManager {
                 return (Integer) blubbResponse.getResultObj();
             case LOGIN_REQUIRED:                // if sessionLogin is required:
                 this.loginWithPrefs(context);   // try sessionLogin with prefs
-                return this.checkSession(context);
+                return this.checkSession();
             default:
                 throw new SessionException("could not refresh session. received status: " +
                         status);
         }
     }
 
+    /**
+     * Check whether the session will expire within the next minute.
+     *
+     * @return True if the session will expire within the next minute.
+     */
     private boolean willSessionExpireSoon() {
         Log.v(NAME, "willSessionExpireSoon()");
         long now = System.currentTimeMillis();
         return (this.timeWhenSessionIsExpired < now);
     }
 
-    private int checkSession(Context context) throws
-            SessionException, BlubbDBException, BlubbDBConnectionException, PasswordInitException {
+    /**
+     * Perform a 'checkSession' at the beap server.
+     *
+     * @return An integer with the minutes till the session will expire.
+     * @throws SessionException           if there are no username or password in the Preferences and
+     *                                    user needs to log in manually.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
+    private int checkSession() throws
+            SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "checkSession(context)");
         BlubbResponse blubbResponse =
-                BlubbRequestManager.checkSession(context, this.session.getSessionId());
+                BlubbRequestManager.checkSession(this.session.getSessionId());
         switch (blubbResponse.getStatus()) {
             case OK:
                 return (Integer) blubbResponse.getResultObj();
             case LOGIN_REQUIRED:                // if sessionLogin is required:
-                if (this.login(tempUsername, tempPassword)) { // since it will just be called when a login has happened there will be un and pw.
-                    return this.checkSession(context);
+                if (this.login(tempUsername, tempPassword)) {
+                    // since it will just be called when a login has happened there will be un and pw.
+                    return this.checkSession();
                 } else throw new SessionException("logged in but still need login!????");
             default:
                 throw new SessionException("could not check session. received status: " +
@@ -146,10 +211,22 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Make a login and check whether it was successful.
+     *
+     * @param username String containing the username to log in.
+     * @param password String containing the password of the user.
+     * @return True if the login was successful.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
     public boolean login(String username, String password)
-            throws BlubbDBException,
-            SessionException, BlubbDBConnectionException, PasswordInitException {
-        Log.v(NAME, "login(usename = " + username +
+            throws SessionException, BlubbDBConnectionException, PasswordInitException {
+        Log.v(NAME, "login(username = " + username +
                 ", passwordLength = " + password.length() + ")");
         // make the sessionLogin
         this.session = sessionLogin(username, password);
@@ -158,16 +235,19 @@ public class SessionManager {
     }
 
     /**
-     * Trys to log in to beap with username and password from Preferences.
+     * Tries to log in to beap with username and password from Preferences.
      *
      * @param appContext the blubb application context.
-     * @return the sessionInfo from the sessionLogin
-     * @throws BlubbDBException if something went wrong with the DB
-     * @throws SessionException if there are no username or password in the Preferences -
-     *                          user needs to log in manually.
+     * @return The sessionInfo from the sessionLogin
+     * @throws SessionException           if there are no username or password in the Preferences and
+     *                                    user needs to log in manually.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
      */
     private SessionInfo loginWithPrefs(Context appContext) throws
-            BlubbDBException, SessionException, BlubbDBConnectionException, PasswordInitException {
+            SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "loginWithPrefs(appContext)");
         // try a sessionLogin with preferences
         // first get Prefs.
@@ -190,7 +270,20 @@ public class SessionManager {
         }
     }
 
-    private SessionInfo sessionLogin(String username, String password) throws BlubbDBException,
+    /**
+     * Makes a login at the beap server.
+     *
+     * @param username String containing the username to log in.
+     * @param password String containing the password of the user.
+     * @return SessionInfo object containing all information to the session.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
+    private SessionInfo sessionLogin(String username, String password) throws
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "sessionLogin(username = " + username +
                 ", password.length = " + password.length());
@@ -214,6 +307,12 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Set the time when the session will expire due to a sessionCheck at beap minus one minute
+     * as buffer to be able to refresh the session.
+     *
+     * @param time Minutes till the session will expire due to a sessionCheck at the beap server.
+     */
     private void setTimeTillSessionExpires(int time) {
         Log.v(NAME, "setTimeTillSessionExpires(minutes = " + time + ")");
         long now = System.currentTimeMillis();
@@ -221,10 +320,26 @@ public class SessionManager {
         this.timeWhenSessionIsExpired = now;
     }
 
+    /**
+     * Make a quickCheck at the beap server and see whether there are new threads or messages
+     * available. This will automatically load the new messages or threads.
+     *
+     * @param context The applications context.
+     * @return QuickCheck object containing two lists with threads and messages which are new.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the BeapReplyStatus was not 'OK' or the received json was not
+     *                                    the kind expected.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws JSONException              if a thread could not be parsed from the result objects array.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
     public QuickCheck quickCheck(Context context) throws SessionException,
-            BlubbDBException, BlubbDBConnectionException,
-            JSONException, PasswordInitException {
-        checkCounter(context);
+            BlubbDBException, BlubbDBConnectionException, JSONException,
+            PasswordInitException {
+        loadCounter(context);
         Log.v(NAME, "quickCheck(context)");
         List<BlubbThread> threads = new ArrayList<BlubbThread>();
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
@@ -246,7 +361,13 @@ public class SessionManager {
         return new QuickCheck(threads, messages);
     }
 
-    private void checkCounter(Context context) {
+    /**
+     * Load the counter for messages and threads from the SharedPreferences if they are not
+     * available in the preferences they will be set to 0.
+     *
+     * @param context The applications context.
+     */
+    private void loadCounter(Context context) {
         if ((mCount == 0) || (tCount == 0)) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             mCount = prefs.getInt(M_COUNT_PREF, 0);
@@ -255,6 +376,13 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Store a counter value to the shared prefs.
+     *
+     * @param context  The applications context.
+     * @param prefName Name of the preference or the key.
+     * @param counter  Value to store in the preferences.
+     */
     private void storeCounter(Context context, String prefName, int counter) {
         Log.v(NAME, "storeCounter(context, prefName=" + prefName +
                 ", counter=" + counter);
@@ -264,6 +392,21 @@ public class SessionManager {
         editor.commit();
     }
 
+    /**
+     * Makes the quickCheck at the beapDB.
+     *
+     * @param context The applications context.
+     * @return The raw response array. First value will be the counter of threads, second the
+     * counter of messages.
+     * @throws SessionException           if it was not possible to log in, probably the username or password
+     *                                    is wrong.
+     * @throws BlubbDBException           if the BeapReplyStatus was not 'OK' or the received json was not
+     *                                    the kind expected.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
+     */
     private int[] check(Context context) throws SessionException,
             BlubbDBException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "check(context)");
@@ -275,7 +418,6 @@ public class SessionManager {
                 case OK:
                     // with status ok result object will be a json array.
                     JSONArray array = (JSONArray) blubbResponse.getResultObj();
-
                     return new int[]{
                             (Integer) array.get(0),
                             (Integer) array.get(1)};
@@ -288,14 +430,44 @@ public class SessionManager {
         }
     }
 
-    public BlubbResponse resetPassword(String username, String oldPassword, String newPassword,
-                                       String confirmNewPassword) throws BlubbDBException {
-        Log.v(NAME, "resetPassword(un, oldPW, newPW, confirmPW)");
-        return BlubbRequestManager.resetPassword(
+    /**
+     * Reset the password for the beap server.
+     *
+     * @param username           String containing the username to log in.
+     * @param oldPassword        String containing the old password that will be replaced.
+     * @param newPassword        String containing the new password.
+     * @param confirmNewPassword String containing the new password again to ensure that it
+     *                           has no typo.
+     * @return True if the password has been reset successfully.
+     * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
+     *                                    Probably there's no wifi or network connection or the
+     *                                    server is offline.
+     * @throws InvalidParameterException  if there was a parameter error.
+     */
+    public boolean resetPassword(String username, String oldPassword, String newPassword,
+                                 String confirmNewPassword)
+            throws BlubbDBConnectionException, InvalidParameterException {
+        BlubbResponse response = BlubbRequestManager.resetPassword(
                 username, oldPassword, newPassword, confirmNewPassword);
-
+        Log.v(NAME, "resetPassword(un, oldPW, newPW, confirmPW)");
+        switch (response.getStatus()) {
+            case OK:
+                return true;
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
+            case PARAMETER_ERROR:
+                throw new InvalidParameterException();
+            default:
+                return false;
+        }
     }
 
+    /**
+     * Get the id of the currently logged in user, e.g. to identify the users own messages.
+     *
+     * @param context The applications context.
+     * @return String with the users unique id from the current SessionInfo or the stored username.
+     */
     public String getUserId(Context context) {
         if (this.session != null) return this.session.getBlubbUser();
         else {
@@ -305,10 +477,15 @@ public class SessionManager {
         }
     }
 
+    /**
+     * Log out from the beap server and delete the password from the preferences though no service
+     * can log in.
+     *
+     * @param context The applications context.
+     */
     public void logout(Context context) {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
-        //prefs.edit().putString(context.getString(R.string.pref_password), "").commit();
         prefs.edit().remove(context.getString(R.string.pref_password)).commit();
         if (this.session != null) {
             new AsyncLogout().execute(session.getSessionId());
@@ -316,16 +493,14 @@ public class SessionManager {
 
     }
 
+    /**
+     * AsyncTask to log out from the beap server.
+     */
     private class AsyncLogout extends AsyncTask<String, Void, BlubbResponse> {
 
         @Override
         protected BlubbResponse doInBackground(String... params) {
-            try {
-                return BlubbRequestManager.logout(params[0]);
-            } catch (BlubbDBException e) {
-                Log.e(NAME, e.getMessage());
-            }
-            return null;
+            return BlubbRequestManager.logout(params[0]);
         }
     }
 }

@@ -5,6 +5,12 @@ import android.preference.PreferenceActivity;
 
 import com.blubb.alubb.R;
 
+/**
+ * Activity to display the settings for the BlubbApplication.
+ * Now it's just the pull interval of the MessagePullService but can be extended.
+ * <p/>
+ * Created by Benjamin Richter
+ */
 public class ActivitySettings extends PreferenceActivity {
 
     @Override

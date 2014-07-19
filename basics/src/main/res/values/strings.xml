@@ -70,5 +70,8 @@
     <string name="logout_positive_btn">Jupp</string>
     <string name="logout_negativ_btn">Nooooo!</string>
     <string name="offline_notification_title">Unforunatly blubb is offline</string>
+    <string name="blubb_logo_content_description">blubb logo</string>
+    <string name="set_thread_succsessful_text">Thread has been modified successfully</string>
+    <string name="set_thread_failed_text">Thread could not be modified.</string>
 
 </resources>

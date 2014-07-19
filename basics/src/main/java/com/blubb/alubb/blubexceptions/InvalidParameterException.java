@@ -1,18 +1,19 @@
 package com.blubb.alubb.blubexceptions;
 
-import com.blubb.alubb.R;
-
 /**
  * Created by Benjamin Richter on 17.05.2014.
- * Given parameter is not valid.
+ * <p/>
+ * Exception thrown if a parameter is not valid.
  */
-public class InvalidParameterException extends BlubbException {
+public class InvalidParameterException extends Exception {
 
+    private static final String EXCEPTION_MESSAGE = "The given Parameter is not valid.";
+
+    /**
+     * Constructor for the InvalidParameterException.
+     */
     public InvalidParameterException() {
-        super("The given Parameter is not valid.");
+        super(EXCEPTION_MESSAGE);
     }
 
-    public InvalidParameterException(String message) {
-        super(message);
-    }
 }

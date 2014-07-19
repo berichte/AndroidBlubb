@@ -8,22 +8,14 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.Parcel;
-import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
+import com.blubb.alubb.basics.QuickCheck;
 import com.blubb.alubb.basics.SessionManager;
-import com.blubb.alubb.beapcom.QuickCheck;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
-import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.PasswordInitException;
-import com.blubb.alubb.blubexceptions.SessionException;
-
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +23,7 @@ import java.util.List;
 public class MessagePullService extends Service {
     public static final String NAME = MessagePullService.class.getName();
     private static final int NOTIFICATION_ID = 5683;
-    private final IBinder mBinder = new Binder() {
-        @Override
-        protected boolean onTransact(int code, Parcel data, Parcel reply,
-                                     int flags) throws RemoteException {
-            return super.onTransact(code, data, reply, flags);
-        }
-    };
+    private final IBinder mBinder = new Binder();
     private NotificationManager mNotificationManager;
     private NotificationCompat.Builder builder;
 
@@ -134,7 +120,13 @@ public class MessagePullService extends Service {
         issueNotification(builder);
     }
 
+    private BlubbApplication getApp() {
+        return (BlubbApplication) getApplication();
+    }
+
     private class MessagePullAsync extends AsyncTask<Void, Void, QuickCheck> {
+
+        Exception e;
 
         @Override
         protected QuickCheck doInBackground(Void... voids) {
@@ -142,22 +134,15 @@ public class MessagePullService extends Service {
             SessionManager sManager = SessionManager.getInstance();
             try {
                 return sManager.quickCheck(MessagePullService.this);
-            } catch (SessionException e) {
-                Log.e(NAME, e.getMessage());
-            } catch (BlubbDBException e) {
-                Log.e(NAME, e.getMessage());
-            } catch (BlubbDBConnectionException e) {
-                Log.e(NAME, e.getMessage());
-            } catch (JSONException e) {
-                Log.e(NAME, e.getMessage());
-            } catch (PasswordInitException e) {
-                Log.e(NAME, e.getMessage());
+            } catch (Exception e) {
+                this.e = e;
             }
             return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
         }
 
         @Override
         public void onPostExecute(QuickCheck quickCheck) {
+            getApp().handleException(e);
             if (quickCheck.hasResult()) {
                 if (quickCheck.messages.size() > 0) {
                     createMessageNotification(quickCheck.messages);
