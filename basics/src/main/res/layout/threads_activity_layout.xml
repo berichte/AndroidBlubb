@@ -1,6 +1,7 @@
+<!-- Layout for the threads activity. It shows all available threads within a list view.-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/thread_ov_rl"
+    android:id="@+id/threads_activity_rl"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/waterdrop_wallpaper"
@@ -10,32 +11,28 @@
     tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
     tools:ignore="Overdraw">
 
-
     <Space
-        android:id="@+id/thread_ov_topspace"
+        android:id="@+id/threads_activity_top_space"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
     <ProgressBar
-        android:id="@+id/blubb_progressbar"
+        android:id="@+id/threads_activity_pb"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/thread_ov_topspace"
+        android:layout_below="@id/threads_activity_top_space"
         android:indeterminate="true"
         android:indeterminateOnly="true"
         android:visibility="invisible" />
 
     <ListView
-        android:id="@+id/thread_list"
+        android:id="@+id/threads_activity_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/thread_ov_topspace"
+        android:layout_below="@id/threads_activity_top_space"
         android:divider="@android:color/transparent"
-        android:dividerHeight="@dimen/cards_separation_space">
-
-    </ListView>
-
+        android:dividerHeight="@dimen/cards_separation_space"></ListView>
 </RelativeLayout>

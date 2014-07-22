@@ -341,7 +341,7 @@ public class BlubbMessage {
             messageView = inflater.inflate(R.layout.message_default_layout, parent, false);
         }
 
-        LinearLayout backLayout = (LinearLayout) messageView.findViewById(R.id.message_back_ll);
+        LinearLayout backLayout = (LinearLayout) messageView.findViewById(R.id.message_layout_back_ll);
 
         int backLevel = 0;
         if (tCreator.equals(this.mCreator)) {
@@ -352,15 +352,15 @@ public class BlubbMessage {
         }
         backLayout.getBackground().setLevel(backLevel);
 
-        TextView mTitle = (TextView) messageView.findViewById(R.id.message_title_tv),
-                mCreator = (TextView) messageView.findViewById(R.id.message_creator_tv),
-                mDate = (TextView) messageView.findViewById(R.id.message_date_tv),
-                mRole = (TextView) messageView.findViewById(R.id.message_role_tv),
-                mPic = (TextView) messageView.findViewById(R.id.message_profile_pic);
-        Button replyBtn = (Button) messageView.findViewById(R.id.message_reply_btn);
-        View mContent = messageView.findViewById(R.id.message_content_v);
+        TextView mTitle = (TextView) messageView.findViewById(R.id.message_layout_title_tv),
+                mCreator = (TextView) messageView.findViewById(R.id.message_layout_creator_tv),
+                mDate = (TextView) messageView.findViewById(R.id.message_layout_date_tv),
+                mRole = (TextView) messageView.findViewById(R.id.message_layout_creator_role_tv),
+                mPic = (TextView) messageView.findViewById(R.id.message_layout_icon_tv);
+        Button replyBtn = (Button) messageView.findViewById(R.id.message_layout_reply_btn);
+        View mContent = messageView.findViewById(R.id.message_layout_content_v);
 
-        LinearLayout rightLL = (LinearLayout) messageView.findViewById(R.id.message_right_ll);
+        LinearLayout rightLL = (LinearLayout) messageView.findViewById(R.id.message_layout_right_ll);
         rightLL.removeView(mContent);
         rightLL.addView(getmContent().getContentView(context), 3);
 

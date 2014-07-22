@@ -35,7 +35,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
@@ -97,7 +96,7 @@ public class ActivityThreadOverview extends Activity {
      * Set the content view, check for login, load the threads and start the message pull service.
      */
     private void start() {
-        setContentView(R.layout.activity_thread_overview);
+        setContentView(R.layout.threads_activity_layout);
         checkForLogin();
         showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
         AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
@@ -272,14 +271,14 @@ public class ActivityThreadOverview extends Activity {
         //builder.setInverseBackgroundForced(true);
         assert dialogLayout != null;
         final EditText title = (EditText) dialogLayout.findViewById(
-                R.id.thread_new_title_dialog),
+                R.id.create_thread_dialog_title_et),
                 descr = (EditText) dialogLayout.findViewById(
-                        R.id.thread_new_descr_dialog);
+                        R.id.create_thread_dialog_description_et);
         Button yBtn;
         yBtn = (Button) dialogLayout.findViewById(
-                R.id.y_button_dialog);
+                R.id.password_init_dialog_y_btn);
         Button xBtn = (Button) dialogLayout.findViewById(
-                R.id.x_button_dialog);
+                R.id.password_init_dialog_x_btn);
 
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
@@ -377,18 +376,16 @@ public class ActivityThreadOverview extends Activity {
 
         assert dialogLayout != null;
         final EditText titleET = (EditText) dialogLayout.findViewById(
-                R.id.thread_list_item_title),
+                R.id.edit_thread_dialog_title_et),
                 descriptionET = (EditText) dialogLayout.findViewById(
-                        R.id.thread_list_item_description);
-        TextView creatorTv = (TextView) dialogLayout.findViewById(R.id.thread_list_item_author);
-        creatorTv.setText(thread.gettCreator());
+                        R.id.edit_thread_dialog_description_et);
 
         titleET.setText(thread.getThreadTitle());
         descriptionET.setText(thread.gettDesc());
 
-        Spinner spinner = (Spinner) dialog.findViewById(R.id.spinner2);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.thread_status,
-                android.R.layout.simple_spinner_dropdown_item);
+        Spinner spinner = (Spinner) dialog.findViewById(R.id.edit_thread_dialog_status_sp);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.thread_status_entries, android.R.layout.simple_spinner_dropdown_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -396,10 +393,13 @@ public class ActivityThreadOverview extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0:
+                        thread.settStatus(BlubbThread.ThreadStatus.OPEN);
                         break;
                     case 1:
+                        thread.settStatus(BlubbThread.ThreadStatus.SOLVED);
                         break;
                     case 2:
+                        thread.settStatus(BlubbThread.ThreadStatus.CLOSED);
                         break;
                 }
             }
@@ -416,11 +416,24 @@ public class ActivityThreadOverview extends Activity {
 
             }
         });
+        int statusSelection = 0;
+        switch (thread.gettStatus()) {
+            case OPEN:
+                statusSelection = 0;
+                break;
+            case SOLVED:
+                statusSelection = 1;
+                break;
+            case CLOSED:
+                statusSelection = 2;
+                break;
+        }
 
+        spinner.setSelection(statusSelection);
         Button yBtn = (Button) dialogLayout.findViewById(
-                R.id.y_button_dialog);
+                R.id.edit_thread_dialog_y_btn);
         Button xBtn = (Button) dialogLayout.findViewById(
-                R.id.x_button_dialog);
+                R.id.edit_thread_dialog_x_btn);
 
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn, xBtn);
@@ -503,7 +516,7 @@ public class ActivityThreadOverview extends Activity {
      * AsyncTask from ThreadOverview is running.
      */
     public void spinnerOn() {
-        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.threads_activity_pb);
         if (shouldSpinn()) {
             pb.setVisibility(View.VISIBLE);
         }
@@ -514,7 +527,7 @@ public class ActivityThreadOverview extends Activity {
      * AsyncTask from ThreadOverview is running.
      */
     public void spinnerOff() {
-        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.threads_activity_pb);
         if (!shouldSpinn()) {
             pb.setVisibility(View.INVISIBLE);
             //setProgressBarVisibility(false);
@@ -558,10 +571,10 @@ public class ActivityThreadOverview extends Activity {
      * @param threads Threads that will be displayed at the ListView.
      */
     private void showThreadsInList(List<BlubbThread> threads) {
-        ListView lv = (ListView) findViewById(R.id.thread_list);
+        ListView lv = (ListView) findViewById(R.id.threads_activity_lv);
 
         final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-                ActivityThreadOverview.this, R.layout.thread_list_entry_big, threads);
+                ActivityThreadOverview.this, R.layout.thread_big_layout, threads);
 
         if (adapter.getCount() > threads.size()) {
             spinnerOff();
@@ -863,6 +876,7 @@ public class ActivityThreadOverview extends Activity {
         @Override
         protected void onPostExecute(Boolean response) {
             getApp().handleException(e);
+            showSpinnerForCreateThread = false;
             if (response) {
                 onResume();
                 Toast.makeText(ActivityThreadOverview.this,

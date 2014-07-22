@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Header within the list view for messages in messages activity.
+Created by Benjamin Richter -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/content_rc_transpgray_bg"
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
+
+    <TextView
+        android:id="@+id/messages_activity_lv_header_title_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="40dp"
+        android:paddingTop="10dp"
+        android:text="Title of the thread"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/blubb_cards_content_text" />
+
+    <TextView
+        android:id="@+id/messages_activity_lv_header_desc_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="10dp"
+        android:paddingLeft="40dp"
+        android:paddingTop="10dp"
+        android:text="Description of the thread\nfor thread\nblabla"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/blubb_cards_content_text" />
+</LinearLayout>

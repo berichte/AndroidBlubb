@@ -12,9 +12,15 @@
         <item>300</item>
         <item>3600</item>
     </string-array>
-    <string-array name="thread_status">
+    <string-array name="thread_status_values">
         <item>OPEN</item>
         <item>SOLVED</item>
         <item>CANCELED</item>
     </string-array>
+    <string-array name="thread_status_entries">
+        <item>OPEN</item>
+        <item>SOLVED</item>
+        <item>CANCELED</item>
+    </string-array>
+
 </resources>

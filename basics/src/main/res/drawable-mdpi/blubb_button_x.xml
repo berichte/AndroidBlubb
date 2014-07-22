@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- Button to cancel an action, dialog, ...
+(ignore the preview, different rounded corners make some problems)
+Created by Benjamin Richter -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/blubb_button_x_pressed" android:state_pressed="true" />
     <item android:drawable="@drawable/blubb_button_y_focused" android:state_focused="true" />

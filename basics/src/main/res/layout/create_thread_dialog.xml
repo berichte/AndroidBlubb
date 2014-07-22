@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!-- Layout for a dialog to create a new thread
+ Created by Benjamin Richter-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_back"
+    android:background="@drawable/dialog_rc_transpblue_bg"
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/thread_new_dialog_head_title"
+        android:id="@+id/create_thread_dialog_head_tv"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.05"
@@ -20,19 +20,20 @@
         android:textStyle="bold" />
 
     <EditText
-        android:id="@+id/thread_new_title_dialog"
+        android:id="@+id/create_thread_dialog_title_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/thread_new_title_hint"
+        android:hint="@string/thread_title_hint"
+        android:imeOptions="actionNext"
         android:textColor="@color/beap_dark_blue"
         android:textColorHint="@color/beap_blue" />
 
     <EditText
-        android:id="@+id/thread_new_descr_dialog"
+        android:id="@+id/create_thread_dialog_description_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="top"
-        android:hint="@string/thread_new_descr_hint"
+        android:hint="@string/thread_description_hint"
         android:inputType="textMultiLine"
         android:lines="3"
         android:maxLines="3"
@@ -47,13 +48,13 @@
         android:padding="10dp">
 
         <Button
-            android:id="@+id/x_button_dialog"
+            android:id="@+id/password_init_dialog_x_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:layout_weight="1"
-            android:background="@drawable/blubb_x_button"
-            android:text="@string/thread_new_cancel_button_text" />
+            android:background="@drawable/blubb_button_x"
+            android:text="@string/x_btn_text" />
 
         <Space
             android:layout_width="match_parent"
@@ -61,13 +62,13 @@
             android:layout_weight="6" />
 
         <Button
-            android:id="@+id/y_button_dialog"
+            android:id="@+id/password_init_dialog_y_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:layout_weight="1"
-            android:background="@drawable/blubb_y_button"
-            android:text="@string/message_new_send_button_text" />
+            android:background="@drawable/blubb_button_y"
+            android:text="@string/y_btn_text" />
     </LinearLayout>
 
 </LinearLayout>

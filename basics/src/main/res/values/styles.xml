@@ -18,7 +18,7 @@
 
     <!-- ActionBar styles -->
     <style name="myActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
-        <item name="android:background">@drawable/actionbar_background</item>
+        <item name="android:background">@drawable/actionbar_rc_transpwhite_bg</item>
         <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
     </style>
 
@@ -40,7 +40,7 @@
 
     <style name="blubbPopupMenuStyle">
         <item name="android:background">@color/beap_green_transparent</item>
-        <item name="android:popupBackground">@drawable/blubb_popup_menu_back</item>
+        <item name="android:popupBackground">@drawable/popupmenu_rc_transpwhite_bg</item>
         <item name="android:dropDownSelector">@drawable/blubb_button</item>
     </style>
 

@@ -25,6 +25,11 @@ public class TextContent implements MContent {
      */
     private View contentView;
 
+    /**
+     * Constructor for a TextContent.
+     *
+     * @param contentText A String containing the text that will be displayed.
+     */
     public TextContent(String contentText) {
         this.contentText = contentText;
     }

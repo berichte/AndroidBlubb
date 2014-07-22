@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Default state for the blubb_button.xml.
-    (ignore the preview, different rounded corners make some problems)
-Created by Benjamin Richter -->
+<?xml version="1.0" encoding="utf-8"?><!-- slightly transparent background for the actionbar.
+        (ignore the preview, different rounded corners make some problems)
+  Created by Benjamin Richter -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android"
     android:paddingBottom="@dimen/cards_separation_space">
 
@@ -9,7 +9,7 @@ Created by Benjamin Richter -->
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/beap_dark_blue" />
+            <solid android:color="@color/blubb_title_bar_shadow" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"
@@ -18,12 +18,12 @@ Created by Benjamin Richter -->
         </shape>
     </item>
     <item
-        android:left="1dp"
-        android:top="2dp">
+        android:bottom="2dp"
+        android:right="1dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/beap_blue" />
+            <solid android:color="@color/blubb_title_bar" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"

@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.blubb.alubb.R;
@@ -72,7 +73,7 @@ public class ActivityLogin extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_blubb_login);
+        setContentView(R.layout.login_activity_layout);
         Intent intent = getIntent();
         LoginType loginType = (LoginType) intent.getSerializableExtra(EXTRA_LOGIN_TYPE);
         if (loginType != null) this.loginType = loginType;
@@ -101,12 +102,12 @@ public class ActivityLogin extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Button button = (Button) findViewById(R.id.blubb_login_button);
-        final EditText resetPw = (EditText) findViewById(R.id.blubb_login_password_reset),
-                confirmPw = (EditText) findViewById(R.id.blubb_login_password_reset_confirm),
-                username = (EditText) findViewById(R.id.blubb_login_username),
-                password = (EditText) findViewById(R.id.blubb_login_password);
-        CheckBox stayloggedIn = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+        Button button = (Button) findViewById(R.id.login_activity_login_btn);
+        final EditText resetPw = (EditText) findViewById(R.id.login_activity_password_reset_et),
+                confirmPw = (EditText) findViewById(R.id.login_activity_password_reset_confirm_et),
+                username = (EditText) findViewById(R.id.login_activity_username_et),
+                password = (EditText) findViewById(R.id.login_activity_password_et);
+        CheckBox stayloggedIn = (CheckBox) findViewById(R.id.login_activity_stayloggedin_cb);
         fillInCredentialPrefs(username, password);
         switch (loginType) {
             case RESET:
@@ -121,6 +122,7 @@ public class ActivityLogin extends Activity {
                                 rpw = resetPw.getText().toString(),
                                 cpw = confirmPw.getText().toString();
                         new AsyncResetPassword().execute(un, pw, rpw, cpw);
+                        spinnerOn();
                     }
                 });
                 stayloggedIn.setVisibility(View.INVISIBLE);
@@ -149,13 +151,13 @@ public class ActivityLogin extends Activity {
      * the username and password in the EditTexts if clicked.
      */
     private void addLoginButtonListener() {
-        Button loginButton = (Button) findViewById(R.id.blubb_login_button);
+        Button loginButton = (Button) findViewById(R.id.login_activity_login_btn);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                EditText un = (EditText) findViewById(R.id.blubb_login_username);
-                EditText pw = (EditText) findViewById(R.id.blubb_login_password);
+                EditText un = (EditText) findViewById(R.id.login_activity_username_et);
+                EditText pw = (EditText) findViewById(R.id.login_activity_password_et);
 
                 username = un.getText().toString();
                 password = pw.getText().toString();
@@ -187,6 +189,7 @@ public class ActivityLogin extends Activity {
         params[1] = password;
 
         new AsyncLogin().execute(params);
+        spinnerOn();
     }
 
     /**
@@ -214,9 +217,9 @@ public class ActivityLogin extends Activity {
         oldPassword.setText(ActivityLogin.this.password);
         final Button yBtn;
         yBtn = (Button) dialogLayout.findViewById(
-                R.id.y_button_dialog);
+                R.id.password_init_dialog_y_btn);
         Button xBtn = (Button) dialogLayout.findViewById(
-                R.id.x_button_dialog);
+                R.id.password_init_dialog_x_btn);
 
         newPassword.addTextChangedListener(new TextWatcher() {
             @Override
@@ -273,6 +276,7 @@ public class ActivityLogin extends Activity {
                         newPw = newPassword.getText().toString(),
                         conPw = confirmPassword.getText().toString();
                 asyncResetPassword.execute(un, oldPw, newPw, conPw);
+                spinnerOn();
             }
         });
         xBtn.setOnClickListener(new View.OnClickListener() {
@@ -295,6 +299,22 @@ public class ActivityLogin extends Activity {
             }
         });
         initDialog.show();
+    }
+
+    /**
+     * Activates the spinner indicating that messages are loading from  the beapDB.
+     */
+    public void spinnerOn() {
+        ProgressBar pb = (ProgressBar) findViewById(R.id.login_activity_pb);
+        pb.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Deactivates the spinner indicating that messages are loading from  the beapDB.
+     */
+    public void spinnerOff() {
+        ProgressBar pb = (ProgressBar) findViewById(R.id.login_activity_pb);
+        pb.setVisibility(View.INVISIBLE);
     }
 
     /**
@@ -333,13 +353,14 @@ public class ActivityLogin extends Activity {
         @Override
         protected void onPostExecute(String response) {
             getApp().handleException(e);
+            spinnerOff();
             if (passwordInitException != null) {
                 showPasswordInitDialog();
                 return;
             }
 
             if (response != null) {
-                CheckBox stayLogged = (CheckBox) findViewById(R.id.login_stay_logged_cb);
+                CheckBox stayLogged = (CheckBox) findViewById(R.id.login_activity_stayloggedin_cb);
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(
                                 ActivityLogin.this.getApplicationContext());
@@ -387,6 +408,7 @@ public class ActivityLogin extends Activity {
         @Override
         protected void onPostExecute(Boolean response) {
             getApp().handleException(e);
+            spinnerOff();
             if (response) {
                 String toastText = getString(R.string.login_pw_reset_ok_toast);
                 Toast.makeText(ActivityLogin.this, toastText, Toast.LENGTH_SHORT).show();

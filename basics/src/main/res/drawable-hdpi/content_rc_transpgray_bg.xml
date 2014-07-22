@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!-- slightly transparent blue background for the contents.
+        (ignore the preview, different rounded corners make some problems)
+  Created by Benjamin Richter -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android"
     android:paddingBottom="@dimen/cards_separation_space">
 
@@ -8,7 +9,7 @@
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_title_bar_shadow" />
+            <solid android:color="@color/blubb_cards_shadow" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"
@@ -17,12 +18,12 @@
         </shape>
     </item>
     <item
-        android:bottom="2dp"
-        android:right="1dp">
+        android:left="1dp"
+        android:top="2dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_title_bar" />
+            <solid android:color="@color/blubb_cards_content" />
             <corners
                 android:bottomLeftRadius="5dp"
                 android:bottomRightRadius="5dp"

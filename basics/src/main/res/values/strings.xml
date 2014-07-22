@@ -21,10 +21,10 @@
     <string name="title_activity_write_message">WriteMessage</string>
     <string name="single_thread_new_message_send_button_text">Send</string>
     <string name="thread_overview_new_thread_button_text">create a new thread</string>
-    <string name="thread_new_title_hint">Title of your thread</string>
-    <string name="thread_new_descr_hint">put in a simple description for your thread</string>
+    <string name="thread_title_hint">Title of your thread</string>
+    <string name="thread_description_hint">put in a simple description for your thread</string>
     <string name="thread_new_send_button_text">y</string>
-    <string name="thread_new_cancel_button_text">x</string>
+    <string name="x_btn_text">x</string>
     <string name="thread_new_mb_title">Create a new thread</string>
     <string name="new_message_text">new message</string>
     <string name="blubb_message_pull_prefab_rate">Message Pull</string>
@@ -37,18 +37,18 @@
     <string name="pref_username">pref_username</string>
     <string name="preferences_name">com.blubb.alubb.preferences</string>
     <string name="login">Login</string>
-    <string name="login_stay_logged_in">Stay logged in?</string>
+    <string name="login_activity_stayloggedin_cb_text">Stay logged in?</string>
     <string name="login_username_hint">Your username</string>
-    <string name="login_password_hint">Your password</string>
-    <string name="login_password_reset_hint">Your new password</string>
+    <string name="login_activity_password_hint">Your password</string>
+    <string name="login_activity_password_reset_hint">Your new password</string>
     <string name="login_password__reset_confirm_hint">Confirm your new password</string>
     <string name="create_new_thread_dialog_title">Create a new thread</string>
     <string name="title_message_list">Threads</string>
     <string name="title_message_detail">Message Detail</string>
     <string name="create_new_message_dialog_title">Write a new message</string>
     <string name="message_new_title_hint">Message subject</string>
-    <string name="message_new_content_hint">say something</string>
-    <string name="message_new_send_button_text">Y</string>
+    <string name="messages_activity_create_message_hint">say something</string>
+    <string name="y_btn_text">Y</string>
     <string name="menu_action_new_thread_text">New thread</string>
     <string name="application_font">Exo2.0-Regular.otf</string>
     <string name="new_message_action_text">Create a new message</string>
@@ -76,5 +76,6 @@
     <string name="message_reply_hint">Reply to</string>
     <string name="create_message_confirmation_toast">Created a new message.</string>
     <string name="modify_message_confirmation_toast">Modified message.</string>
+    <string name="edit_thread_dialog_head_tv_text">Edit the thread.</string>
 
 </resources>

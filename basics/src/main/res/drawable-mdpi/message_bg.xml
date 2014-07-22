@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Background for a blubb message.
+(ignore the preview, different rounded corners make some problems)
+Created by Benjamin Richter -->
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/message_creator_new_rc_transpred_bg"
+        android:maxLevel="3"
+        android:minLevel="3" />
+    <item
+        android:drawable="@drawable/message_new_rc_transpred_bg"
+        android:maxLevel="2"
+        android:minLevel="2" />
+    <item
+        android:drawable="@drawable/message_creator_rc_transpgray_bg"
+        android:maxLevel="1"
+        android:minLevel="1" />
+    <item
+        android:drawable="@drawable/message_default_rc_transpgray_bg"
+        android:maxLevel="0" />
+</level-list>

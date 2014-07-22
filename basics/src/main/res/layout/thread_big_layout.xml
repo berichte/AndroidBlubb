@@ -1,12 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- Layout for all details of a thread. Uses the thread_head_layout.-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/thread_back_large"
+    android:background="@drawable/threadview_rc_transpgray_bg"
     android:orientation="horizontal"
     android:paddingLeft="20dp"
     android:paddingTop="10dp">
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,7 +15,7 @@
         android:paddingRight="20dp">
 
         <include
-            layout="@layout/thread_list_entry_head"
+            layout="@layout/thread_head_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -26,9 +25,8 @@
             android:orientation="vertical"
             android:paddingLeft="@dimen/blubb_symbol_size">
 
-
             <TextView
-                android:id="@+id/thread_list_item_info"
+                android:id="@+id/thread_info_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="10dp"
@@ -38,10 +36,10 @@
                 android:textSize="@dimen/blubb_text_size_small" />
 
             <TextView
-                android:id="@+id/thread_list_item_description"
+                android:id="@+id/thread_description_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/message_content_back"
+                android:background="@drawable/content_rc_transpgray_bg"
                 android:paddingBottom="10dp"
                 android:paddingLeft="15dp"
                 android:paddingRight="15dp"

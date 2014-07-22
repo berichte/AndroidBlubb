@@ -1,53 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- Dialog to edit the title, description or status of a thread.
+Created by Benjamin Richter -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/thread_back_large"
+    android:background="@drawable/threadview_rc_transpgray_bg"
     android:orientation="horizontal"
     android:paddingLeft="20dp"
     android:paddingTop="10dp">
 
     <TextView
-        android:id="@+id/thread_edit_dialog_header"
+        android:id="@+id/edit_thread_dialog_head_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Edit Thread"
+        android:text="@string/edit_thread_dialog_head_tv_text"
         android:textSize="@dimen/blubb_symbol_size" />
 
     <EditText
-        android:id="@+id/thread_list_item_title"
+        android:id="@+id/edit_thread_dialog_title_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/thread_edit_dialog_header"
-        android:hint="@string/thread_new_title_hint"
+        android:layout_below="@id/edit_thread_dialog_head_tv"
+        android:hint="@string/thread_title_hint"
         android:textColor="@color/blubb_cards_text"
         android:textSize="@dimen/blubb_text_size_large" />
 
-    <Spinner
-        android:id="@+id/spinner2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/thread_edit_dialog_header"
-        android:layout_toLeftOf="@id/thread_list_item_title" />
-
-
-    <TextView
-        android:id="@+id/thread_list_item_author"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/thread_list_item_title"
-        android:text="ThreadAuthor"
-        android:textColor="@color/blubb_cards_text"
-        android:textSize="@dimen/blubb_text_size_medium" />
-
-
     <EditText
-        android:id="@+id/thread_list_item_description"
+        android:id="@+id/edit_thread_dialog_description_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/thread_list_item_author"
-        android:background="@drawable/message_content_back"
-        android:hint="@string/thread_new_descr_hint"
+        android:layout_below="@id/edit_thread_dialog_title_et"
+        android:background="@drawable/content_rc_transpgray_bg"
+        android:hint="@string/thread_description_hint"
         android:paddingBottom="10dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
@@ -55,35 +38,38 @@
         android:textColor="@color/blubb_cards_content_text"
         android:textSize="@dimen/blubb_text_size_small" />
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/thread_list_item_description"
+        android:layout_below="@id/edit_thread_dialog_description_et"
         android:layout_gravity="right"
         android:orientation="horizontal"
         android:padding="10dp">
 
         <Button
-            android:id="@+id/x_button_dialog"
+            android:id="@+id/edit_thread_dialog_x_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:layout_weight="1"
-            android:background="@drawable/blubb_x_button"
-            android:text="@string/thread_new_cancel_button_text" />
+            android:background="@drawable/blubb_button_x"
+            android:text="@string/x_btn_text" />
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:layout_weight="6" />
+        <Spinner
+            android:id="@+id/edit_thread_dialog_status_sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/edit_thread_dialog_description_et"
+            android:layout_weight="10" />
 
         <Button
-            android:id="@+id/y_button_dialog"
+            android:id="@+id/edit_thread_dialog_y_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:layout_weight="1"
-            android:background="@drawable/blubb_y_button"
-            android:text="@string/message_new_send_button_text" />
+            android:background="@drawable/blubb_button_y"
+            android:text="@string/y_btn_text" />
     </LinearLayout>
 </RelativeLayout>

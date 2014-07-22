@@ -1,3 +1,5 @@
+<!-- Layout for the messages activity
+    Created by Benjamin Richter -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -6,9 +8,9 @@
     android:orientation="vertical"
     tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
     tools:ignore="Overdraw">
-
+    <!-- Progressbar indicating a background process in progress. -->
     <ProgressBar
-        android:id="@+id/blubb_progressbar"
+        android:id="@+id/messages_activity_pb"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,61 +18,50 @@
         android:indeterminateOnly="true"
         android:paddingTop="?android:attr/actionBarSize"
         android:visibility="invisible" />
-
+    <!-- Layout for the input bar.-->
     <LinearLayout
-        android:id="@+id/message_input_bar"
+        android:id="@+id/messages_activity_input_ll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="false"
         android:background="@color/transparent">
-
-
+        <!-- Input for creating new, modifying old and replying to messages. -->
         <EditText
-            android:id="@+id/message_input_et"
+            android:id="@+id/message_activity_input_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|left"
             android:layout_weight="100"
-            android:background="@drawable/message_content_back"
-            android:hint="@string/message_new_content_hint"
+            android:background="@drawable/content_rc_transpgray_bg"
+            android:hint="@string/messages_activity_create_message_hint"
             android:maxLines="10"
             android:padding="10dp"
             android:scrollbars="vertical"
             android:textColor="@color/beap_dark_blue"
             android:textColorHint="@color/beap_blue"
             android:textSize="@dimen/blubb_text_size_small" />
-
+        <!-- Button to send messages to the beapDB server.-->
         <Button
-            android:id="@+id/y_button"
+            android:id="@+id/messages_activity_send_btn"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical|right"
             android:layout_margin="@dimen/message_padding"
             android:layout_weight="1"
-            android:background="@drawable/blubb_y_button"
+            android:background="@drawable/blubb_button_y"
             android:text="y" />
     </LinearLayout>
-
-
+    <!-- ListView showing the messages for the selected thread and a header for the title and
+    description of this thread.-->
     <ListView
-        android:id="@+id/single_thread_listview"
+        android:id="@+id/messages_activity_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/message_input_bar"
+        android:layout_above="@id/messages_activity_input_ll"
         android:divider="@android:color/transparent"
         android:dividerHeight="@dimen/cards_separation_space"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="?android:attr/actionBarSize">
-
-    </ListView>
-
-    <include
-        layout="@layout/message_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/message_input_bar"
-        android:visibility="invisible" />
-
+        android:paddingTop="?android:attr/actionBarSize"></ListView>
 </RelativeLayout>

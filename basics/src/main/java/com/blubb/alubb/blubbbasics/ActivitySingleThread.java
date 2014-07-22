@@ -94,11 +94,11 @@ public class ActivitySingleThread extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v(NAME, "onCreate()");
-        setContentView(R.layout.activity_single_thread);
+        setContentView(R.layout.messages_activity_layout);
         Intent intent = getIntent();
         this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
         this.thread = ThreadManager.getInstance().getThreadFromSqlite(this, threadId);
-        messageListView = (ListView) findViewById(R.id.single_thread_listview);
+        messageListView = (ListView) findViewById(R.id.messages_activity_lv);
         start();
     }
 
@@ -121,29 +121,28 @@ public class ActivitySingleThread extends Activity {
      */
     protected void start() {
         ThreadManager.getInstance().readingThread(this, threadId);
-        String tDescription = thread.gettDesc();
-        String tTitle = thread.getThreadTitle();
-        setTitle(tTitle + " - " + thread.gettCreator());
-        addHeader(tDescription);
+        setTitle(thread.getThreadTitle());
+        addHeader(thread.getThreadTitle(), thread.gettCreator(), thread.gettDesc());
         startInputView();
-        //AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
-        //asyncTask.execute();
     }
 
     /**
      * Adds the Header (the thread description) to the messageListView.
      *
      * @param tDescription The description of a thread for the header.
+     * @param tTitle       The title of the thread.
      */
-    private void addHeader(String tDescription) {
-        ListView lv = (ListView) findViewById(R.id.single_thread_listview);
+    private void addHeader(String tTitle, String tCreator, String tDescription) {
+        ListView lv = (ListView) findViewById(R.id.messages_activity_lv);
 
         LayoutInflater inflater = (LayoutInflater) this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout header = (LinearLayout)
-                inflater.inflate(R.layout.single_thread_header, lv, false);
+                inflater.inflate(R.layout.messages_activity_lv_header, lv, false);
 
-        TextView headerText = (TextView) header.findViewById(R.id.single_thread_header_tv);
+        TextView headerTitle = (TextView) header.findViewById(R.id.messages_activity_lv_header_title_tv),
+                headerText = (TextView) header.findViewById(R.id.messages_activity_lv_header_desc_tv);
+        headerTitle.setText(tTitle + "\nby " + tCreator);
         headerText.setText(tDescription);
 
         lv.addHeaderView(header);
@@ -182,7 +181,7 @@ public class ActivitySingleThread extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.new_message_action:
-                EditText inputET = (EditText) findViewById(R.id.message_input_et);
+                EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
                 inputET.requestFocus();
                 startInputView();
                 InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
@@ -217,7 +216,7 @@ public class ActivitySingleThread extends Activity {
      * Activates the spinner indicating that messages are loading from  the beapDB.
      */
     public void spinnerOn() {
-        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.messages_activity_pb);
         pb.setVisibility(View.VISIBLE);
     }
 
@@ -225,7 +224,7 @@ public class ActivitySingleThread extends Activity {
      * Deactivates the spinner indicating that messages are loading from  the beapDB.
      */
     public void spinnerOff() {
-        ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
+        ProgressBar pb = (ProgressBar) findViewById(R.id.messages_activity_pb);
         pb.setVisibility(View.INVISIBLE);
     }
 
@@ -233,13 +232,13 @@ public class ActivitySingleThread extends Activity {
      * Setup the input view for new messages.
      */
     private void startInputView() {
-        final Button yBtn = (Button) findViewById(R.id.y_button);
-        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        final Button yBtn = (Button) findViewById(R.id.messages_activity_send_btn);
+        final EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
         inputET.setMovementMethod(new ScrollingMovementMethod());
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
         inputET.setText("");
-        inputET.setHint(getString(R.string.message_new_content_hint));
+        inputET.setHint(getString(R.string.messages_activity_create_message_hint));
         yBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -258,8 +257,8 @@ public class ActivitySingleThread extends Activity {
      * @param replyTo The BlubbMessage to which will be replied to.
      */
     private void replyToMessage(final BlubbMessage replyTo) {
-        final Button yBtn = (Button) findViewById(R.id.y_button);
-        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        final Button yBtn = (Button) findViewById(R.id.messages_activity_send_btn);
+        final EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
         inputET.requestFocus();
         inputET.setHint(getString(R.string.message_reply_hint) + replyTo.getmCreator());
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
@@ -291,8 +290,8 @@ public class ActivitySingleThread extends Activity {
      * @param toChange The BlubbMessage which will be modified.
      */
     private void changeMessage(final BlubbMessage toChange) {
-        final Button yBtn = (Button) findViewById(R.id.y_button);
-        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        final Button yBtn = (Button) findViewById(R.id.messages_activity_send_btn);
+        final EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
         inputET.requestFocus();
         //TODO Must be changed if other message contents are available.
         inputET.setText(toChange.getmContent().getStringRepresentation());
@@ -352,7 +351,7 @@ public class ActivitySingleThread extends Activity {
     private void fillListWithMessages(List<BlubbMessage> messages) {
         if (messages != null) {
             this.messages = messages;
-            ListView lv = (ListView) findViewById(R.id.single_thread_listview);
+            ListView lv = (ListView) findViewById(R.id.messages_activity_lv);
             Collections.reverse(messages);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
                     ActivitySingleThread.this, R.layout.message_layout, messages);

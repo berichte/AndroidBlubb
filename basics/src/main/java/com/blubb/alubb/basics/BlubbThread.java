@@ -21,10 +21,11 @@ import java.text.ParseException;
 import java.util.Date;
 
 /**
- * Created by Benjamin Richter on 17.05.2014.
  * Class representing a blubb thread where user
  * can post different kinds of messages.
  * 'Thread' means in the whole doc the BlubbThread and not java.lang.Thread.
+ * <p/>
+ * Created by Benjamin Richter on 17.05.2014.
  */
 @SuppressWarnings("ALL")
 public class BlubbThread {
@@ -316,6 +317,24 @@ public class BlubbThread {
     }
 
     /**
+     * Get the thread status.
+     *
+     * @return ThreadStatus of this BlubbThread.
+     */
+    public ThreadStatus gettStatus() {
+        return this.tStatus;
+    }
+
+    /**
+     * Set the threads status.
+     *
+     * @param tStatus New status for the thread.
+     */
+    public void settStatus(ThreadStatus tStatus) {
+        this.tStatus = tStatus;
+    }
+
+    /**
      * Set the title for the thread.
      *
      * @param tTitle New title for the thread.
@@ -327,7 +346,7 @@ public class BlubbThread {
     /**
      * Set the threads status.
      *
-     * @param tStatus New status for the thread.
+     * @param tStatus String representing the new status for the thread.
      */
     public void settStatus(String tStatus) {
         this.tStatus = parseThreadStatus(tStatus);
@@ -446,7 +465,7 @@ public class BlubbThread {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout layout = (LinearLayout) inflater.inflate(
-                R.layout.thread_list_entry_small, parent, false);
+                R.layout.thread_small_layout, parent, false);
         layout.setOnClickListener(this.clickListener);
         layout.setOnLongClickListener(this.longClickListener);
         return this.setContentForHeader(layout);
@@ -477,11 +496,11 @@ public class BlubbThread {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(
-                R.layout.thread_list_entry_big, parent, false);
+                R.layout.thread_big_layout, parent, false);
 
         layout = this.setContentForHeader(layout);
-        TextView tdescr = (TextView) layout.findViewById(R.id.thread_list_item_description),
-                tInfo = (TextView) layout.findViewById(R.id.thread_list_item_info);
+        TextView tdescr = (TextView) layout.findViewById(R.id.thread_description_tv),
+                tInfo = (TextView) layout.findViewById(R.id.thread_info_tv);
 
         Button editButton = (Button) layout.findViewById(R.id.thread_edit_btn);
         Typeface tf = Typeface.createFromAsset(editButton.getContext().getAssets(),
@@ -533,14 +552,14 @@ public class BlubbThread {
      * Set the content for the header of the thread view. The header is the part
      * of the thread view which is on the small and big view the same.
      *
-     * @param layout R.layout.thread_list_entry_big layout.
+     * @param layout R.layout.thread_big_layout layout.
      * @return Layout with all values properly set.
      */
     private View setContentForHeader(View layout) {
-        TextView tTitle = (TextView) layout.findViewById(R.id.thread_list_item_title),
-                tMsg = (TextView) layout.findViewById(R.id.thread_list_item_msgcount),
-                tCreator = (TextView) layout.findViewById(R.id.thread_list_item_author),
-                tIcon = (TextView) layout.findViewById(R.id.thread_list_item_status);
+        TextView tTitle = (TextView) layout.findViewById(R.id.thread_title_tv),
+                tMsg = (TextView) layout.findViewById(R.id.thread_msg_count_tv),
+                tCreator = (TextView) layout.findViewById(R.id.thread_author_tv),
+                tIcon = (TextView) layout.findViewById(R.id.thread_status_tv);
         setIcon(tIcon);
         tTitle.setText(this.tTitle);
         tCreator.setText(this.tCreator);

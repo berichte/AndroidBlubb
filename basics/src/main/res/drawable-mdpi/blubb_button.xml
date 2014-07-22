@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- Button for all blubb actions.
+(ignore the preview, different rounded corners make some problems)
+Created by Benjamin Richter -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/blubb_button_pressed" android:state_pressed="true" />
     <item android:drawable="@drawable/blubb_button_focused" android:state_focused="true" />

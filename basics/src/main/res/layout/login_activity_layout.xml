@@ -1,3 +1,5 @@
+<!-- Layout for the login activity
+Created by Benjamin Richter -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,9 +10,19 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:weightSum="1"
     tools:context="com.blubb.alubb.blubbbasics.ActivityLogin">
-
+    <!-- Progressbar indicating a background process in progress. -->
+    <ProgressBar
+        android:id="@+id/login_activity_pb"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateOnly="true"
+        android:paddingTop="?android:attr/actionBarSize"
+        android:visibility="invisible" />
+    <!-- The logo of blubb or a company.-->
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/login_activity_logo_iv"
         android:layout_width="225dp"
         android:layout_height="221dp"
         android:layout_gravity="center_horizontal|top"
@@ -18,63 +30,63 @@
         android:paddingTop="?android:attr/actionBarSize"
         android:src="@drawable/blubb_logo_big" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
+    <!-- For input of the username.-->
     <EditText
-        android:id="@+id/blubb_login_username"
+        android:id="@+id/login_activity_username_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_username_hint"
+        android:imeOptions="actionNext"
         android:textColor="@color/beap_dark_blue" />
-
+    <!-- For input of the password.-->
     <EditText
-        android:id="@+id/blubb_login_password"
+        android:id="@+id/login_activity_password_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:hint="@string/login_password_hint"
+        android:hint="@string/login_activity_password_hint"
+        android:imeOptions="actionNext"
         android:password="true"
         android:textColor="@color/beap_dark_blue" />
-
+    <!-- For input of a new password, only visible for pw reset.-->
     <EditText
-        android:id="@+id/blubb_login_password_reset"
+        android:id="@+id/login_activity_password_reset_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:hint="@string/login_password_reset_hint"
+        android:hint="@string/login_activity_password_reset_hint"
+        android:imeOptions="actionNext"
         android:password="true"
         android:textColor="@color/beap_dark_blue"
         android:visibility="invisible" />
-
+    <!-- For the confirmation of a new password, only visible for pw reset.-->
     <EditText
-        android:id="@+id/blubb_login_password_reset_confirm"
+        android:id="@+id/login_activity_password_reset_confirm_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:hint="@string/login_password__reset_confirm_hint"
+        android:imeOptions="actionNext"
         android:password="true"
         android:textColor="@color/beap_dark_blue"
         android:visibility="invisible" />
-
+    <!-- The Button to perform either a login or a password reset.-->
     <Button
-        android:id="@+id/blubb_login_button"
+        android:id="@+id/login_activity_login_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/blubb_button"
         android:text="@string/action_sign_in_short"
         android:textColor="@android:color/white" />
-
+    <!-- If this stays checked the username and password will be stored for later automated log in. -->
     <CheckBox
-        android:id="@+id/login_stay_logged_cb"
+        android:id="@+id/login_activity_stayloggedin_cb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:checked="true"
-        android:text="@string/login_stay_logged_in"
+        android:text="@string/login_activity_stayloggedin_cb_text"
         android:textColor="@color/beap_dark_blue" />
-
 </LinearLayout>

@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!-- Default state for the blubb_button_small.xml.
+    (ignore the preview, different rounded corners make some problems)
+Created by Benjamin Richter -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android"
     android:paddingBottom="@dimen/cards_separation_space">
 
