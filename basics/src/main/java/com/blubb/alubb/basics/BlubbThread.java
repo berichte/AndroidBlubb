@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -96,6 +97,15 @@ public class BlubbThread {
      * like the thread description.
      */
     private View bigView, smallView;
+    /**
+     * ClickListener for the threads view.
+     */
+    private View.OnClickListener clickListener;
+
+    /**
+     * LongClickListener for the threads view.
+     */
+    private View.OnLongClickListener longClickListener;
 
     /**
      * Constructor for the BlubbThread with a json object providing all needed information.
@@ -437,6 +447,8 @@ public class BlubbThread {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         LinearLayout layout = (LinearLayout) inflater.inflate(
                 R.layout.thread_list_entry_small, parent, false);
+        layout.setOnClickListener(this.clickListener);
+        layout.setOnLongClickListener(this.longClickListener);
         return this.setContentForHeader(layout);
     }
 
@@ -465,15 +477,22 @@ public class BlubbThread {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(
-                R.layout.thread_list_entry, parent, false);
+                R.layout.thread_list_entry_big, parent, false);
 
         layout = this.setContentForHeader(layout);
         TextView tdescr = (TextView) layout.findViewById(R.id.thread_list_item_description),
                 tInfo = (TextView) layout.findViewById(R.id.thread_list_item_info);
 
+        Button editButton = (Button) layout.findViewById(R.id.thread_edit_btn);
+        Typeface tf = Typeface.createFromAsset(editButton.getContext().getAssets(),
+                "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, editButton);
+
         tdescr.setText(this.tDesc);
         String info = this.tCreatorRole + " - " + this.getFormattedDate();
         tInfo.setText(info);
+        layout.setOnClickListener(this.clickListener);
+        layout.setOnLongClickListener(this.longClickListener);
         return layout;
     }
 
@@ -514,7 +533,7 @@ public class BlubbThread {
      * Set the content for the header of the thread view. The header is the part
      * of the thread view which is on the small and big view the same.
      *
-     * @param layout R.layout.thread_list_entry layout.
+     * @param layout R.layout.thread_list_entry_big layout.
      * @return Layout with all values properly set.
      */
     private View setContentForHeader(View layout) {
@@ -546,6 +565,24 @@ public class BlubbThread {
             blue = context.getResources().getColor(R.color.beap_dark_blue);
             green = context.getResources().getColor(R.color.beap_green);
         }
+    }
+
+    /**
+     * Adds the View.OnClickListener to the threads views.
+     *
+     * @param listener The View.OnClickListener.
+     */
+    public void setOnClickListener(View.OnClickListener listener) {
+        this.clickListener = listener;
+    }
+
+    /**
+     * Adds the View.OnLongClickListener to the threads views.
+     *
+     * @param longClickListener The View.OnLongClickListener.
+     */
+    public void setOnLongClickListener(View.OnLongClickListener longClickListener) {
+        this.longClickListener = longClickListener;
     }
 
     /**

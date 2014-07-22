@@ -10,6 +10,9 @@ import android.widget.TextView;
  * Created by Benjamin Richter on 10.07.2014.
  */
 public class TextContent implements MContent {
+    /**
+     * Name for logging purposes.
+     */
     private static final String NAME = "TextContent";
 
     /**
@@ -37,6 +40,7 @@ public class TextContent implements MContent {
         if (this.contentView != null) return contentView;
         TextView textView = new TextView(context);
         textView.setText(contentText);
+        textView.setTextSize(18);
         this.contentView = textView;
         return this.contentView;
     }

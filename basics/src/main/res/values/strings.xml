@@ -73,5 +73,8 @@
     <string name="blubb_logo_content_description">blubb logo</string>
     <string name="set_thread_succsessful_text">Thread has been modified successfully</string>
     <string name="set_thread_failed_text">Thread could not be modified.</string>
+    <string name="message_reply_hint">Reply to</string>
+    <string name="create_message_confirmation_toast">Created a new message.</string>
+    <string name="modify_message_confirmation_toast">Modified message.</string>
 
 </resources>

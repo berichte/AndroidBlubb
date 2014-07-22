@@ -201,12 +201,13 @@ public class BlubbMessage {
     }
 
     /**
-     * Get the title of the message.
+     * Get the title of the message. If the title is empty it will return BPC.UNDEFINED.
      *
      * @return The title for of the message. May be 'NULL' or 'UNDEFINED'.
      */
     public String getmTitle() {
-        return mTitle;
+        if (this.mTitle.equals("")) return BPC.UNDEFINED;
+        else return mTitle;
     }
 
     /**
@@ -363,10 +364,14 @@ public class BlubbMessage {
         rightLL.removeView(mContent);
         rightLL.addView(getmContent().getContentView(context), 3);
 
-        mTitle.setText(this.getmTitle());
+        if (this.mTitle.equals(BPC.UNDEFINED) || this.mTitle.equals("")) {
+            rightLL.removeView(mTitle);
+        } else {
+            mTitle.setText(this.mTitle);
+        }
 
         mCreator.setText(this.getmCreator());
-        mCreator.setOnClickListener(privateMsgClickListener);
+        //mCreator.setOnClickListener(privateMsgClickListener);
         mDate.setText(this.getmDate());
         mRole.setText(this.getmCreatorRole());
 

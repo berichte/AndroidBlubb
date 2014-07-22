@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,12 +33,7 @@ import com.blubb.alubb.basics.MessageManager;
 import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.TextContent;
 import com.blubb.alubb.basics.ThreadManager;
-import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
-import com.blubb.alubb.blubexceptions.BlubbDBException;
-import com.blubb.alubb.blubexceptions.PasswordInitException;
-import com.blubb.alubb.blubexceptions.SessionException;
-
-import org.json.JSONException;
+import com.blubb.alubb.beapcom.BPC;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,22 +41,55 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
+ * Activity that shows BlubbMessages to a thread.
+ * The user can read messages, write, modify and reply to existing messages.
  */
 public class ActivitySingleThread extends Activity {
-    public static final String NAME = "SingleThreadActivity";
-    public static final String EXTRA_THREAD_ID = "threadId";
-    public static final String EXTRA_THREAD_TITLE = "threadTitle",
-            EXTRA_THREAD_CREATOR = "threadCreator",
-            EXTRA_THREAD_DESCRIPTION = "threadDescription";
-    public List<BlubbMessage> messages;
-    private String threadId;
-    private BlubbThread thread;
-    private InputState inputState = InputState.TITLE;
-    private ListView messageListView;
-    private int lastPosition;
-    private String atMessage = "";
 
+    /**
+     * Name for Logging purposes.
+     */
+    public static final String NAME = "SingleThreadActivity";
+
+    /**
+     * Key for the thread id extra of the calling intend.
+     */
+    public static final String EXTRA_THREAD_ID = "threadId";
+
+    /**
+     * The list of messages shown in the activity.
+     */
+    public List<BlubbMessage> messages;
+
+    /**
+     * The thread id of the messages shown in the activity.
+     */
+    private String threadId;
+
+    /**
+     * The thread of the messages shown in the activity.
+     */
+    private BlubbThread thread;
+
+    /**
+     * Field to access the ListView of the messages.
+     */
+    private ListView messageListView;
+
+    /**
+     * The last position of the messageListView.
+     */
+    private int lastPosition;
+
+    /**
+     * Creates the activity for a single thread.
+     * Sets the content view, reads the thread id extra from the intend
+     * initializes the thread and messageListView fields and calls start().
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,174 +97,45 @@ public class ActivitySingleThread extends Activity {
         setContentView(R.layout.activity_single_thread);
         Intent intent = getIntent();
         this.threadId = intent.getStringExtra(EXTRA_THREAD_ID);
-        AsyncGetThread asyncGetThread = new AsyncGetThread();
-        asyncGetThread.execute();
+        this.thread = ThreadManager.getInstance().getThreadFromSqlite(this, threadId);
         messageListView = (ListView) findViewById(R.id.single_thread_listview);
+        start();
     }
 
+    /**
+     * Fills the messageListView first with the messages form sqlite and calls the
+     * AsyncGetAllMessagesToThread.
+     */
+    @Override
+    protected void onResume() {
+        // solved by Dralangus http://stackoverflow.com/a/7414659/294884
+        super.onResume();
+        this.fillListWithMessages(MessageManager.getInstance()
+                .getAllMessagesForThreadFromSqlite(this, threadId));
+        AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
+        asyncTask.execute();
+    }
+
+    /**
+     *
+     */
     protected void start() {
         ThreadManager.getInstance().readingThread(this, threadId);
-        Log.i("SingleThreadActivity", "Requesting Messages for Thread " + threadId);
-
-        String tDescr = thread.gettDesc();
+        String tDescription = thread.gettDesc();
         String tTitle = thread.getThreadTitle();
         setTitle(tTitle + " - " + thread.gettCreator());
-
-        addHeader(tDescr);
+        addHeader(tDescription);
         startInputView();
-        spinnerOn();
         //AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
         //asyncTask.execute();
     }
 
-    private String getViewNameById(int id) {
-        switch (id) {
-            case R.id.message_input_et:
-                return "message_input_et";
-            case R.id.message_input_title_et:
-                return "message_input_title_et";
-            case R.id.message_input_content_et:
-                return "message_input_content_et";
-            default:
-                return "noIdFound";
-        }
-    }
-
-    private void startInputView() {
-        atMessage = "";
-        final Button yBtn = (Button) findViewById(R.id.y_button),
-                xBtn = (Button) findViewById(R.id.x_button);
-        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
-        final TextView titleView = (TextView) findViewById(R.id.message_input_title_et);
-        final TextView contentView = (TextView) findViewById(R.id.message_input_content_et);
-        final View msgLayout = findViewById(R.id.message_input_ll);
-        contentView.setMovementMethod(new ScrollingMovementMethod());
-        inputET.setMovementMethod(new ScrollingMovementMethod());
-
-        yBtn.requestFocus();
-        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
-        BlubbApplication.setLayoutFont(tf, yBtn);
-        BlubbApplication.setLayoutFont(tf, xBtn);
-
-        inputET.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                Log.d("InputET", "Focus changed of: " + getViewNameById(v.getId()));
-                if (hasFocus) {
-                    msgLayout.setVisibility(View.VISIBLE);
-                } else msgLayout.setVisibility(View.INVISIBLE);
-            }
-        });
-        /*
-        titleView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                Log.d("titleView", "Focus changed of: " + getViewNameById(v.getId()));
-                if(hasFocus) {
-                    inputState = InputState.TITLE;
-                    yBtn.setText(":");
-                    xBtn.setText("x");
-                }
-                titleView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        inputET.requestFocus();
-                    }
-                });
-            }
-        });
-        contentView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                Log.d("contentView", "Focus changed of: " + getViewNameById(v.getId()));
-                if(hasFocus) {
-                    inputState = InputState.CONTENT;
-                    yBtn.setText("y");
-                    xBtn.setText(".");
-                }
-                titleView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        inputET.requestFocus();
-                    }
-                });
-            }
-        });
-        */
-        inputET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (inputState == InputState.TITLE) {
-                    titleView.setText(inputET.getText());
-                } else if (inputState == InputState.CONTENT) {
-                    contentView.setText(atMessage + inputET.getText());
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        yBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        inputState = InputState.CONTENT;
-                        yBtn.setText("y");
-                        xBtn.setText(".");
-                        inputET.setText(contentView.getText());
-                        inputET.setHint(getString(R.string.message_new_content_hint));
-                        msgLayout.setVisibility(View.VISIBLE);
-                        inputET.requestFocus();
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        String titleString = titleView.getText().toString();
-                        String conteString = contentView.getText().toString();
-
-                        new AsyncSendMessage().execute(titleString, conteString, "", threadId);
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET);
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        inputET.requestFocus();
-                        break;
-                }
-            }
-        });
-        xBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET);
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        xBtn.requestFocus();
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        inputET.setText(titleView.getText());
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        break;
-                }
-            }
-        });
-    }
-
-    private void addHeader(String tDescr) {
+    /**
+     * Adds the Header (the thread description) to the messageListView.
+     *
+     * @param tDescription The description of a thread for the header.
+     */
+    private void addHeader(String tDescription) {
         ListView lv = (ListView) findViewById(R.id.single_thread_listview);
 
         LayoutInflater inflater = (LayoutInflater) this
@@ -245,31 +144,50 @@ public class ActivitySingleThread extends Activity {
                 inflater.inflate(R.layout.single_thread_header, lv, false);
 
         TextView headerText = (TextView) header.findViewById(R.id.single_thread_header_tv);
-        headerText.setText(tDescr);
+        headerText.setText(tDescription);
 
         lv.addHeaderView(header);
     }
 
+    /**
+     * Get the custom BlubbApplication, e.g. to handle exceptions.
+     *
+     * @return The custom Application instance.
+     */
     private BlubbApplication getApp() {
         return (BlubbApplication) getApplication();
     }
 
+    /**
+     * Set the menu of single_thread_actions.
+     *
+     * @param menu The menu for this activity.
+     * @return True if the menu could be set.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.single_thread_actions, menu);
         return true;
     }
 
+    /**
+     * Starts the actions intended for the menu items.
+     * - new_message_action     -> starts the new message dialog.
+     * - menu_action_refresh    -> reloads the messages from the beapDB.
+     *
+     * @param item Menu item selected.
+     * @return True if action could be performed.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.new_message_action:
-//                newMessageDialog();
-                EditText input = (EditText) findViewById(R.id.message_input_et);
-                input.requestFocus();
+                EditText inputET = (EditText) findViewById(R.id.message_input_et);
+                inputET.requestFocus();
+                startInputView();
                 InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
                         .getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(input, 0);
+                imm.showSoftInput(inputET, 0);
                 break;
             case R.id.menu_action_refresh:
                 new AsyncGetAllMessagesToThread(threadId).execute();
@@ -278,6 +196,10 @@ public class ActivitySingleThread extends Activity {
         return true;
     }
 
+    /**
+     * Calls super.onStop() and sets all messages isNew() flag to false
+     * since the user has seen them.
+     */
     @Override
     public void onStop() {
         super.onStop();
@@ -291,316 +213,127 @@ public class ActivitySingleThread extends Activity {
         }
     }
 
+    /**
+     * Activates the spinner indicating that messages are loading from  the beapDB.
+     */
     public void spinnerOn() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         pb.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Deactivates the spinner indicating that messages are loading from  the beapDB.
+     */
     public void spinnerOff() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.blubb_progressbar);
         pb.setVisibility(View.INVISIBLE);
     }
 
-    protected void onResume() {
-
-        // solved by Dralangus http://stackoverflow.com/a/7414659/294884
-        super.onResume();
-        AsyncGetAllMessagesToThread asyncTask = new AsyncGetAllMessagesToThread(threadId);
-        asyncTask.execute();
-    }
-
-    private void handleException(Exception e) {
-        if (e != null) {
-            Log.e(NAME, e.getMessage());
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void replyToMessage(final BlubbMessage replyTo) {
-        final View msgLayout = findViewById(R.id.message_input_ll);
-        final Button yBtn = (Button) findViewById(R.id.y_button),
-                xBtn = (Button) findViewById(R.id.x_button);
+    /**
+     * Setup the input view for new messages.
+     */
+    private void startInputView() {
+        final Button yBtn = (Button) findViewById(R.id.y_button);
         final EditText inputET = (EditText) findViewById(R.id.message_input_et);
-        final TextView titleView = (TextView) msgLayout.findViewById(R.id.message_input_title_et);
-        final TextView contentView = (TextView) msgLayout.findViewById(R.id.message_input_content_et);
-        inputET.requestFocus();
-        msgLayout.setVisibility(View.VISIBLE);
+        inputET.setMovementMethod(new ScrollingMovementMethod());
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
-        BlubbApplication.setLayoutFont(tf, xBtn);
+        inputET.setText("");
+        inputET.setHint(getString(R.string.message_new_content_hint));
+        yBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new AsyncSendMessage().execute(
+                        BPC.UNDEFINED, inputET.getText().toString(), "", threadId);
+                showInput(false, inputET);
+                startInputView();
+                inputET.requestFocus();
+            }
+        });
+    }
 
-        titleView.setText(replyTo.getmTitle());
-        inputState = InputState.CONTENT;
+    /**
+     * Setup the input view to reply to a message.
+     *
+     * @param replyTo The BlubbMessage to which will be replied to.
+     */
+    private void replyToMessage(final BlubbMessage replyTo) {
+        final Button yBtn = (Button) findViewById(R.id.y_button);
+        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
+        inputET.requestFocus();
+        inputET.setHint(getString(R.string.message_reply_hint) + replyTo.getmCreator());
+        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
+        BlubbApplication.setLayoutFont(tf, yBtn);
         showInput(true, inputET);
-
         yBtn.setText("y");
-        xBtn.setText("x");
-
-        atMessage = "@" + replyTo.getmCreator() + "\n";
-        final TextView atSign = (TextView) msgLayout.findViewById(R.id.message_input_profile_pic);
-        atSign.setText("@");
-        atSign.setVisibility(View.VISIBLE);
+        final String atMessage = "@" + replyTo.getmCreator() + "\n";
 
         yBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String s = "Hello Everyone";
+                SpannableString ss1 = new SpannableString(s);
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 5, 0); // set size
                 String titleString = replyTo.getmTitle();
-                String conteString = contentView.getText().toString();
-                new AsyncSendMessage().execute(titleString, conteString,
+                String contentString = atMessage + inputET.getText().toString();
+                new AsyncSendMessage().execute(titleString, contentString,
                         replyTo.getmId(), threadId);
                 showInput(false, inputET);
-                clearTVs(titleView, contentView, inputET, atSign);
-                msgLayout.setVisibility(View.INVISIBLE);
-                inputET.setHint(getString(R.string.message_new_title_hint));
-                inputState = InputState.TITLE;
-                startInputView();
-            }
-        });
-        xBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showInput(false, inputET);
-                clearTVs(titleView, contentView, inputET, atSign);
-                msgLayout.setVisibility(View.INVISIBLE);
-                xBtn.requestFocus();
-                inputState = InputState.TITLE;
+                clearTVs(inputET);
                 startInputView();
             }
         });
     }
 
+    /**
+     * Setup the input view to change a messages content.
+     *
+     * @param toChange The BlubbMessage which will be modified.
+     */
     private void changeMessage(final BlubbMessage toChange) {
-        final Button yBtn = (Button) findViewById(R.id.y_button),
-                xBtn = (Button) findViewById(R.id.x_button);
+        final Button yBtn = (Button) findViewById(R.id.y_button);
         final EditText inputET = (EditText) findViewById(R.id.message_input_et);
-        final TextView titleView = (TextView) findViewById(R.id.message_input_title_et);
-        final TextView contentView = (TextView) findViewById(R.id.message_input_content_et);
-        final TextView creatorView = (TextView) findViewById(R.id.message_input_creator_tv);
-        final TextView picView = (TextView) findViewById(R.id.message_input_profile_pic);
-        final TextView dateView = (TextView) findViewById(R.id.message_input_date_tv);
-
-        creatorView.setVisibility(View.VISIBLE);
-        picView.setVisibility(View.VISIBLE);
-        dateView.setVisibility(View.VISIBLE);
-
-        inputET.setText(toChange.getmTitle());
-        titleView.setText(toChange.getmTitle());
-        String contentText = toChange.getmContent().getStringRepresentation();
-        contentView.setText(contentText);
-        picView.setText(toChange.getmPicString());
-        creatorView.setText(toChange.getmCreator());
-        dateView.setText(toChange.getmDate());
-
-
-        final View msgLayout = findViewById(R.id.message_input_ll);
-        contentView.setMovementMethod(new ScrollingMovementMethod());
-        inputET.setMovementMethod(new ScrollingMovementMethod());
-
-        yBtn.requestFocus();
+        inputET.requestFocus();
+        //TODO Must be changed if other message contents are available.
+        inputET.setText(toChange.getmContent().getStringRepresentation());
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
-        BlubbApplication.setLayoutFont(tf, xBtn);
-        BlubbApplication.setLayoutFont(tf, picView);
-
-        inputET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (inputState == InputState.TITLE) {
-                    titleView.setText(inputET.getText());
-                } else if (inputState == InputState.CONTENT) {
-
-                    contentView.setText(atMessage + inputET.getText());
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+        showInput(true, inputET);
+        yBtn.setText("y");
 
         yBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        inputState = InputState.CONTENT;
-                        yBtn.setText("y");
-                        xBtn.setText(".");
-                        inputET.setText(contentView.getText());
-                        inputET.setHint(getString(R.string.message_new_content_hint));
-                        msgLayout.setVisibility(View.VISIBLE);
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        String titleString = titleView.getText().toString();
-                        String conteString = contentView.getText().toString();
-
-
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET, creatorView, picView, dateView);
-                        creatorView.setVisibility(View.INVISIBLE);
-                        picView.setVisibility(View.INVISIBLE);
-                        dateView.setVisibility(View.INVISIBLE);
-
-                        toChange.setmTitle(titleString);
-                        toChange.setmContent(new TextContent(conteString));
-                        new AsyncSetMessage().execute(toChange);
-
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        startInputView();
-                        break;
-                }
+                String titleString = toChange.getmTitle();
+                String contentString = inputET.getText().toString();
+                toChange.setmTitle(titleString);
+                toChange.setmContent(new TextContent(contentString));
+                new AsyncSetMessage().execute(toChange);
+                showInput(false, inputET);
+                clearTVs(inputET);
+                startInputView();
             }
         });
-        xBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET, creatorView, picView, dateView);
-                        creatorView.setVisibility(View.INVISIBLE);
-                        picView.setVisibility(View.INVISIBLE);
-                        dateView.setVisibility(View.INVISIBLE);
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        xBtn.requestFocus();
-                        startInputView();
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        inputET.setText(titleView.getText());
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        break;
-                }
-            }
-        });
-        showInput(true, inputET);
     }
-/*
-    private void createPrivateMessage(final BlubbMessage message) {
 
-        final Button yBtn = (Button) findViewById(R.id.y_button),
-                xBtn = (Button) findViewById(R.id.x_button);
-        final EditText inputET = (EditText) findViewById(R.id.message_input_et);
-        final TextView titleView = (TextView) findViewById(R.id.message_input_title_tv);
-        final TextView contentView = (TextView) findViewById(R.id.message_input_content_tv);
-
-
-        final View msgLayout = findViewById(R.id.message_input_ll);
-        msgLayout.setVisibility(View.VISIBLE);
-        final TextView privateTitle = (TextView) findViewById(R.id.message_input_creator_tv);
-        privateTitle.setText("Private message to " + message.getmCreator());
-
-        privateTitle.setVisibility(View.VISIBLE);
-        contentView.setMovementMethod(new ScrollingMovementMethod());
-        inputET.setMovementMethod(new ScrollingMovementMethod());
-
-        yBtn.requestFocus();
-        Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
-        BlubbApplication.setLayoutFont(tf, yBtn);
-        BlubbApplication.setLayoutFont(tf, xBtn);
-
-
-        inputET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (inputState == InputState.TITLE) {
-                    titleView.setText(inputET.getText());
-                } else if (inputState == InputState.CONTENT) {
-
-                    contentView.setText(atMessage + inputET.getText());
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        yBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        inputState = InputState.CONTENT;
-                        yBtn.setText("y");
-                        xBtn.setText(".");
-                        inputET.setText(contentView.getText());
-                        inputET.setHint(getString(R.string.message_new_content_hint));
-                        msgLayout.setVisibility(View.VISIBLE);
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        String titleString = titleView.getText().toString();
-                        String conteString = contentView.getText().toString();
-                        String privateCreatorThread = "@" + message.getmCreator();
-                        String privateSenderThread = "@" + SessionManager.getInstance()
-                                .getActiveUsername();
-
-                        new AsyncSendMessage().execute(titleString, conteString, "",
-                                privateCreatorThread, privateSenderThread);
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET, privateTitle);
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        privateTitle.setVisibility(View.INVISIBLE);
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        startInputView();
-                        break;
-                }
-            }
-        });
-        xBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (inputState) {
-                    case TITLE:
-                        showInput(false, inputET);
-                        clearTVs(titleView, contentView, inputET, privateTitle);
-                        msgLayout.setVisibility(View.INVISIBLE);
-                        privateTitle.setVisibility(View.INVISIBLE);
-                        xBtn.requestFocus();
-                        startInputView();
-                        showInput(false, inputET);
-                        break;
-                    case CONTENT:
-                        inputState = InputState.TITLE;
-                        yBtn.setText(":");
-                        xBtn.setText("x");
-                        inputET.setText(titleView.getText());
-                        inputET.setHint(getString(R.string.message_new_title_hint));
-                        break;
-                }
-            }
-        });
-        showInput(true, inputET);
-
-    }*/
-
+    /**
+     * Clears the text of some TextViews.
+     *
+     * @param views The TextViews that will be cleared.
+     */
     private void clearTVs(TextView... views) {
         for (TextView tv : views) {
             tv.setText("");
         }
     }
 
+    /**
+     * Show the soft keyboard.
+     *
+     * @param show True if it should be shown, false if it should be hidden.
+     * @param view The currently focused view, which would like to receive
+     *             soft keyboard input.
+     */
     private void showInput(boolean show, View view) {
         InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -611,48 +344,41 @@ public class ActivitySingleThread extends Activity {
         }
     }
 
-    private enum InputState {TITLE, CONTENT}
-
-    private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
-
-        private String threadId;
-        private Exception e;
-
-        public AsyncGetAllMessagesToThread(String threadId) {
-            spinnerOn();
-            this.threadId = threadId;
-        }
-
-        @Override
-        protected List<BlubbMessage> doInBackground(Void... voids) {
-            Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
-            try {
-                return MessageManager.getInstance().getAllMessagesForThread(
-                        ActivitySingleThread.this.getApplicationContext(), this.threadId);
-            } catch (Exception e) {
-                this.e = e;
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(final List<BlubbMessage> response) {
-            messages = response;
+    /**
+     * Fills the messageListView with a list of BlubbMessages.
+     *
+     * @param messages The list of BlubbMessages to be displayed in the messageListView.
+     */
+    private void fillListWithMessages(List<BlubbMessage> messages) {
+        if (messages != null) {
+            this.messages = messages;
             ListView lv = (ListView) findViewById(R.id.single_thread_listview);
-            Collections.reverse(response);
+            Collections.reverse(messages);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
-                    ActivitySingleThread.this, R.layout.message_layout, response);
+                    ActivitySingleThread.this, R.layout.message_layout, messages);
             lv.setAdapter(adapter);
-
-            spinnerOff();
             messageListView.smoothScrollToPosition(lastPosition + 1);
         }
     }
 
+    /**
+     * Array adapter for the messageListView.
+     */
     public class MessageArrayAdapter extends ArrayAdapter<BlubbMessage> {
 
+        /**
+         * HashMap to easily find the adapter id of a message.
+         */
         HashMap<BlubbMessage, Integer> mIdMap = new HashMap<BlubbMessage, Integer>();
 
+        /**
+         * Constructor for the MessageArrayAdapter.
+         *
+         * @param context            The current context.
+         * @param textViewResourceId The resource ID for a layout file containing a TextView to use when
+         *                           instantiating views.
+         * @param objects            The objects to represent in the ListView.
+         */
         public MessageArrayAdapter(Context context, int textViewResourceId,
                                    List<BlubbMessage> objects) {
             super(context, textViewResourceId, objects);
@@ -661,6 +387,12 @@ public class ActivitySingleThread extends Activity {
             }
         }
 
+        /**
+         * Get the position of a message within the array adapter.
+         *
+         * @param msgId The id of the message.
+         * @return Integer representing the position of the message with message id = msgId.
+         */
         public int getMsgPosition(String msgId) {
             Set<BlubbMessage> msgSet = mIdMap.keySet();
             for (BlubbMessage m : msgSet) {
@@ -669,6 +401,15 @@ public class ActivitySingleThread extends Activity {
             return 0;
         }
 
+        /**
+         * Get a View of a BlubbMessage and set the OnClickListener for the reply button and the
+         * edit button.
+         *
+         * @param position    Position of the message.
+         * @param convertView --
+         * @param parent      The parent view group for the view.
+         * @return View representing a BlubbMessage at the user interface.
+         */
         @Override
         public View getView(final int position, View convertView, final ViewGroup parent) {
             final BlubbMessage message = getItem(position);
@@ -686,7 +427,6 @@ public class ActivitySingleThread extends Activity {
                         }
                     }, this
             );
-
             String username = SessionManager.getInstance().getActiveUsername();
             //Add a long click listener if it's a message of the user.
             if (message.getmCreator().equals(username)) {
@@ -717,85 +457,148 @@ public class ActivitySingleThread extends Activity {
 
     }
 
-    private class AsyncGetThread extends AsyncTask<Void, String, BlubbThread> {
+    /**
+     * AsyncTask to get all messages for a thread form the beapDB server.
+     */
+    private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
+        /**
+         * The thread id for the messages.
+         */
+        private String threadId;
+
+        /**
+         * Exception caught while executing doInBackground.
+         */
         private Exception e;
 
-        @Override
-        protected BlubbThread doInBackground(Void... params) {
-            try {
-                return ThreadManager.getInstance().getThread(ActivitySingleThread.this, threadId);
-            } catch (SessionException e) {
-                this.e = e;
-            } catch (BlubbDBException e) {
-                this.e = e;
-            } catch (JSONException e) {
-                this.e = e;
-            } catch (BlubbDBConnectionException e) {
-                this.e = e;
-            }
-            return null;
+        /**
+         * Constructor for the AsyncTask. Starts the spinner and sets the threadId for the AT.
+         *
+         * @param threadId The thread id for the messages.
+         */
+        public AsyncGetAllMessagesToThread(String threadId) {
+            spinnerOn();
+            this.threadId = threadId;
         }
 
+        /**
+         * Executes the request for all messages of a certain thread at the MessageManager.
+         *
+         * @param voids ...
+         * @return List of BlubbMessages or null if a exception has been caught.
+         */
         @Override
-        protected void onPostExecute(BlubbThread thread) {
-            handleException(e);
-            ActivitySingleThread.this.thread = thread;
-            ActivitySingleThread.this.start();
+        protected List<BlubbMessage> doInBackground(Void... voids) {
+            Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
+            try {
+                return MessageManager.getInstance().getAllMessagesForThread(
+                        ActivitySingleThread.this.getApplicationContext(), this.threadId);
+            } catch (Exception e) {
+                this.e = e;
+                return null;
+            }
+        }
+
+        /**
+         * Stops the spinner and fills the messageListView with the current messages.
+         *
+         * @param response List of BlubbThreads.
+         */
+        @Override
+        protected void onPostExecute(final List<BlubbMessage> response) {
+            getApp().handleException(e);
+            fillListWithMessages(response);
+            spinnerOff();
         }
     }
 
-    private class AsyncSendMessage extends AsyncTask<String, String, BlubbMessage> {
+    /**
+     * AsyncTask to send a new message to the beapDB.
+     */
+    private class AsyncSendMessage extends AsyncTask<String, String, Boolean> {
 
+        /**
+         * Exception caught while executing doInBackground.
+         */
         private Exception exception;
 
+        /**
+         * Executes the create message at the MessageManager.String parameter for the new message:
+         *
+         * @param parameter {mTitle, mContent, mLink, tId1, tId2,...}
+         * @return True if the message has been created.
+         */
         @Override
-        protected BlubbMessage doInBackground(String... parameter) {
+        protected Boolean doInBackground(String... parameter) {
             try {
                 return MessageManager.getInstance().createMsg(
                         ActivitySingleThread.this.getApplicationContext(),
                         parameter);
-            } catch (BlubbDBException e) {
+            } catch (Exception e) {
                 this.exception = e;
-                Log.e("getAllMessages", e.getMessage());
-            } catch (SessionException e) {
-                this.exception = e;
-            } catch (BlubbDBConnectionException e) {
-                this.exception = e;
-            } catch (PasswordInitException e) {
-                Log.e(NAME, e.getMessage()); // can not happen at this point.
+                return false;
             }
-            return null;
         }
 
+        /**
+         * If a message has been created, this makes a toast and reloads the messages.
+         *
+         * @param isCreated Indicates whether the message has been created.
+         */
         @Override
-        protected void onPostExecute(BlubbMessage message) {
-            handleException(exception);
-            if (message != null) {
-                String msg = "Created new Message:\n" +
-                        "tId: " + message.getmThread() + "\n" +
-                        "tTitle: " + message.getmTitle();
+        protected void onPostExecute(Boolean isCreated) {
+            getApp().handleException(exception);
+            if (isCreated) {
+                String msg = getResources().getString(R.string.create_message_confirmation_toast);
                 Log.i(NAME, msg);
-                new AsyncGetAllMessagesToThread(threadId).execute();
+                fillListWithMessages(MessageManager.getInstance()
+                        .getAllMessagesForThreadFromSqlite(ActivitySingleThread.this, threadId));
                 Toast.makeText(ActivitySingleThread.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }
     }
 
-    private class AsyncSetMessage extends AsyncTask<BlubbMessage, Void, String> {
+    /**
+     * Change a messages title or content.
+     */
+    private class AsyncSetMessage extends AsyncTask<BlubbMessage, Void, Boolean> {
+        /**
+         * Exception caught while executing doInBackground.
+         */
+        private Exception exception;
+
+        /**
+         * Executes the setMsg(..) at the MessageManager.
+         *
+         * @param parameter {mTitle, mContent, mLink, tId1, tId2,...}
+         * @return True if the message could be modified.
+         */
         @Override
-        protected String doInBackground(BlubbMessage... params) {
+        protected Boolean doInBackground(BlubbMessage... parameter) {
             try {
-                return MessageManager.getInstance().setMsg(ActivitySingleThread.this, params[0]);
+                return MessageManager.getInstance().setMsg(ActivitySingleThread.this, parameter[0]);
             } catch (Exception e) {
-                Log.e(NAME, e.getMessage());
-                return e.getMessage();
+                this.exception = e;
+                return false;
             }
         }
 
-        protected void onPostExecute(String statusDescription) {
-            Toast.makeText(ActivitySingleThread.this, statusDescription, Toast.LENGTH_LONG).show();
-            new AsyncGetAllMessagesToThread(threadId).execute();
+        /**
+         * If a message has been modified, this makes a toast and reloads the messages.
+         *
+         * @param wasModified Indicates whether the message could be modified.
+         */
+        protected void onPostExecute(Boolean wasModified) {
+            getApp().handleException(exception);
+            if (wasModified) {
+                String msg = getResources().getString(R.string.modify_message_confirmation_toast);
+                Log.i(NAME, msg);
+                fillListWithMessages(MessageManager.getInstance()
+                        .getAllMessagesForThreadFromSqlite(ActivitySingleThread.this, threadId));
+                Toast.makeText(ActivitySingleThread.this, msg, Toast.LENGTH_SHORT).show();
+
+            }
         }
     }
 

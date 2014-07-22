@@ -45,7 +45,6 @@ import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.blubexceptions.SessionException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -100,7 +99,7 @@ public class ActivityThreadOverview extends Activity {
     private void start() {
         setContentView(R.layout.activity_thread_overview);
         checkForLogin();
-        showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
+        showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
         AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
         this.showSpinnerForGetAllBeapThreads = true;
         spinnerOn();
@@ -200,7 +199,7 @@ public class ActivityThreadOverview extends Activity {
                 newThreadDialog();
                 break;
             case R.id.menu_action_refresh:
-                showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
+                showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
                 AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
                 this.showSpinnerForGetAllBeapThreads = true;
                 spinnerOn();
@@ -377,15 +376,15 @@ public class ActivityThreadOverview extends Activity {
         divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
 
         assert dialogLayout != null;
-        final EditText title = (EditText) dialogLayout.findViewById(
+        final EditText titleET = (EditText) dialogLayout.findViewById(
                 R.id.thread_list_item_title),
-                descr = (EditText) dialogLayout.findViewById(
+                descriptionET = (EditText) dialogLayout.findViewById(
                         R.id.thread_list_item_description);
         TextView creatorTv = (TextView) dialogLayout.findViewById(R.id.thread_list_item_author);
         creatorTv.setText(thread.gettCreator());
 
-        title.setText(thread.getThreadTitle());
-        descr.setText(thread.gettDesc());
+        titleET.setText(thread.getThreadTitle());
+        descriptionET.setText(thread.gettDesc());
 
         Spinner spinner = (Spinner) dialog.findViewById(R.id.spinner2);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.thread_status,
@@ -426,17 +425,12 @@ public class ActivityThreadOverview extends Activity {
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn, xBtn);
 
-        if (storeDraft) {
-            title.setText(titleInput);
-            descr.setText(descInput);
-        }
-        storeDraft = true;
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
                 Log.d(NAME, "onCancel(Dialog)");
-                titleInput = title.getText().toString();
-                descInput = descr.getText().toString();
+                titleInput = titleET.getText().toString();
+                descInput = descriptionET.getText().toString();
             }
         });
 
@@ -444,8 +438,8 @@ public class ActivityThreadOverview extends Activity {
 
             @Override
             public void onClick(View view) {
-                String titleString = title.getText().toString(),
-                        descString = descr.getText().toString();
+                String titleString = titleET.getText().toString(),
+                        descString = descriptionET.getText().toString();
                 if (titleString.length() > 40 || titleString.length() == 0) {
                     String message = ActivityThreadOverview.this.getString(
                             R.string.thread_title_size_warning);
@@ -471,8 +465,8 @@ public class ActivityThreadOverview extends Activity {
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                thread.settTitle(title.getText().toString());
-                thread.settDesc(descr.getText().toString());
+                thread.settTitle(titleET.getText().toString());
+                thread.settDesc(descriptionET.getText().toString());
                 AsyncSetThread asyncSetThread = new AsyncSetThread(thread);
                 showSpinnerForCreateThread = true;
                 spinnerOn();
@@ -563,11 +557,11 @@ public class ActivityThreadOverview extends Activity {
      *
      * @param threads Threads that will be displayed at the ListView.
      */
-    private void showThreadInList(List<BlubbThread> threads) {
+    private void showThreadsInList(List<BlubbThread> threads) {
         ListView lv = (ListView) findViewById(R.id.thread_list);
 
         final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-                ActivityThreadOverview.this, R.layout.thread_list_entry, threads);
+                ActivityThreadOverview.this, R.layout.thread_list_entry_big, threads);
 
         if (adapter.getCount() > threads.size()) {
             spinnerOff();
@@ -580,18 +574,7 @@ public class ActivityThreadOverview extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
-                Intent intent = new Intent(ActivityThreadOverview.this, ActivitySingleThread.class);
-                assert parent.getItemAtPosition(position) != null;
-                BlubbThread bThread = (BlubbThread) parent.getItemAtPosition(position);
-                String threadId = bThread.gettId();
-                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
-                String tTitle = bThread.getThreadTitle();
-                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_TITLE, tTitle);
-                String tCreator = bThread.gettCreator();
-                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_CREATOR, tCreator);
-                String tDesc = bThread.gettDesc();
-                intent.putExtra(ActivitySingleThread.EXTRA_THREAD_DESCRIPTION, tDesc);
-                ActivityThreadOverview.this.startActivity(intent);
+
             }
 
         });
@@ -600,15 +583,107 @@ public class ActivityThreadOverview extends Activity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view,
                                            int position, long id) {
-                BlubbThread thread = (BlubbThread) parent.getItemAtPosition(position);
-                thread.toggleViewSize();
-                @SuppressWarnings("unchecked")
-                ArrayAdapter<BlubbThread> adapter = (ArrayAdapter<BlubbThread>)
-                        parent.getAdapter();
-                adapter.notifyDataSetChanged();
                 return true;
             }
         });
+    }
+
+    /**
+     * Array adapter for the ListView of the threads.
+     */
+    private class ThreadArrayAdapter extends ArrayAdapter<BlubbThread> {
+
+        /**
+         * HashMap to find the id of a thread.
+         * Key is the BlubbThread, value the integer of the id of the thread in the
+         * array adapter.
+         */
+        HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
+
+        /**
+         * Constructor for the ThreadArrayAdapter.
+         * Adds the click and longClick listener to the threads.
+         *
+         * @param context  The current context.
+         * @param resource The resource ID for a layout file containing a TextView to use when
+         *                 instantiating views.
+         * @param objects  The list of BlubbThreads to represent in the ListView.
+         */
+        public ThreadArrayAdapter(Context context, int resource,
+                                  List<BlubbThread> objects) {
+            super(context, resource, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                final BlubbThread thread = objects.get(i);
+                thread.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.d(NAME, v.toString() + " clicked.");
+                        Intent intent = new Intent(
+                                ActivityThreadOverview.this, ActivitySingleThread.class);
+                        String threadId = thread.gettId();
+                        intent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
+                        ActivityThreadOverview.this.startActivity(intent);
+                    }
+                });
+                thread.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Log.d(NAME, v.toString() + " long clicked.");
+                        thread.toggleViewSize();
+                        ThreadArrayAdapter.this.notifyDataSetChanged();
+                        return true;
+                    }
+                });
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+
+        /**
+         * Gets the view of a BlubbThread at a certain position in the ThreadArrayAdapter.
+         *
+         * @param position    Integer representing the position of a thread.
+         * @param convertView Just used for the override.
+         * @param parent      That will be the ThreadViews parent view.
+         * @return The View representing a BlubbThread.
+         */
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            final BlubbThread blubbThread = getItem(position);
+            final View tView = blubbThread.getView(ActivityThreadOverview.this, parent);
+            Button editBtn = (Button) tView.findViewById(R.id.thread_edit_btn);
+            if (editBtn != null) {
+                editBtn.setOnClickListener(new View.OnClickListener() {
+
+                    /**
+                     * Called when a edit button has been clicked.
+                     *
+                     * @param v The view that was clicked.
+                     */
+                    @Override
+                    public void onClick(View v) {
+                        editThreadDialog(blubbThread);
+                    }
+                });
+            }
+            return tView;
+        }
+
+        /**
+         * Get the id of a BlubbThread at a certain position.
+         *
+         * @param position Integer representing the position of a thread.
+         * @return The id of a BlubbThread in the ThreadArrayAdapter.
+         */
+        @Override
+        public long getItemId(int position) {
+            BlubbThread item = getItem(position);
+            return mIdMap.get(item);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
     }
 
     /**
@@ -658,7 +733,7 @@ public class ActivityThreadOverview extends Activity {
                 cancelNotification();
             } // if null there has been a toast.
 
-            showThreadInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
+            showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
                     ActivityThreadOverview.this));
             AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
             asyncGetAllThreadsFromBeap.execute();
@@ -668,95 +743,23 @@ public class ActivityThreadOverview extends Activity {
     }
 
     /**
-     * Array adapter for the ListView of the threads.
-     */
-    private class ThreadArrayAdapter extends ArrayAdapter<BlubbThread> {
-
-        /**
-         * HashMap to find the id of a thread.
-         * Key is the BlubbThread, value the integer of the id of the thread in the
-         * array adapter.
-         */
-        HashMap<BlubbThread, Integer> mIdMap = new HashMap<BlubbThread, Integer>();
-
-        /**
-         * Constructor for the ThreadArrayAdapter.
-         *
-         * @param context  The current context.
-         * @param resource The resource ID for a layout file containing a TextView to use when
-         *                 instantiating views.
-         * @param objects  The list of BlubbThreads to represent in the ListView.
-         */
-        public ThreadArrayAdapter(Context context, int resource,
-                                  List<BlubbThread> objects) {
-            super(context, resource, objects);
-            for (int i = 0; i < objects.size(); ++i) {
-                mIdMap.put(objects.get(i), i);
-            }
-        }
-
-        /**
-         * Gets the view of a BlubbThread at a certain position in the ThreadArrayAdapter.
-         *
-         * @param position    Integer representing the position of a thread.
-         * @param convertView Just used for the override.
-         * @param parent      That will be the ThreadViews parent view.
-         * @return The View representing a BlubbThread.
-         */
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            final BlubbThread blubbThread = getItem(position);
-            final View tView = blubbThread.getView(ActivityThreadOverview.this, parent);
-            // TODO use a button for the editing
-            TextView content = (TextView) tView.findViewById(R.id.thread_list_item_description);
-            if (content != null) {
-                content.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        editThreadDialog(blubbThread);
-                        return false;
-                    }
-                });
-            }
-            return tView;
-        }
-
-        /**
-         * Get the id of a BlubbThread at a certain position.
-         *
-         * @param position Integer representing the position of a thread.
-         * @return The id of a BlubbThread in the ThreadArrayAdapter.
-         */
-        @Override
-        public long getItemId(int position) {
-            BlubbThread item = getItem(position);
-            return mIdMap.get(item);
-        }
-
-        @Override
-        public boolean hasStableIds() {
-            return true;
-        }
-    }
-
-    /**
      * AsyncTask which will get all Threads from the beapDB and update the sqlite database.
      */
-    private class AsyncGetAllThreadsFromBeap extends AsyncTask<Void, Void, List<BlubbThread>> {
+    private class AsyncGetAllThreadsFromBeap extends AsyncTask<Void, Void, Boolean> {
         /**
          * Exception field for the exception handling.
          */
         Exception e;
 
         @Override
-        protected List<BlubbThread> doInBackground(Void... voids) {
+        protected Boolean doInBackground(Void... voids) {
             Log.v("AsyncGetAllThreads", "execute()");
             try {
-                return ThreadManager.getInstance().getAllThreadsFromBeap(
+                return ThreadManager.getInstance().updateAllThreadsFromBeap(
                         ActivityThreadOverview.this.getApplicationContext());
             } catch (Exception e) {
                 this.e = e;
-                return new ArrayList<BlubbThread>();
+                return false;
             }
         }
 
@@ -766,9 +769,12 @@ public class ActivityThreadOverview extends Activity {
          * @param response List of BlubbThreads received from the beapDB.
          */
         @Override
-        protected void onPostExecute(final List<BlubbThread> response) {
+        protected void onPostExecute(Boolean response) {
             getApp().handleException(e);
-            showThreadInList(response);
+            if (response) {
+                showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
+                        ActivityThreadOverview.this));
+            }
             showSpinnerForGetAllBeapThreads = false;
             spinnerOff();
         }

@@ -65,7 +65,7 @@ public class BlubbHttpRequest {
     private static String handleHttpException(Exception e) {
         return "{\n" +
                 "\"BeapStatus\" : 407,\n " +
-                "\"StatusDescr\": " + e.getMessage() + ",\n " +
+                "\"StatusDescr\": \"connection error " + e.getClass().getName() + "\",\n " +
                 "\"sessInfo\" : {\n" +
                 "\"sessId\" : \"\",\n" +
                 "\"sessUser\" : \"\",\n" +

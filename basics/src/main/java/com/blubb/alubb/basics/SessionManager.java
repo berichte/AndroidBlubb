@@ -164,6 +164,8 @@ public class SessionManager {
             case LOGIN_REQUIRED:                // if sessionLogin is required:
                 this.loginWithPrefs(context);   // try sessionLogin with prefs
                 return this.checkSession();
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new SessionException("could not refresh session. received status: " +
                         status);
@@ -205,6 +207,8 @@ public class SessionManager {
                     // since it will just be called when a login has happened there will be un and pw.
                     return this.checkSession();
                 } else throw new SessionException("logged in but still need login!????");
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new SessionException("could not check session. received status: " +
                         blubbResponse.getStatus());
@@ -421,6 +425,8 @@ public class SessionManager {
                     return new int[]{
                             (Integer) array.get(0),
                             (Integer) array.get(1)};
+                case CONNECTION_ERROR:
+                    throw new BlubbDBConnectionException("No connection available.");
                 default:
                     throw new BlubbDBException("Could not perform quickCheck" +
                             " Beap status: " + blubbResponse.getStatus());

@@ -82,8 +82,9 @@ public class MessageManager {
         for (BlubbThread t : localThreads) {
             hashThreads.put(t.gettId(), t);
         }
+        ThreadManager.getInstance().updateAllThreadsFromBeap(context);
         List<BlubbThread> threads = ThreadManager.getInstance()
-                .getAllThreadsFromBeap(context);
+                .getAllThreadsFromSqlite(context);
 
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         for (BlubbThread t : threads) {
@@ -130,7 +131,7 @@ public class MessageManager {
      *
      * @param context          The application context from which the method is called.
      * @param messageParameter String parameter for the new message: {mTitle, mContent, mLink, tId1, tId2,...}
-     * @return The new created BlubbMessage object.
+     * @return True if the message has been created.
      * @throws BlubbDBException           if the response status is not 'OK'.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
@@ -140,7 +141,7 @@ public class MessageManager {
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      */
-    public BlubbMessage createMsg(Context context, String... messageParameter)
+    public Boolean createMsg(Context context, String... messageParameter)
             throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "createMsg(context, tId = " + messageParameter[0] + ", mTitle = " +
@@ -171,7 +172,9 @@ public class MessageManager {
                 BlubbMessage message = new BlubbMessage(result);
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.addMessage(message);
-                return message;
+                return true;
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new BlubbDBException("Could not perform createMsg" +
                         " Beap status: " + response.getStatus());
@@ -220,7 +223,7 @@ public class MessageManager {
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      */
-    private List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
+    public List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
             throws BlubbDBException, SessionException,
             JSONException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getAllMessagesForThreadFromBeap(context, tId = " + tId);
@@ -241,6 +244,8 @@ public class MessageManager {
                 return messages;
             case NO_CONTENT:
                 return messages;
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new BlubbDBException("Could not get Messages from beap " +
                         "Response status: " + response.getStatus());
@@ -254,7 +259,7 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param message The message which will be stored at the sqlite database.
      */
-    private void putMessageToSqliteFromBeap(Context context, BlubbMessage message) {
+    public void putMessageToSqliteFromBeap(Context context, BlubbMessage message) {
         Log.v(NAME, "putMessageToSqliteFromBeap(context, message = " + message.getmId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbMessage m = db.getMessage(message.getmId());
@@ -276,7 +281,7 @@ public class MessageManager {
      * @param tId     The id of the thread.
      * @return A List of BlubbMessages from the sqlite database.
      */
-    private List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
+    public List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
         DatabaseHandler db = new DatabaseHandler(context);
         return db.getMessagesForThread(tId);
 
@@ -286,7 +291,7 @@ public class MessageManager {
      * Changes a message at beapDB and the local sqlite database.
      *
      * @param context The application context from which the method is called.
-     * @param message The message with the new title and content.
+     * @param message True if the message could be modified.
      * @return The status description of the blubbResponse.
      * @throws BlubbDBException           if the response status is not 'OK'.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
@@ -297,7 +302,7 @@ public class MessageManager {
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      */
-    public String setMsg(Context context, BlubbMessage message)
+    public Boolean setMsg(Context context, BlubbMessage message)
             throws BlubbDBException, PasswordInitException,
             SessionException, BlubbDBConnectionException {
 
@@ -322,7 +327,9 @@ public class MessageManager {
             case OK:
                 DatabaseHandler db = new DatabaseHandler(context);
                 db.updateMessage(message);
-                return response.getStatusDesc();
+                return true;
+            case CONNECTION_ERROR:
+                throw new BlubbDBConnectionException("No connection available.");
             default:
                 throw new BlubbDBException("Could not perform setMsg" +
                         " Beap status: " + response.getStatus());

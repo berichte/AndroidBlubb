@@ -25,5 +25,6 @@
     <color name="dialog_background">#aaeeeeee</color>
     <color name="dialog_background_shadow">#aa223366</color>
     <color name="blubb_transparent">#55ffffff</color>
+    <color name="transparent">#00FFFFFF</color>
     <color name="blubb_transparent_shadow">#22555555</color>
 </resources>

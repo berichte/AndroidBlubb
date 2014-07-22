@@ -263,7 +263,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @return BlubbThread object with the id provided.
      */
     public BlubbThread getThread(String tId) {
-        Log.v(N, "getThread(tId = " + tId + ")");
+        Log.v(N, "getThreadFromSqlite(tId = " + tId + ")");
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_THREADS,
                 new String[]{

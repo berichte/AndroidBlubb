@@ -20,50 +20,66 @@ import com.blubb.alubb.basics.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The MessagePullService extends the android.app.Service and performs a quickCheck at the
+ * beapDB server. If there are new messages or threads available it will post a notification.
+ */
 public class MessagePullService extends Service {
+
+    /**
+     * Name for Logging purposes.
+     */
     public static final String NAME = MessagePullService.class.getName();
+    /**
+     * The id for the notifications.
+     */
     private static final int NOTIFICATION_ID = 5683;
-    private final IBinder mBinder = new Binder();
+    /**
+     * Instance of the notification manager used.
+     */
     private NotificationManager mNotificationManager;
-    private NotificationCompat.Builder builder;
-
-    @Override
-    public void onCreate() {
-
-    }
-
-    @Override
-    public void onDestroy() {
-        if (mNotificationManager != null) {
-            mNotificationManager.cancel(R.string.alarm_service_started);
-        }
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return new Binder();
     }
 
+    /**
+     * Starts a AsyncMessagePull.
+     *
+     * @param intent  See super.onStartCommand(..).
+     * @param flags   See super.onStartCommand(..).
+     * @param startId See super.onStartCommand(..).
+     * @return See super.onStartCommand(..).
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        MessagePullAsync messagePullAsync = new MessagePullAsync();
-        messagePullAsync.execute();
+        new AsyncMessagePull().execute();
         return super.onStartCommand(intent, flags, startId);
     }
 
+    /**
+     * Push a notification to the android system.
+     *
+     * @param builder The NotificationCompat.Builder building the notification.
+     */
     private void issueNotification(NotificationCompat.Builder builder) {
-        mNotificationManager = (NotificationManager)
-                getSystemService(NOTIFICATION_SERVICE);
         // Including the notification ID allows you to update the notification later on.
         Notification notification = builder.build();
         notification.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
         mNotificationManager.notify(NOTIFICATION_ID, notification);
-        Log.w(NAME, "pushing notification");
+        Log.v(NAME, "pushing notification");
     }
 
+    /**
+     * Creates a new message notification, issues it and builds it with a
+     * NotificationCompat.Builder. If there are more than one new message it will show only
+     * the authors of the messages.
+     *
+     * @param messages List containing one or more BlubbMessages.
+     */
     private void createMessageNotification(List<BlubbMessage> messages) {
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setAutoCancel(true);
         builder.setSmallIcon(R.drawable.blubb_logo);
         Intent resultIntent;
@@ -99,35 +115,64 @@ public class MessagePullService extends Service {
         issueNotification(builder);
     }
 
+    /**
+     * Creates a new threads notification, issues it and builds it with a
+     * NotificationCompat.Builder. If there are more than one new message it will show only
+     * the
+     *
+     * @param threads List containing one or more BlubbThreads.
+     */
     private void createThreadNotification(List<BlubbThread> threads) {
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setSmallIcon(R.drawable.blubb_logo);
         if (threads.size() > 1) {
-            String nTitle = threads.size() + " threads have been created.";
+
+            String nTitle = "You received " + threads.size() + " new threads";
+            String nContent = "";
+            for (BlubbThread t : threads) {
+                nContent = nContent + t.getThreadTitle() + "\n";
+            }
             builder.setContentTitle(nTitle);
+
+            builder.setContentText(nContent);
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(nContent));
         } else if (threads.size() == 1) {
             BlubbThread thread = threads.get(0);
             builder.setContentTitle(thread.getThreadTitle());
             builder.setContentText(thread.gettDesc());
         } else return;
         Intent resultIntent = new Intent(this, ActivityThreadOverview.class);
-
         PendingIntent resultPendingIntent = PendingIntent.getActivity(
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         builder.setContentIntent(resultPendingIntent);
         issueNotification(builder);
     }
 
+    /**
+     * Get the custom BlubbApplication, e.g. to handle exceptions.
+     *
+     * @return The custom Application instance.
+     */
     private BlubbApplication getApp() {
         return (BlubbApplication) getApplication();
     }
 
-    private class MessagePullAsync extends AsyncTask<Void, Void, QuickCheck> {
-
+    /**
+     * AsyncTask which performs a quickCheck at the blubbDB and triggers the notification building
+     * if there are new threads or messages.
+     */
+    private class AsyncMessagePull extends AsyncTask<Void, Void, QuickCheck> {
+        /**
+         * Exception caught while executing doInBackground.
+         */
         Exception e;
 
+        /**
+         * Performs the quickCheck at the SessionManager.
+         *
+         * @param voids Just no parameter needed.
+         * @return QuickCheck object containing the new messages or threads.
+         */
         @Override
         protected QuickCheck doInBackground(Void... voids) {
             Log.i(NAME, "try to pull msgs from server.");
@@ -136,23 +181,31 @@ public class MessagePullService extends Service {
                 return sManager.quickCheck(MessagePullService.this);
             } catch (Exception e) {
                 this.e = e;
+                return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
             }
-            return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
         }
 
+        /**
+         * If the quickCheck has a result the notification for threads or messages will be
+         * triggered.
+         *
+         * @param quickCheck The QuickCheck object containing lists of BlubbMessages and
+         *                   BlubbThreads.
+         */
         @Override
         public void onPostExecute(QuickCheck quickCheck) {
             getApp().handleException(e);
             if (quickCheck.hasResult()) {
+                mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 if (quickCheck.messages.size() > 0) {
                     createMessageNotification(quickCheck.messages);
                 }
                 if (quickCheck.threads.size() > 0) {
                     createThreadNotification(quickCheck.threads);
                 }
+                mNotificationManager.cancel(R.string.alarm_service_started);
             }
             MessagePullService.this.stopSelf();
         }
     }
-
 }
