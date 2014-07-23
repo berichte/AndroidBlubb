@@ -9,7 +9,7 @@ Created by Benjamin Richter -->
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_cards" />
+            <solid android:color="@color/cards_bg" />
             <corners
                 android:bottomLeftRadius="2dp"
                 android:bottomRightRadius="2dp"

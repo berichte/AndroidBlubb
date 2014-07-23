@@ -17,7 +17,9 @@ import com.blubb.alubb.blubbbasics.BlubbApplication;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -29,6 +31,14 @@ import java.util.Date;
  */
 @SuppressWarnings("ALL")
 public class BlubbThread {
+    /**
+     * Pattern for date format, 2014-06-25T13:40:40.312Z
+     */
+    public static final String DATE_PATTERN = "dd.MM.yy - HH:mm";
+    /**
+     * Simple date format to encode and decode a Date object.
+     */
+    private static DateFormat df = new SimpleDateFormat(DATE_PATTERN);
     /**
      * Name for Logging purposes
      */
@@ -335,21 +345,21 @@ public class BlubbThread {
     }
 
     /**
-     * Set the title for the thread.
-     *
-     * @param tTitle New title for the thread.
-     */
-    public void settTitle(String tTitle) {
-        this.tTitle = tTitle;
-    }
-
-    /**
      * Set the threads status.
      *
      * @param tStatus String representing the new status for the thread.
      */
     public void settStatus(String tStatus) {
         this.tStatus = parseThreadStatus(tStatus);
+    }
+
+    /**
+     * Set the title for the thread.
+     *
+     * @param tTitle New title for the thread.
+     */
+    public void settTitle(String tTitle) {
+        this.tTitle = tTitle;
     }
 
     /**
@@ -502,13 +512,16 @@ public class BlubbThread {
         TextView tdescr = (TextView) layout.findViewById(R.id.thread_description_tv),
                 tInfo = (TextView) layout.findViewById(R.id.thread_info_tv);
 
-        Button editButton = (Button) layout.findViewById(R.id.thread_edit_btn);
-        Typeface tf = Typeface.createFromAsset(editButton.getContext().getAssets(),
-                "BeapIconic.ttf");
-        BlubbApplication.setLayoutFont(tf, editButton);
+        Button editBtn = (Button) layout.findViewById(R.id.thread_edit_btn);
+        if (SessionManager.getInstance().getActiveUsername().equals(tCreator)) {
+            Typeface tf = Typeface.createFromAsset(editBtn.getContext().getAssets(),
+                    "BeapIconic.ttf");
+            BlubbApplication.setLayoutFont(tf, editBtn);
+        } else editBtn.setVisibility(View.INVISIBLE);
+
 
         tdescr.setText(this.tDesc);
-        String info = this.tCreatorRole + " - " + this.getFormattedDate();
+        String info = this.tCreatorRole + " - " + df.format(tDate);
         tInfo.setText(info);
         layout.setOnClickListener(this.clickListener);
         layout.setOnLongClickListener(this.longClickListener);

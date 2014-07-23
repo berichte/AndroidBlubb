@@ -13,14 +13,16 @@ import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
-import com.blubb.alubb.blubbbasics.ActivitySingleThread;
+import com.blubb.alubb.blubbbasics.ActivityMessages;
 import com.blubb.alubb.blubbbasics.BlubbApplication;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -33,10 +35,17 @@ import java.util.Date;
  */
 public class BlubbMessage {
     /**
+     * Pattern for date format, 2014-06-25T13:40:40.312Z
+     */
+    public static final String DATE_PATTERN = "dd.MM.yy - HH:mm";
+    /**
+     * Simple date format to encode and decode a Date object.
+     */
+    private static DateFormat df = new SimpleDateFormat(DATE_PATTERN);
+    /**
      * Name for Logging purposes.
      */
     private static final String NAME = "BlubbMessage";
-
     /**
      * Unique id within the db
      */
@@ -256,17 +265,6 @@ public class BlubbMessage {
     }
 
     /**
-     * Get the messages pictures string. This should be used with the BeapIconic font.
-     * 'U' shows the shape of a person.
-     *
-     * @return 'U' if the link is undefined or '@' if this message is a reply.
-     */
-    public String getmPicString() {
-        if (mLink.equals(BPC.UNDEFINED)) return "U";
-        else return "@";
-    }
-
-    /**
      * Get the date of the creation of the message.
      *
      * @return Date object with the time set to the creation of the message.
@@ -315,22 +313,21 @@ public class BlubbMessage {
     /**
      * Create a View to display the message in the user interface
      *
-     * @param context                 The android context for the View.
-     * @param parent                  Parent ViewGroup for the messages View.
-     * @param tCreator                Creator of the current thread. If the message creator and the
-     *                                thread creator are the same the message will be highlighted.
-     * @param replyClickListener      OnClickListener for the replyButton.
-     * @param privateMsgClickListener OnClickListener to write a private message to
-     *                                the creator of this message.
-     * @param adapter                 The array adapter for the message. If this message is a reply
-     *                                to another message with a click on the '@' the array adapter
-     *                                will scroll to the position of the replied message.
+     * @param context              The android context for the View.
+     * @param parent               Parent ViewGroup for the messages View.
+     * @param tCreator             Creator of the current thread. If the message creator and the
+     *                             thread creator are the same the message will be highlighted.
+     * @param replyClickListener   OnClickListener for the replyButton.
+     * @param editMsgClickListener OnClickListener to modify a message.
+     * @param adapter              The array adapter for the message. If this message is a reply
+     *                             to another message with a click on the '@' the array adapter
+     *                             will scroll to the position of the replied message.
      * @return The created View displaying this message in the user interface.
      */
     public View createView(Context context, final ViewGroup parent,
                            String tCreator, View.OnClickListener replyClickListener,
-                           View.OnClickListener privateMsgClickListener,
-                           final ActivitySingleThread.MessageArrayAdapter adapter) {
+                           View.OnClickListener editMsgClickListener,
+                           final ActivityMessages.MessageArrayAdapter adapter) {
         Log.i(NAME, "parentType: " + parent.getClass().getName());
         View messageView;
         LayoutInflater inflater = (LayoutInflater) context
@@ -341,7 +338,8 @@ public class BlubbMessage {
             messageView = inflater.inflate(R.layout.message_default_layout, parent, false);
         }
 
-        LinearLayout backLayout = (LinearLayout) messageView.findViewById(R.id.message_layout_back_ll);
+        LinearLayout backLayout = (LinearLayout) messageView.findViewById(
+                R.id.message_layout_back_ll);
 
         int backLevel = 0;
         if (tCreator.equals(this.mCreator)) {
@@ -352,37 +350,42 @@ public class BlubbMessage {
         }
         backLayout.getBackground().setLevel(backLevel);
 
-        TextView mTitle = (TextView) messageView.findViewById(R.id.message_layout_title_tv),
-                mCreator = (TextView) messageView.findViewById(R.id.message_layout_creator_tv),
-                mDate = (TextView) messageView.findViewById(R.id.message_layout_date_tv),
-                mRole = (TextView) messageView.findViewById(R.id.message_layout_creator_role_tv),
-                mPic = (TextView) messageView.findViewById(R.id.message_layout_icon_tv);
-        Button replyBtn = (Button) messageView.findViewById(R.id.message_layout_reply_btn);
-        View mContent = messageView.findViewById(R.id.message_layout_content_v);
+        TextView mTitleTv = (TextView) messageView.findViewById(R.id.message_layout_title_tv),
+                mCreatorTv = (TextView) messageView.findViewById(R.id.message_layout_creator_tv),
+                mDateTv = (TextView) messageView.findViewById(R.id.message_layout_date_tv),
+                mRoleTv = (TextView) messageView.findViewById(R.id.message_layout_creator_role_tv),
+                mPicTv = (TextView) messageView.findViewById(R.id.message_layout_icon_tv);
+        Button replyBtn = (Button) messageView.findViewById(R.id.message_layout_reply_btn),
+                editBtn = (Button) messageView.findViewById(R.id.message_layout_edit_btn);
+        View mContentV = messageView.findViewById(R.id.message_layout_content_v);
 
-        LinearLayout rightLL = (LinearLayout) messageView.findViewById(R.id.message_layout_right_ll);
-        rightLL.removeView(mContent);
+        LinearLayout rightLL = (LinearLayout) messageView.findViewById(
+                R.id.message_layout_right_ll);
+        rightLL.removeView(mContentV);
         rightLL.addView(getmContent().getContentView(context), 3);
 
         if (this.mTitle.equals(BPC.UNDEFINED) || this.mTitle.equals("")) {
-            rightLL.removeView(mTitle);
+            rightLL.removeView(mTitleTv);
         } else {
-            mTitle.setText(this.mTitle);
+            mTitleTv.setText(this.mTitle);
         }
 
-        mCreator.setText(this.getmCreator());
-        //mCreator.setOnClickListener(privateMsgClickListener);
-        mDate.setText(this.getmDate());
-        mRole.setText(this.getmCreatorRole());
+        mCreatorTv.setText(this.getmCreator());
+        mDateTv.setText(df.format(this.mDate));
+        mRoleTv.setText(this.getmCreatorRole());
 
         Typeface tf = Typeface.createFromAsset(context.getAssets(), "BeapIconic.ttf");
-        BlubbApplication.setLayoutFont(tf, mPic);
-        BlubbApplication.setLayoutFont(tf, replyBtn);
+        BlubbApplication.setLayoutFont(tf, mPicTv, replyBtn, editBtn);
         replyBtn.setOnClickListener(replyClickListener);
+        if (SessionManager.getInstance().getActiveUsername().equals(this.mCreator)) {
+            editBtn.setOnClickListener(editMsgClickListener);
+        } else {
+            editBtn.setVisibility(View.INVISIBLE);
+        }
 
         if (!mLink.equals(BPC.UNDEFINED)) {
-            mPic.setText("@");
-            mPic.setOnClickListener(new View.OnClickListener() {
+            mPicTv.setText("@");
+            mPicTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     linkPos = adapter.getMsgPosition(mLink);
@@ -391,11 +394,11 @@ public class BlubbMessage {
             });
         }
         if (mCreatorRole.equals("admin")) {
-            mPic.setTextColor(context.getResources().getColor(R.color.beap_red));
+            mPicTv.setTextColor(context.getResources().getColor(R.color.beap_red));
         } else if (mCreatorRole.equals("PL")) {
-            mPic.setTextColor(context.getResources().getColor(R.color.beap_medium_yellow));
+            mPicTv.setTextColor(context.getResources().getColor(R.color.beap_medium_yellow));
         } else {
-            mPic.setTextColor(context.getResources().getColor(R.color.beap_dark_blue));
+            mPicTv.setTextColor(context.getResources().getColor(R.color.beap_dark_blue));
         }
         return messageView;
     }
@@ -403,26 +406,25 @@ public class BlubbMessage {
     /**
      * Get the View representation of this message.
      *
-     * @param context                 The android context for the View.
-     * @param parent                  Parent ViewGroup for the messages View.
-     * @param tCreator                Creator of the current thread. If the message creator and the
-     *                                thread creator are the same the message will be highlighted.
-     * @param replyClickListener      OnClickListener for the replyButton.
-     * @param privateMsgClickListener OnClickListener to write a private message to
-     *                                the creator of this message.
-     * @param adapter                 The array adapter for the message. If this message is a reply
-     *                                to another message with a click on the '@' the array adapter
-     *                                will scroll to the position of the replied message.
+     * @param context              The android context for the View.
+     * @param parent               Parent ViewGroup for the messages View.
+     * @param tCreator             Creator of the current thread. If the message creator and the
+     *                             thread creator are the same the message will be highlighted.
+     * @param replyClickListener   OnClickListener for the replyButton.
+     * @param editMsgClickListener OnClickListener to modify a message.
+     * @param adapter              The array adapter for the message. If this message is a reply
+     *                             to another message with a click on the '@' the array adapter
+     *                             will scroll to the position of the replied message.
      * @return The created View displaying this message in the user interface.
      */
     public View getView(Context context, final ViewGroup parent,
                         String tCreator, View.OnClickListener replyClickListener,
-                        View.OnClickListener privateMsgClickListener,
-                        final ActivitySingleThread.MessageArrayAdapter adapter) {
+                        View.OnClickListener editMsgClickListener,
+                        final ActivityMessages.MessageArrayAdapter adapter) {
         if (msgView == null) {
             linkPos = adapter.getMsgPosition(mLink);
             msgView = createView(context, parent, tCreator, replyClickListener,
-                    privateMsgClickListener, adapter);
+                    editMsgClickListener, adapter);
         }
         return msgView;
     }

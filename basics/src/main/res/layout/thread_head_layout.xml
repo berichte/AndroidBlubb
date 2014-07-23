@@ -28,7 +28,6 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="15dp"
                 android:text="ThreadTitle"
-                android:textColor="@color/blubb_cards_text"
                 android:textSize="@dimen/blubb_text_size_large"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -44,7 +43,6 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="15dp"
                 android:text="ThreadAuthor"
-                android:textColor="@color/blubb_cards_text"
                 android:textSize="@dimen/blubb_text_size_medium" />
 
             <TextView
@@ -53,8 +51,6 @@
                 android:layout_height="wrap_content"
                 android:gravity="right"
                 android:text="Msgs"
-                android:textAlignment="center"
-                android:textColor="@color/blubb_cards_text"
                 android:textSize="@dimen/blubb_text_size_medium"
                 android:textStyle="bold" />
         </LinearLayout>

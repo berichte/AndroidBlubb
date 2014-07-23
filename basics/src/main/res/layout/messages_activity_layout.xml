@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/blubb_background2"
     android:orientation="vertical"
-    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
+    tools:context="com.blubb.alubb.blubbbasics.ActivityMessages"
     tools:ignore="Overdraw">
     <!-- Progressbar indicating a background process in progress. -->
     <ProgressBar
@@ -25,7 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="false"
-        android:background="@color/transparent">
+        android:background="@color/full_transparent"
+        android:paddingLeft="@dimen/cards_separation_space">
         <!-- Input for creating new, modifying old and replying to messages. -->
         <EditText
             android:id="@+id/message_activity_input_et"
@@ -34,7 +35,7 @@
             android:layout_gravity="center_vertical|left"
             android:layout_weight="100"
             android:background="@drawable/content_rc_transpgray_bg"
-            android:hint="@string/messages_activity_create_message_hint"
+            android:hint="@string/messages_activity_input_create_message_hint"
             android:maxLines="10"
             android:padding="10dp"
             android:scrollbars="vertical"
@@ -47,7 +48,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical|right"
-            android:layout_margin="@dimen/message_padding"
+            android:layout_margin="@dimen/standard_padding"
             android:layout_weight="1"
             android:background="@drawable/blubb_button_y"
             android:text="y" />
@@ -61,7 +62,7 @@
         android:layout_above="@id/messages_activity_input_ll"
         android:divider="@android:color/transparent"
         android:dividerHeight="@dimen/cards_separation_space"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="?android:attr/actionBarSize"></ListView>
+        android:paddingLeft="@dimen/cards_separation_space"
+        android:paddingRight="@dimen/cards_separation_space"
+        android:paddingTop="?android:attr/actionBarSize" />
 </RelativeLayout>

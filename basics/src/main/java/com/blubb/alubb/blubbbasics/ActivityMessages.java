@@ -44,7 +44,7 @@ import java.util.Set;
  * Activity that shows BlubbMessages to a thread.
  * The user can read messages, write, modify and reply to existing messages.
  */
-public class ActivitySingleThread extends Activity {
+public class ActivityMessages extends Activity {
 
     /**
      * Name for Logging purposes.
@@ -180,15 +180,15 @@ public class ActivitySingleThread extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.new_message_action:
+            case R.id.messages_menu_create_msg:
                 EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
                 inputET.requestFocus();
                 startInputView();
-                InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
+                InputMethodManager imm = (InputMethodManager) ActivityMessages.this
                         .getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(inputET, 0);
                 break;
-            case R.id.menu_action_refresh:
+            case R.id.messages_menu_refresh:
                 new AsyncGetAllMessagesToThread(threadId).execute();
                 break;
         }
@@ -238,7 +238,7 @@ public class ActivitySingleThread extends Activity {
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
         inputET.setText("");
-        inputET.setHint(getString(R.string.messages_activity_create_message_hint));
+        inputET.setHint(getString(R.string.messages_activity_input_create_message_hint));
         yBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -260,7 +260,7 @@ public class ActivitySingleThread extends Activity {
         final Button yBtn = (Button) findViewById(R.id.messages_activity_send_btn);
         final EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
         inputET.requestFocus();
-        inputET.setHint(getString(R.string.message_reply_hint) + replyTo.getmCreator());
+        inputET.setHint(getString(R.string.messages_activity_input_reply_hint) + replyTo.getmCreator());
         Typeface tf = Typeface.createFromAsset(this.getAssets(), "BeapIconic.ttf");
         BlubbApplication.setLayoutFont(tf, yBtn);
         showInput(true, inputET);
@@ -334,7 +334,7 @@ public class ActivitySingleThread extends Activity {
      *             soft keyboard input.
      */
     private void showInput(boolean show, View view) {
-        InputMethodManager imm = (InputMethodManager) ActivitySingleThread.this
+        InputMethodManager imm = (InputMethodManager) ActivityMessages.this
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (show) {
             imm.showSoftInput(view, 0);
@@ -354,7 +354,7 @@ public class ActivitySingleThread extends Activity {
             ListView lv = (ListView) findViewById(R.id.messages_activity_lv);
             Collections.reverse(messages);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
-                    ActivitySingleThread.this, R.layout.message_layout, messages);
+                    ActivityMessages.this, R.layout.message_layout, messages);
             lv.setAdapter(adapter);
             messageListView.smoothScrollToPosition(lastPosition + 1);
         }
@@ -412,7 +412,7 @@ public class ActivitySingleThread extends Activity {
         @Override
         public View getView(final int position, View convertView, final ViewGroup parent) {
             final BlubbMessage message = getItem(position);
-            View msg = message.getView(ActivitySingleThread.this, parent, thread.gettCreator(),
+            View msg = message.getView(ActivityMessages.this, parent, thread.gettCreator(),
                     new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -422,7 +422,8 @@ public class ActivitySingleThread extends Activity {
                     new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //createPrivateMessage(message);
+                            changeMessage(message);
+                            lastPosition = position;
                         }
                     }, this
             );
@@ -491,7 +492,7 @@ public class ActivitySingleThread extends Activity {
             Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
             try {
                 return MessageManager.getInstance().getAllMessagesForThread(
-                        ActivitySingleThread.this.getApplicationContext(), this.threadId);
+                        ActivityMessages.this.getApplicationContext(), this.threadId);
             } catch (Exception e) {
                 this.e = e;
                 return null;
@@ -531,7 +532,7 @@ public class ActivitySingleThread extends Activity {
         protected Boolean doInBackground(String... parameter) {
             try {
                 return MessageManager.getInstance().createMsg(
-                        ActivitySingleThread.this.getApplicationContext(),
+                        ActivityMessages.this.getApplicationContext(),
                         parameter);
             } catch (Exception e) {
                 this.exception = e;
@@ -551,8 +552,8 @@ public class ActivitySingleThread extends Activity {
                 String msg = getResources().getString(R.string.create_message_confirmation_toast);
                 Log.i(NAME, msg);
                 fillListWithMessages(MessageManager.getInstance()
-                        .getAllMessagesForThreadFromSqlite(ActivitySingleThread.this, threadId));
-                Toast.makeText(ActivitySingleThread.this, msg, Toast.LENGTH_SHORT).show();
+                        .getAllMessagesForThreadFromSqlite(ActivityMessages.this, threadId));
+                Toast.makeText(ActivityMessages.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }
@@ -576,7 +577,7 @@ public class ActivitySingleThread extends Activity {
         @Override
         protected Boolean doInBackground(BlubbMessage... parameter) {
             try {
-                return MessageManager.getInstance().setMsg(ActivitySingleThread.this, parameter[0]);
+                return MessageManager.getInstance().setMsg(ActivityMessages.this, parameter[0]);
             } catch (Exception e) {
                 this.exception = e;
                 return false;
@@ -594,8 +595,8 @@ public class ActivitySingleThread extends Activity {
                 String msg = getResources().getString(R.string.modify_message_confirmation_toast);
                 Log.i(NAME, msg);
                 fillListWithMessages(MessageManager.getInstance()
-                        .getAllMessagesForThreadFromSqlite(ActivitySingleThread.this, threadId));
-                Toast.makeText(ActivitySingleThread.this, msg, Toast.LENGTH_SHORT).show();
+                        .getAllMessagesForThreadFromSqlite(ActivityMessages.this, threadId));
+                Toast.makeText(ActivityMessages.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }

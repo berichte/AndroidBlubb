@@ -1,19 +1,12 @@
 <resources>
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">5dp</dimen>
-    <dimen name="activity_vertical_margin">5dp</dimen>
-    <dimen name="message_padding">8dp</dimen>
-    <dimen name="message_padding_creator">18dp</dimen>
-    <dimen name="message_padding_left">16dp</dimen>
-    <dimen name="message_padding_top">3dp</dimen>
-    <dimen name="message_padding_right">16dp</dimen>
-    <dimen name="message_padding_bottom">16dp</dimen>
+    <!-- padding used for design. -->
+    <dimen name="standard_padding">8dp</dimen>
+    <!-- Tighter padding, e.g. for the space between cards for threads or messages. -->
     <dimen name="cards_separation_space">2dp</dimen>
-
+    <!-- Sizes for the text.-->
     <dimen name="blubb_text_size_micro">12sp</dimen>
     <dimen name="blubb_text_size_small">14sp</dimen>
     <dimen name="blubb_text_size_medium">18sp</dimen>
     <dimen name="blubb_text_size_large">22sp</dimen>
-
-
+    <dimen name="blubb_symbol_size">33sp</dimen>
 </resources>

@@ -1,25 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!-- Menu for the threads activity. Since this is the main activity there are many options:
+- Open a new thread
+- Refresh the threads
+- go to the settings
+- go to the login screen
+- reset the password at the login screen
+- logout
+-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_new_thread_action"
-        android:title="@string/menu_action_new_thread_text" />
+        android:id="@+id/threads_menu_open_thread"
+        android:title="@string/menu_new_thread_text" />
     <item
-        android:id="@+id/menu_action_refresh"
-        android:title="@string/menu_action_refresh_title" />
+        android:id="@+id/threads_menu_refresh"
+        android:title="@string/menu_refresh_text" />
     <item
-        android:id="@+id/menu_blubb_settings"
+        android:id="@+id/threads_menu_goto_settings"
         android:title="Settings" />
     <item
-        android:id="@+id/menu_action_login"
-        android:title="@string/login" />
+        android:id="@+id/threads_menu_goto_login"
+        android:title="@string/menu_login_text" />
     <item
-        android:id="@+id/menu_action_resetpassword"
-        android:title="@string/menu_action_resetpassword_text" />
+        android:id="@+id/threads_menu_goto_reset_pw"
+        android:title="@string/menu_reset_password_text" />
     <item
-        android:id="@+id/menu_action_logout"
+        android:id="@+id/threads_menu_logout"
         android:orderInCategory="100"
-        android:title="@string/menu_action_logout" />
+        android:title="@string/menu_logout_text" />
 
 </menu>

@@ -9,7 +9,7 @@ Created by Benjamin Richter -->
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_transparent_shadow" />
+            <solid android:color="@color/transparent_shadow" />
             <corners
                 android:bottomLeftRadius="2dp"
                 android:bottomRightRadius="2dp"
@@ -23,7 +23,7 @@ Created by Benjamin Richter -->
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:padding="10dp"
             android:shape="rectangle">
-            <solid android:color="@color/blubb_transparent" />
+            <solid android:color="@color/light_transparent" />
             <corners
                 android:bottomLeftRadius="2dp"
                 android:bottomRightRadius="2dp"

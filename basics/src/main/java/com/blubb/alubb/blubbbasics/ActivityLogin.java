@@ -111,7 +111,7 @@ public class ActivityLogin extends Activity {
         fillInCredentialPrefs(username, password);
         switch (loginType) {
             case RESET:
-                button.setText(getString(R.string.blubb_reset_button_text));
+                button.setText(getString(R.string.login_activity_reset_btn_text));
                 resetPw.setVisibility(View.VISIBLE);
                 confirmPw.setVisibility(View.VISIBLE);
                 button.setOnClickListener(new View.OnClickListener() {
@@ -128,7 +128,7 @@ public class ActivityLogin extends Activity {
                 stayloggedIn.setVisibility(View.INVISIBLE);
                 break;
             case LOGIN:
-                button.setText(getString(R.string.action_sign_in_short));
+                button.setText(getString(R.string.login_activity_sign_in_btn_text));
                 resetPw.setVisibility(View.INVISIBLE);
                 confirmPw.setVisibility(View.INVISIBLE);
                 addLoginButtonListener();

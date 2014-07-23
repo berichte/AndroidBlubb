@@ -6,9 +6,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/waterdrop_wallpaper"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:context="com.blubb.alubb.blubbbasics.ActivitySingleThread"
+    android:paddingLeft="@dimen/cards_separation_space"
+    android:paddingRight="@dimen/cards_separation_space"
+    tools:context="com.blubb.alubb.blubbbasics.ActivityMessages"
     tools:ignore="Overdraw">
 
     <Space
@@ -28,6 +28,7 @@
         android:indeterminateOnly="true"
         android:visibility="invisible" />
 
+    <!--suppress CheckTagEmptyBody -->
     <ListView
         android:id="@+id/threads_activity_lv"
         android:layout_width="match_parent"

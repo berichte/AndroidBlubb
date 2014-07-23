@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="blubb_message_pull_entries">
+    <!-- Array for the settings entries to adjust the message pull services
+    frequency of pulling messages. The values are in settings_message_pull_values.-->
+    <string-array name="settings_message_pull_entries">
         <item>off</item>
         <item>often</item>
         <item>medium</item>
         <item>infrequent</item>
     </string-array>
-    <string-array name="blubb_message_pull_values">
+    <!-- Values for settings_message_pull_entries. They represent the frequency of the message
+    pull services pulling action in seconds. -->
+    <string-array name="settings_message_pull_values">
         <item>0</item>
         <item>30</item>
         <item>300</item>
         <item>3600</item>
     </string-array>
-    <string-array name="thread_status_values">
-        <item>OPEN</item>
-        <item>SOLVED</item>
-        <item>CANCELED</item>
-    </string-array>
+    <!-- Array for the entries of the edit_thread_dialogs spinner for the threads status.-->
     <string-array name="thread_status_entries">
         <item>OPEN</item>
         <item>SOLVED</item>
         <item>CANCELED</item>
     </string-array>
-
 </resources>

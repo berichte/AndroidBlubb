@@ -20,8 +20,7 @@ Created by Benjamin Richter -->
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/edit_thread_dialog_head_tv"
-        android:hint="@string/thread_title_hint"
-        android:textColor="@color/blubb_cards_text"
+        android:hint="@string/create_thread_dialog_title_hint"
         android:textSize="@dimen/blubb_text_size_large" />
 
     <EditText
@@ -30,12 +29,11 @@ Created by Benjamin Richter -->
         android:layout_height="wrap_content"
         android:layout_below="@id/edit_thread_dialog_title_et"
         android:background="@drawable/content_rc_transpgray_bg"
-        android:hint="@string/thread_description_hint"
+        android:hint="@string/create_thread_dialog_description_hint"
         android:paddingBottom="10dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         android:paddingTop="5dp"
-        android:textColor="@color/blubb_cards_content_text"
         android:textSize="@dimen/blubb_text_size_small" />
 
 

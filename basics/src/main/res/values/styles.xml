@@ -1,6 +1,5 @@
 <resources>
-
-    <!-- Base application theme. -->
+    <!-- Basic application theme. -->
     <style name="AppTheme" parent="@android:style/Theme.Holo.Light">
         <item name="android:actionBarStyle">@style/myActionBar</item>
         <item name="android:actionBarTabTextStyle">@style/blubbActionBarTabText</item>
@@ -14,14 +13,13 @@
         <item name="android:title">@style/blubbTitle</item>
     </style>
 
-    <style name="CustomActionBarTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar"></style>
-
     <!-- ActionBar styles -->
     <style name="myActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@drawable/actionbar_rc_transpwhite_bg</item>
         <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
     </style>
 
+    <!-- The style for the action bars title.-->
     <style name="MyActionBarTitleText">
         <item name="android:textColor">@color/actionbar_text</item>
         <item name="android:textSize">@dimen/blubb_text_size_large</item>
@@ -33,11 +31,13 @@
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
 
+    <!-- Prototype for the buttons.-->
     <style name="blubbButton">
         <item name="android:background">@drawable/blubb_button</item>
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
 
+    <!-- Style of the menu popup.-->
     <style name="blubbPopupMenuStyle">
         <item name="android:background">@color/beap_green_transparent</item>
         <item name="android:popupBackground">@drawable/popupmenu_rc_transpwhite_bg</item>
@@ -48,9 +48,4 @@
         <item name="android:textColor">@color/beap_dark_blue</item>
     </style>
 
-    <style name="blubbSymbolStyle">
-        <item name="android:textSize">@dimen/blubb_symbol_size</item>
-    </style>
-
-    <dimen name="blubb_symbol_size">33sp</dimen>
 </resources>

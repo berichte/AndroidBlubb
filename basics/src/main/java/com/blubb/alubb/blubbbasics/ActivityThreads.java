@@ -51,7 +51,7 @@ import java.util.List;
  * Central activity which shows the threads available for the logged in user.
  * From this point of the user interface every other screen is accessible.
  */
-public class ActivityThreadOverview extends Activity {
+public class ActivityThreads extends Activity {
     /**
      * Name for Logging purposes.
      */
@@ -131,8 +131,8 @@ public class ActivityThreadOverview extends Activity {
     private void startMessagePullService() {
         Log.v(NAME, "startMessagePullService()");
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        PendingIntent mAlarmSender = PendingIntent.getService(ActivityThreadOverview.this,
-                0, new Intent(ActivityThreadOverview.this, MessagePullService.class), 0);
+        PendingIntent mAlarmSender = PendingIntent.getService(ActivityThreads.this,
+                0, new Intent(ActivityThreads.this, MessagePullService.class), 0);
         am.cancel(mAlarmSender);
         SharedPreferences sharedPrefs;
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -194,51 +194,51 @@ public class ActivityThreadOverview extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_new_thread_action:
+            case R.id.threads_menu_open_thread:
                 newThreadDialog();
                 break;
-            case R.id.menu_action_refresh:
+            case R.id.threads_menu_refresh:
                 showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
                 AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
                 this.showSpinnerForGetAllBeapThreads = true;
                 spinnerOn();
                 asyncGetAllThreadsFromBeap.execute();
                 break;
-            case R.id.menu_blubb_settings:
+            case R.id.threads_menu_goto_settings:
                 Intent i = new Intent(this, ActivitySettings.class);
                 startActivityForResult(i, RESULT_SETTINGS);
                 break;
-            case R.id.menu_action_login:
+            case R.id.threads_menu_goto_login:
                 Intent loginIntent = new Intent(this, ActivityLogin.class);
                 loginIntent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE,
                         ActivityLogin.LoginType.LOGIN);
                 startActivityForResult(loginIntent, RESULT_LOGIN);
                 break;
-            case R.id.menu_action_resetpassword:
+            case R.id.threads_menu_goto_reset_pw:
                 Intent resetPwIntent = new Intent(this, ActivityLogin.class);
                 resetPwIntent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE,
                         ActivityLogin.LoginType.RESET);
                 startActivityForResult(resetPwIntent, RESULT_LOGIN);
                 break;
-            case R.id.menu_action_logout:
+            case R.id.threads_menu_logout:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(R.string.logout_warning_message)
-                        .setPositiveButton(R.string.logout_positive_btn, new DialogInterface.OnClickListener() {
+                builder.setMessage(R.string.logout_dialog_title_text)
+                        .setPositiveButton(R.string.logout_dialog_positive_btn_text, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 AlarmManager am = (AlarmManager)
                                         getSystemService(Context.ALARM_SERVICE);
                                 PendingIntent mAlarmSender = PendingIntent.getService(
-                                        ActivityThreadOverview.this, 0,
-                                        new Intent(ActivityThreadOverview.this,
+                                        ActivityThreads.this, 0,
+                                        new Intent(ActivityThreads.this,
                                                 MessagePullService.class), 0
                                 );
                                 am.cancel(mAlarmSender);
-                                SessionManager.getInstance().logout(ActivityThreadOverview.this);
+                                SessionManager.getInstance().logout(ActivityThreads.this);
                                 finish();
 
                             }
                         })
-                        .setNegativeButton(R.string.logout_negativ_btn, new DialogInterface.OnClickListener() {
+                        .setNegativeButton(R.string.logout_dialog_negative_btn_text, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
                             }
@@ -255,7 +255,7 @@ public class ActivityThreadOverview extends Activity {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void newThreadDialog() {
-        final Dialog dialog = new Dialog(ActivityThreadOverview.this);
+        final Dialog dialog = new Dialog(ActivityThreads.this);
 
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.create_thread_dialog, null);
@@ -305,9 +305,9 @@ public class ActivityThreadOverview extends Activity {
                 String titleString = title.getText().toString(),
                         descString = descr.getText().toString();
                 if (titleString.length() > 40 || titleString.length() == 0) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_title_size_warning);
-                    Toast.makeText(ActivityThreadOverview.this, message, Toast.LENGTH_SHORT).show();
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_title_size_toast);
+                    Toast.makeText(ActivityThreads.this, message, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 char[] de = descString.toCharArray();
@@ -316,16 +316,16 @@ public class ActivityThreadOverview extends Activity {
                     if (c == '\n') nlCounter++;
                 }
                 if (nlCounter > 2) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_descr_nl_warning);
-                    Toast.makeText(ActivityThreadOverview.this,
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_description_lines_toast);
+                    Toast.makeText(ActivityThreads.this,
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (descString.length() < 1) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_descr_size_warning);
-                    Toast.makeText(ActivityThreadOverview.this,
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_description_empty_toast);
+                    Toast.makeText(ActivityThreads.this,
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -362,7 +362,7 @@ public class ActivityThreadOverview extends Activity {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void editThreadDialog(final BlubbThread thread) {
-        final Dialog dialog = new Dialog(ActivityThreadOverview.this);
+        final Dialog dialog = new Dialog(ActivityThreads.this);
 
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.edit_thread_dialog, null);
@@ -454,9 +454,9 @@ public class ActivityThreadOverview extends Activity {
                 String titleString = titleET.getText().toString(),
                         descString = descriptionET.getText().toString();
                 if (titleString.length() > 40 || titleString.length() == 0) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_title_size_warning);
-                    Toast.makeText(ActivityThreadOverview.this, message, Toast.LENGTH_SHORT).show();
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_title_size_toast);
+                    Toast.makeText(ActivityThreads.this, message, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 char[] de = descString.toCharArray();
@@ -465,16 +465,16 @@ public class ActivityThreadOverview extends Activity {
                     if (c == '\n') nlCounter++;
                 }
                 if (nlCounter > 2) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_descr_nl_warning);
-                    Toast.makeText(ActivityThreadOverview.this,
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_description_lines_toast);
+                    Toast.makeText(ActivityThreads.this,
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (descString.length() < 1) {
-                    String message = ActivityThreadOverview.this.getString(
-                            R.string.thread_descr_size_warning);
-                    Toast.makeText(ActivityThreadOverview.this,
+                    String message = ActivityThreads.this.getString(
+                            R.string.create_thread_dialog_description_empty_toast);
+                    Toast.makeText(ActivityThreads.this,
                             message, Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -574,7 +574,7 @@ public class ActivityThreadOverview extends Activity {
         ListView lv = (ListView) findViewById(R.id.threads_activity_lv);
 
         final ThreadArrayAdapter adapter = new ThreadArrayAdapter(
-                ActivityThreadOverview.this, R.layout.thread_big_layout, threads);
+                ActivityThreads.this, R.layout.thread_big_layout, threads);
 
         if (adapter.getCount() > threads.size()) {
             spinnerOff();
@@ -632,10 +632,10 @@ public class ActivityThreadOverview extends Activity {
                     public void onClick(View v) {
                         Log.d(NAME, v.toString() + " clicked.");
                         Intent intent = new Intent(
-                                ActivityThreadOverview.this, ActivitySingleThread.class);
+                                ActivityThreads.this, ActivityMessages.class);
                         String threadId = thread.gettId();
-                        intent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
-                        ActivityThreadOverview.this.startActivity(intent);
+                        intent.putExtra(ActivityMessages.EXTRA_THREAD_ID, threadId);
+                        ActivityThreads.this.startActivity(intent);
                     }
                 });
                 thread.setOnLongClickListener(new View.OnLongClickListener() {
@@ -662,7 +662,7 @@ public class ActivityThreadOverview extends Activity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             final BlubbThread blubbThread = getItem(position);
-            final View tView = blubbThread.getView(ActivityThreadOverview.this, parent);
+            final View tView = blubbThread.getView(ActivityThreads.this, parent);
             Button editBtn = (Button) tView.findViewById(R.id.thread_edit_btn);
             if (editBtn != null) {
                 editBtn.setOnClickListener(new View.OnClickListener() {
@@ -722,7 +722,7 @@ public class ActivityThreadOverview extends Activity {
                     description = parameter[1];
             try {
                 return ThreadManager.getInstance().createThread(
-                        ActivityThreadOverview.this.getApplicationContext(), title, description);
+                        ActivityThreads.this.getApplicationContext(), title, description);
             } catch (Exception e) {
                 this.exception = e;
             }
@@ -742,12 +742,12 @@ public class ActivityThreadOverview extends Activity {
                         "tId: " + thread.gettId() + "\n" +
                         "tTitle: " + thread.getThreadTitle();
                 Log.i("AsyncNewThread", msg);
-                Toast.makeText(ActivityThreadOverview.this, msg, Toast.LENGTH_LONG).show();
+                Toast.makeText(ActivityThreads.this, msg, Toast.LENGTH_LONG).show();
                 cancelNotification();
             } // if null there has been a toast.
 
             showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
-                    ActivityThreadOverview.this));
+                    ActivityThreads.this));
             AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
             asyncGetAllThreadsFromBeap.execute();
             showSpinnerForCreateThread = false;
@@ -769,7 +769,7 @@ public class ActivityThreadOverview extends Activity {
             Log.v("AsyncGetAllThreads", "execute()");
             try {
                 return ThreadManager.getInstance().updateAllThreadsFromBeap(
-                        ActivityThreadOverview.this.getApplicationContext());
+                        ActivityThreads.this.getApplicationContext());
             } catch (Exception e) {
                 this.e = e;
                 return false;
@@ -786,7 +786,7 @@ public class ActivityThreadOverview extends Activity {
             getApp().handleException(e);
             if (response) {
                 showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
-                        ActivityThreadOverview.this));
+                        ActivityThreads.this));
             }
             showSpinnerForGetAllBeapThreads = false;
             spinnerOff();
@@ -808,7 +808,7 @@ public class ActivityThreadOverview extends Activity {
             Log.v(NAME, "AsyncLogin");
             try {
                 SessionManager.getInstance().getSessionID(
-                        ActivityThreadOverview.this.getApplicationContext());
+                        ActivityThreads.this.getApplicationContext());
                 return true;
             } catch (Exception e) {
                 this.e = e;
@@ -823,14 +823,14 @@ public class ActivityThreadOverview extends Activity {
             if (!isLoggedIn) {
                 // if the e is a ConnectionException don't let user perform manual login
                 if (e.getClass().equals(SessionException.class)) {
-                    DatabaseHandler db = new DatabaseHandler(ActivityThreadOverview.this);
+                    DatabaseHandler db = new DatabaseHandler(ActivityThreads.this);
                     int counter = db.getThreadCount();
                     if (counter == 0) {
-                        Intent intent = new Intent(ActivityThreadOverview.this,
+                        Intent intent = new Intent(ActivityThreads.this,
                                 ActivityLogin.class);
                         intent.putExtra(ActivityLogin.EXTRA_LOGIN_TYPE,
                                 ActivityLogin.LoginType.LOGIN);
-                        ActivityThreadOverview.this.startActivity(intent);
+                        ActivityThreads.this.startActivity(intent);
                     }
                 }
             }
@@ -866,7 +866,7 @@ public class ActivityThreadOverview extends Activity {
         protected Boolean doInBackground(Void... params) {
             try {
                 return ThreadManager.getInstance()
-                        .setThread(ActivityThreadOverview.this, thread);
+                        .setThread(ActivityThreads.this, thread);
             } catch (Exception e) {
                 this.e = e;
             }
@@ -879,8 +879,8 @@ public class ActivityThreadOverview extends Activity {
             showSpinnerForCreateThread = false;
             if (response) {
                 onResume();
-                Toast.makeText(ActivityThreadOverview.this,
-                        getResources().getString(R.string.set_thread_succsessful_text),
+                Toast.makeText(ActivityThreads.this,
+                        getResources().getString(R.string.set_thread_successfully_toast),
                         Toast.LENGTH_LONG).show();
             }
         }

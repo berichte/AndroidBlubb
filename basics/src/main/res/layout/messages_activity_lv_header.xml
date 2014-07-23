@@ -17,8 +17,7 @@ Created by Benjamin Richter -->
         android:paddingTop="10dp"
         android:text="Title of the thread"
         android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/blubb_cards_content_text" />
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/messages_activity_lv_header_desc_tv"
@@ -30,6 +29,5 @@ Created by Benjamin Richter -->
         android:paddingTop="10dp"
         android:text="Description of the thread\nfor thread\nblabla"
         android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/blubb_cards_content_text" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 </LinearLayout>

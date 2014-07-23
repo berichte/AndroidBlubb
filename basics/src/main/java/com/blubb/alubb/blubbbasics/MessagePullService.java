@@ -94,16 +94,16 @@ public class MessagePullService extends Service {
             builder.setContentText(nContent);
             builder.setStyle(new NotificationCompat.BigTextStyle().bigText(nContent));
 
-            resultIntent = new Intent(this, ActivityThreadOverview.class);
+            resultIntent = new Intent(this, ActivityThreads.class);
         } else if (messages.size() == 1) {
             BlubbMessage message = messages.get(0);
             builder.setContentTitle(message.getmCreator() + "\n" + message.getmTitle());
             builder.setContentText(message.getmContent().getStringRepresentation());
 
-            resultIntent = new Intent(this, ActivitySingleThread.class);
+            resultIntent = new Intent(this, ActivityMessages.class);
 
             String threadId = message.getmThread();
-            resultIntent.putExtra(ActivitySingleThread.EXTRA_THREAD_ID, threadId);
+            resultIntent.putExtra(ActivityMessages.EXTRA_THREAD_ID, threadId);
 
         } else return;
 
@@ -141,7 +141,7 @@ public class MessagePullService extends Service {
             builder.setContentTitle(thread.getThreadTitle());
             builder.setContentText(thread.gettDesc());
         } else return;
-        Intent resultIntent = new Intent(this, ActivityThreadOverview.class);
+        Intent resultIntent = new Intent(this, ActivityThreads.class);
         PendingIntent resultPendingIntent = PendingIntent.getActivity(
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(resultPendingIntent);
@@ -153,6 +153,7 @@ public class MessagePullService extends Service {
      *
      * @return The custom Application instance.
      */
+    @SuppressWarnings("UnusedDeclaration")
     private BlubbApplication getApp() {
         return (BlubbApplication) getApplication();
     }
@@ -194,7 +195,7 @@ public class MessagePullService extends Service {
          */
         @Override
         public void onPostExecute(QuickCheck quickCheck) {
-            getApp().handleException(e);
+            //getApp().handleException(e);
             if (quickCheck.hasResult()) {
                 mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 if (quickCheck.messages.size() > 0) {

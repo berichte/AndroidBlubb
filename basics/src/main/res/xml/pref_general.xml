@@ -1,13 +1,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-
+    <!-- Preferences for the setting of the message pull service.-->
     <ListPreference
         android:defaultValue="300"
-        android:dialogTitle="@string/blubb_message_pull_prefab_title"
-        android:entries="@array/blubb_message_pull_entries"
-        android:entryValues="@array/blubb_message_pull_values"
+        android:dialogTitle="@string/pref_message_pull_title"
+        android:entries="@array/settings_message_pull_entries"
+        android:entryValues="@array/settings_message_pull_values"
         android:key="@string/pref_message_pull_interval"
-        android:title="@string/blubb_message_pull_prefab_rate" />
-
-
+        android:title="@string/pref_message_pull_rate" />
 </PreferenceScreen>

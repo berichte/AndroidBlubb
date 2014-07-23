@@ -14,11 +14,11 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".blubbbasics.ActivityLogin"
-            android:label="@string/title_activity_blubb_login"
+            android:label="@string/activity_login_title_text"
             android:screenOrientation="nosensor" />
         <activity
-            android:name=".blubbbasics.ActivityThreadOverview"
-            android:label="@string/title_activity_thread_overview"
+            android:name=".blubbbasics.ActivityThreads"
+            android:label="@string/activity_threads_title_text"
             android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,20 +27,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".blubbbasics.ActivitySingleThread"
-            android:label="@string/title_activity_single_thread"
+            android:name=".blubbbasics.ActivityMessages"
+            android:label="@string/activity_messages_title_text"
             android:screenOrientation="nosensor"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".blubbbasics.ActivitySettings"
-            android:label="@string/title_activity_settings" />
+            android:label="@string/activity_settings_title_text" />
 
         <service
             android:name=".blubbbasics.MessagePullService"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/blubb_logo"
-            android:label="@string/service_message_pull_name"
+            android:label="@string/service_message_pull_label_text"
             tools:ignore="ExportedService" />
 
     </application>

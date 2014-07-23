@@ -5,9 +5,7 @@ Created by Benjamin Richter -->
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:padding="@dimen/cards_separation_space"
     android:weightSum="1"
     tools:context="com.blubb.alubb.blubbbasics.ActivityLogin">
     <!-- Progressbar indicating a background process in progress. -->
@@ -26,7 +24,7 @@ Created by Benjamin Richter -->
         android:layout_width="225dp"
         android:layout_height="221dp"
         android:layout_gravity="center_horizontal|top"
-        android:contentDescription="@string/blubb_logo_content_description"
+        android:contentDescription="@string/blubb_logo_description"
         android:paddingTop="?android:attr/actionBarSize"
         android:src="@drawable/blubb_logo_big" />
 
@@ -36,7 +34,7 @@ Created by Benjamin Richter -->
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:hint="@string/login_username_hint"
+        android:hint="@string/login_activity_username_hint"
         android:imeOptions="actionNext"
         android:textColor="@color/beap_dark_blue" />
     <!-- For input of the password.-->
@@ -66,7 +64,7 @@ Created by Benjamin Richter -->
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:hint="@string/login_password__reset_confirm_hint"
+        android:hint="@string/login_activity_password__reset_confirm_hint"
         android:imeOptions="actionNext"
         android:password="true"
         android:textColor="@color/beap_dark_blue"
@@ -78,7 +76,7 @@ Created by Benjamin Richter -->
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/blubb_button"
-        android:text="@string/action_sign_in_short"
+        android:text="@string/login_activity_sign_in_btn_text"
         android:textColor="@android:color/white" />
     <!-- If this stays checked the username and password will be stored for later automated log in. -->
     <CheckBox
@@ -87,6 +85,6 @@ Created by Benjamin Richter -->
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:checked="true"
-        android:text="@string/login_activity_stayloggedin_cb_text"
+        android:text="@string/login_activity_stay_logged_in_cb_text"
         android:textColor="@color/beap_dark_blue" />
 </LinearLayout>

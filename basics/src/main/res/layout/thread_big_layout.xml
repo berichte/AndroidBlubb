@@ -32,7 +32,6 @@
                 android:paddingBottom="10dp"
                 android:paddingLeft="15dp"
                 android:text="thread info"
-                android:textColor="@color/blubb_cards_text"
                 android:textSize="@dimen/blubb_text_size_small" />
 
             <TextView
@@ -45,7 +44,6 @@
                 android:paddingRight="15dp"
                 android:paddingTop="5dp"
                 android:text="Thread\ndescription\non three lines"
-                android:textColor="@color/blubb_cards_content_text"
                 android:textSize="@dimen/blubb_text_size_small" />
         </LinearLayout>
 
@@ -54,8 +52,8 @@
             android:layout_width="50dp"
             android:layout_height="30dp"
             android:layout_gravity="right"
-            android:layout_marginRight="@dimen/message_padding"
-            android:layout_marginTop="@dimen/message_padding"
+            android:layout_marginRight="@dimen/standard_padding"
+            android:layout_marginTop="@dimen/standard_padding"
             android:background="@drawable/blubb_button_small"
             android:text="E"
             android:textColor="@color/beap_blue" />
