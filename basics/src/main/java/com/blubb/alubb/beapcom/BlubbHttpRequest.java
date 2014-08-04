@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * Offers static functions to send a http request and receive the response.
+ * Offers functions to send a http request and receive the response.
  * Created by Benjamin Richter on 22.05.2014.
  */
 public class BlubbHttpRequest {
@@ -27,7 +27,7 @@ public class BlubbHttpRequest {
      * @param url The url the request will be send to.
      * @return Response string for that request.
      */
-    public static String request(String url) {
+    public String request(String url) {
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse response;
         String responseString;
@@ -62,7 +62,7 @@ public class BlubbHttpRequest {
      * @param e The exception occurred while executing a http request.
      * @return A beap response with beap status 407 - connection error.
      */
-    private static String handleHttpException(Exception e) {
+    private String handleHttpException(Exception e) {
         return "{\n" +
                 "\"BeapStatus\" : 407,\n " +
                 "\"StatusDescr\": \"connection error " + e.getClass().getName() + "\",\n " +

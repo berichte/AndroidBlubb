@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?><!-- Dialog to edit the title, description or status of a thread.
 Created by Benjamin Richter -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/threadview_rc_transpgray_bg"
-    android:orientation="horizontal"
-    android:paddingLeft="20dp"
-    android:paddingTop="10dp">
+    android:background="@drawable/dialog_rc_transpblue_bg"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/edit_thread_dialog_head_tv"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="15dp"
         android:text="@string/edit_thread_dialog_head_tv_text"
-        android:textSize="@dimen/blubb_symbol_size" />
+        android:textColor="@color/beap_dark_blue"
+        android:textSize="@dimen/blubb_text_size_large"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/edit_thread_dialog_title_et"
@@ -28,7 +30,6 @@ Created by Benjamin Richter -->
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/edit_thread_dialog_title_et"
-        android:background="@drawable/content_rc_transpgray_bg"
         android:hint="@string/create_thread_dialog_description_hint"
         android:paddingBottom="10dp"
         android:paddingLeft="15dp"
@@ -41,16 +42,15 @@ Created by Benjamin Richter -->
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/edit_thread_dialog_description_et"
-        android:layout_gravity="right"
+
         android:orientation="horizontal"
         android:padding="10dp">
 
         <Button
             android:id="@+id/edit_thread_dialog_x_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_gravity="left"
-            android:layout_weight="1"
             android:background="@drawable/blubb_button_x"
             android:text="@string/x_btn_text" />
 
@@ -59,15 +59,14 @@ Created by Benjamin Richter -->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/edit_thread_dialog_description_et"
-            android:layout_weight="10" />
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/edit_thread_dialog_y_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_gravity="right"
-            android:layout_weight="1"
             android:background="@drawable/blubb_button_y"
             android:text="@string/y_btn_text" />
     </LinearLayout>
-</RelativeLayout>
+</LinearLayout>

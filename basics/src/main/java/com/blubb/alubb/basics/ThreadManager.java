@@ -71,7 +71,7 @@ public class ThreadManager {
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      */
-    public List<BlubbThread> getAllThreads(Context context)
+    public synchronized List<BlubbThread> getAllThreads(Context context)
             throws BlubbDBException, BlubbDBConnectionException, SessionException, JSONException {
         this.updateAllThreadsFromBeap(context);
         return this.getAllThreadsFromSqlite(context);
@@ -83,7 +83,7 @@ public class ThreadManager {
      * @param context The applications context.
      * @return List of BlubbThreads the user has not seen yet.
      */
-    public List<BlubbThread> getNewThreads(Context context) {
+    public synchronized List<BlubbThread> getNewThreads(Context context) {
         Log.v(NAME, "getNewThreads(context)");
         List<BlubbThread> threads;
         try {
@@ -115,16 +115,15 @@ public class ThreadManager {
      * @return List of BlubbThreads instantly from the beapDB server.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
-     * @throws BlubbDBException           if the response status is not 'OK'.
-     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     * @throws BlubbDBException           if the response status is not 'OK' or
+     *                                    if the value of the json array for threads within the blubbResponse
      *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      */
-    public Boolean updateAllThreadsFromBeap(Context context)
-            throws SessionException, BlubbDBException,
-            JSONException, BlubbDBConnectionException {
+    public synchronized Boolean updateAllThreadsFromBeap(Context context)
+            throws SessionException, BlubbDBException, BlubbDBConnectionException {
         Log.v(NAME, "updateAllThreadsFromBeap(context)");
         String query = "tree.functions.getAllThreads(self)";
         String sessionId = null;
@@ -133,14 +132,21 @@ public class ThreadManager {
         } catch (PasswordInitException e) {
             Log.e(NAME, e.getMessage() + " can not happen at this point!");
         }
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         switch (response.getStatus()) {
             case OK:
                 int threadCounter = 0;
                 JSONArray jsonArray = (JSONArray) response.getResultObj();
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    BlubbThread t = new BlubbThread(jsonArray.getJSONObject(i));
-                    putThreadToSqliteFromBeap(context, t);
+                    BlubbThread thread;
+                    try {
+                        thread = new BlubbThread(jsonArray.getJSONObject(i));
+                    } catch (JSONException e) {
+                        Log.e(NAME, e.getMessage());
+                        throw new BlubbDBException("Received wrong kind of json object, " +
+                                "json exception occurred:\n" + e.getMessage());
+                    }
+                    putThreadToSqliteFromBeap(context, thread);
                     threadCounter++;
                 }
                 Log.i(NAME, "received " + threadCounter + " threads from beap.");
@@ -202,7 +208,7 @@ public class ThreadManager {
      * @param context The applications context.
      * @return List of BlubbThreads from the sqlite database.
      */
-    public List<BlubbThread> getAllThreadsFromSqlite(Context context) {
+    public synchronized List<BlubbThread> getAllThreadsFromSqlite(Context context) {
         DatabaseHandler db = new DatabaseHandler(context);
         Log.v(NAME, "getAllThreadsFromSqlite(context)");
         List<BlubbThread> list = db.getAllThreads();
@@ -217,7 +223,7 @@ public class ThreadManager {
      * @param tId     String containing the thread id of the thread needed.
      * @return BlubbThread object according to the tId.
      */
-    public BlubbThread getThreadFromSqlite(Context context, String tId) {
+    public synchronized BlubbThread getThreadFromSqlite(Context context, String tId) {
         Log.v(NAME, "getThreadFromList(context, tId");
         List<BlubbThread> threads = getAllThreadsFromSqlite(context);
         return getThreadFromList(threads, tId);
@@ -254,7 +260,7 @@ public class ThreadManager {
      * @throws SessionException if it was not possible to log in, probably the username or password
      *                          is wrong.
      */
-    public BlubbThread createThread(
+    public synchronized BlubbThread createThread(
             Context context, String tTitle, String tDescription)
             throws BlubbDBException,
             SessionException, BlubbDBConnectionException {
@@ -276,7 +282,7 @@ public class ThreadManager {
         }
         Log.v(NAME, "Received sessionId: " + sessionId);
         // execute query
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         Log.i(NAME, "Received response - Status: " + response.getStatus());
         switch (response.getStatus()) {
             // when OK there will be a thread obj as json obj in response
@@ -301,7 +307,7 @@ public class ThreadManager {
      * @param context  The applications context.
      * @param threadId String with the threads id.
      */
-    public void readingThread(Context context, String threadId) {
+    public synchronized void readingThread(Context context, String threadId) {
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbThread thread = db.getThread(threadId);
         thread.setNew(false);
@@ -322,7 +328,7 @@ public class ThreadManager {
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      */
-    public Boolean setThread(Context context, BlubbThread thread)
+    public synchronized Boolean setThread(Context context, BlubbThread thread)
             throws BlubbDBException, PasswordInitException,
             SessionException, BlubbDBConnectionException {
 
@@ -334,7 +340,7 @@ public class ThreadManager {
                 + "," + tStatus + ")";
 
         String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         switch (response.getStatus()) {
             case OK:

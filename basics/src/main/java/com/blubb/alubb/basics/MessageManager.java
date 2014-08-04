@@ -23,6 +23,7 @@ import java.util.List;
  * A Singleton class managing the access to BlubbMessages.
  * It's the bridge between user interface, beapDB and the local sqlite database.
  * If new messages are available at beapDB the local sqlite database will be updated automatically.
+ * <p/>
  * Created by Benni on 31.05.2014.
  */
 public class MessageManager {
@@ -61,8 +62,8 @@ public class MessageManager {
      *
      * @param context The application context from which the method is called.
      * @return A list of BlubbMessages with isNew true.
-     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
-     * @throws JSONException              if the value of the json array for threads within the blubbResponse
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'
+     *                                    if the value of the json array for threads within the blubbResponse
      *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
@@ -72,8 +73,8 @@ public class MessageManager {
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      */
-    public List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
-            throws BlubbDBException, JSONException,
+    public synchronized List<BlubbMessage> getNewMessagesFromAllThreads(Context context)
+            throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getNewMessagesFromAllThreads(context)");
         List<BlubbThread> localThreads = ThreadManager.getInstance()
@@ -102,20 +103,20 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param thread  The thread of which the new messages shall be returned.
      * @return List of BlubbMessages with m.tId = thread.tId and m.isNew = true.
-     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT' or
+     *                                    if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
-     * @throws JSONException              if the value of the json array for messages within the blubbResponse
-     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
      */
     private List<BlubbMessage> getNewMessagesForThread(Context context, BlubbThread thread)
             throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
-            JSONException, SessionException {
+            SessionException {
         Log.v(NAME, "getNewMessagesForThread(context, thread = " + thread.gettId());
         List<BlubbMessage> messages = getAllMessagesForThread(context, thread.gettId());
         List<BlubbMessage> newMsgs = new ArrayList<BlubbMessage>();
@@ -141,7 +142,7 @@ public class MessageManager {
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      */
-    public Boolean createMsg(Context context, String... messageParameter)
+    public synchronized Boolean createMsg(Context context, String... messageParameter)
             throws BlubbDBException,
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "createMsg(context, tId = " + messageParameter[0] + ", mTitle = " +
@@ -164,7 +165,7 @@ public class MessageManager {
                     tId + "," + mTitle + "," + mContent + "," + mLink + ")";
         }
         String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         switch (response.getStatus()) {
             case OK:
@@ -187,7 +188,9 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param tId     The id of the thread.
      * @return A list of BlubbMessages belonging to the thread.
-     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT' or
+     *                                    if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
@@ -195,12 +198,10 @@ public class MessageManager {
      *                                    server is offline.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
-     * @throws JSONException              if the value of the json array for messages within the blubbResponse
-     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      */
-    public List<BlubbMessage> getAllMessagesForThread(Context context, String tId)
+    public synchronized List<BlubbMessage> getAllMessagesForThread(Context context, String tId)
             throws BlubbDBException, PasswordInitException, BlubbDBConnectionException,
-            SessionException, JSONException {
+            SessionException {
         Log.v(NAME, "getAllMessagesForThread(context, tId = " + tId);
         getAllMessagesForThreadFromBeap(context, tId);
         return getAllMessagesForThreadFromSqlite(context, tId);
@@ -212,32 +213,39 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param tId     The id of the thread.
      * @return A list of BlubbMessages from the beapDB and not locally stored.
-     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT'.
+     * @throws BlubbDBException           if the response status is neither 'OK' nor 'NO_CONTENT' or
+     *                                    if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
-     * @throws JSONException              if the value of the json array for messages within the blubbResponse
-     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw on
      *                                    getSessionID().
      */
-    public List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
+    public synchronized List<BlubbMessage> getAllMessagesForThreadFromBeap(Context context, String tId)
             throws BlubbDBException, SessionException,
-            JSONException, BlubbDBConnectionException, PasswordInitException {
+            BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "getAllMessagesForThreadFromBeap(context, tId = " + tId);
         tId = BPC.parseStringParameterToDB(tId);
         String query = "tree.functions.getMsgsForThread(self," + tId + ")";
         String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         List<BlubbMessage> messages = new ArrayList<BlubbMessage>();
         switch (response.getStatus()) {
             case OK:
                 JSONArray jsonArray = (JSONArray) response.getResultObj();
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    BlubbMessage message = new BlubbMessage(jsonArray.getJSONObject(i));
+                    BlubbMessage message;
+                    try {
+                        message = new BlubbMessage(jsonArray.getJSONObject(i));
+                    } catch (JSONException e) {
+                        Log.e(NAME, e.getMessage());
+                        throw new BlubbDBException("Received wrong kind of json object, " +
+                                "json exception occurred:\n" + e.getMessage());
+                    }
                     messages.add(message);
                     putMessageToSqliteFromBeap(context, message);
                 }
@@ -259,7 +267,7 @@ public class MessageManager {
      * @param context The application context from which the method is called.
      * @param message The message which will be stored at the sqlite database.
      */
-    public void putMessageToSqliteFromBeap(Context context, BlubbMessage message) {
+    public synchronized void putMessageToSqliteFromBeap(Context context, BlubbMessage message) {
         Log.v(NAME, "putMessageToSqliteFromBeap(context, message = " + message.getmId() + ")");
         DatabaseHandler db = new DatabaseHandler(context);
         BlubbMessage m = db.getMessage(message.getmId());
@@ -281,7 +289,7 @@ public class MessageManager {
      * @param tId     The id of the thread.
      * @return A List of BlubbMessages from the sqlite database.
      */
-    public List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
+    public synchronized List<BlubbMessage> getAllMessagesForThreadFromSqlite(Context context, String tId) {
         DatabaseHandler db = new DatabaseHandler(context);
         return db.getMessagesForThread(tId);
 
@@ -302,7 +310,7 @@ public class MessageManager {
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
      */
-    public Boolean setMsg(Context context, BlubbMessage message)
+    public synchronized Boolean setMsg(Context context, BlubbMessage message)
             throws BlubbDBException, PasswordInitException,
             SessionException, BlubbDBConnectionException {
 
@@ -321,7 +329,7 @@ public class MessageManager {
             query = "tree.functions.setMsg(self," + mId + "," + mTitle + "," + mContent + ")";
         }
         String sessionId = SessionManager.getInstance().getSessionID(context);
-        BlubbResponse response = BlubbRequestManager.query(query, sessionId);
+        BlubbResponse response = new BlubbRequestManager().query(query, sessionId);
         Log.v(NAME, "Executed query: " + query + " with response status: " + response.getStatus());
         switch (response.getStatus()) {
             case OK:

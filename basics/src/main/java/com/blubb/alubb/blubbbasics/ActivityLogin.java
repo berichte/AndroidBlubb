@@ -1,6 +1,5 @@
 package com.blubb.alubb.blubbbasics;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
@@ -9,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
@@ -18,6 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 import com.blubb.alubb.R;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.SessionManager;
+import com.blubb.alubb.blubexceptions.BlubbException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
 
 /**
@@ -195,10 +195,9 @@ public class ActivityLogin extends Activity {
     /**
      * Show the dialog for the password initialisation.
      */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void showPasswordInitDialog() {
         initDialog = new Dialog(this);
-
+        initDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.password_init_dialog, null);
         initDialog.setContentView(dialogLayout);
@@ -331,7 +330,7 @@ public class ActivityLogin extends Activity {
     public class AsyncLogin extends AsyncTask<String, Void, String> {
 
         PasswordInitException passwordInitException;
-        Exception e;
+        BlubbException blubbException;
 
         @Override
         protected String doInBackground(String... params) {
@@ -344,15 +343,15 @@ public class ActivityLogin extends Activity {
                 }
             } catch (PasswordInitException e) {
                 this.passwordInitException = e;
-            } catch (Exception e) {
-                this.e = e;
+            } catch (BlubbException e) {
+                blubbException = e;
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(String response) {
-            getApp().handleException(e);
+            getApp().handleException(blubbException);
             spinnerOff();
             if (passwordInitException != null) {
                 showPasswordInitDialog();
@@ -388,7 +387,7 @@ public class ActivityLogin extends Activity {
      * the third and the fourth parameter must be the verification of the new password.
      */
     private class AsyncResetPassword extends AsyncTask<String, Void, Boolean> {
-        private Exception e;
+        BlubbException blubbException;
 
         @Override
         protected Boolean doInBackground(String... params) {
@@ -399,15 +398,15 @@ public class ActivityLogin extends Activity {
                     conPw = params[3];
             try {
                 return SessionManager.getInstance().resetPassword(un, oldPw, newPw, conPw);
-            } catch (Exception e) {
-                this.e = e;
+            } catch (BlubbException e) {
+                blubbException = e;
                 return false;
             }
         }
 
         @Override
         protected void onPostExecute(Boolean response) {
-            getApp().handleException(e);
+            getApp().handleException(blubbException);
             spinnerOff();
             if (response) {
                 String toastText = getString(R.string.login_pw_reset_ok_toast);

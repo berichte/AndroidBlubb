@@ -6,7 +6,7 @@ package com.blubb.alubb.blubexceptions;
  * <p/>
  * Created by Benjamin Richter on 02.06.2014.
  */
-public class SessionException extends Exception {
+public class SessionException extends BlubbException {
 
     /**
      * Constructs a SessionException with a message.

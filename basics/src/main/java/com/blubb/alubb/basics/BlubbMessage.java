@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -24,6 +26,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 
 /**
  * A BlubbMessage represents a message within a BlubbThread.
@@ -357,7 +360,7 @@ public class BlubbMessage {
                 mPicTv = (TextView) messageView.findViewById(R.id.message_layout_icon_tv);
         Button replyBtn = (Button) messageView.findViewById(R.id.message_layout_reply_btn),
                 editBtn = (Button) messageView.findViewById(R.id.message_layout_edit_btn);
-        View mContentV = messageView.findViewById(R.id.message_layout_content_v);
+        final View mContentV = messageView.findViewById(R.id.message_layout_content_v);
 
         LinearLayout rightLL = (LinearLayout) messageView.findViewById(
                 R.id.message_layout_right_ll);
@@ -390,6 +393,7 @@ public class BlubbMessage {
                 public void onClick(View v) {
                     linkPos = adapter.getMsgPosition(mLink);
                     ((ListView) parent).smoothScrollToPosition(linkPos + 1);
+                    adapter.squeezeMsg(mLink);
                 }
             });
         }
@@ -510,5 +514,16 @@ public class BlubbMessage {
         if (msgView == null) return;
         //View content = msgView.findViewById(R.id.message_content_v);
         this.getmContent().getContentView(context).setOnLongClickListener(listener);
+    }
+
+    /**
+     * Makes a squeeze animation at the message.
+     *
+     * @param context the application context.
+     */
+    public void squeeze(Context context) {
+        if (msgView == null) return;
+        Animation squeeze = AnimationUtils.loadAnimation(context, R.anim.squeeze);
+        msgView.startAnimation(squeeze);
     }
 }

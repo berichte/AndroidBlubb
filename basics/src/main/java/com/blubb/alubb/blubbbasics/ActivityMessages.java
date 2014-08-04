@@ -34,6 +34,7 @@ import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.TextContent;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.beapcom.BPC;
+import com.blubb.alubb.blubexceptions.BlubbException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,7 +109,6 @@ public class ActivityMessages extends Activity {
      */
     @Override
     protected void onResume() {
-        // solved by Dralangus http://stackoverflow.com/a/7414659/294884
         super.onResume();
         this.fillListWithMessages(MessageManager.getInstance()
                 .getAllMessagesForThreadFromSqlite(this, threadId));
@@ -158,14 +158,14 @@ public class ActivityMessages extends Activity {
     }
 
     /**
-     * Set the menu of single_thread_actions.
+     * Set the menu of activity_messages_menu.
      *
      * @param menu The menu for this activity.
      * @return True if the menu could be set.
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.single_thread_actions, menu);
+        getMenuInflater().inflate(R.menu.activity_messages_menu, menu);
         return true;
     }
 
@@ -214,6 +214,7 @@ public class ActivityMessages extends Activity {
 
     /**
      * Activates the spinner indicating that messages are loading from  the beapDB.
+     *  solved by Dralangus http://stackoverflow.com/a/7414659/294884
      */
     public void spinnerOn() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.messages_activity_pb);
@@ -455,6 +456,18 @@ public class ActivityMessages extends Activity {
             return true;
         }
 
+        public void squeezeMsg(String msgId) {
+            getMessage(msgId).squeeze(ActivityMessages.this);
+        }
+
+        public BlubbMessage getMessage(String msgId) {
+            Set<BlubbMessage> msgSet = mIdMap.keySet();
+            for (BlubbMessage m : msgSet) {
+                if (m.getmId().equals(msgId)) return m;
+            }
+            return null;
+        }
+
     }
 
     /**
@@ -462,14 +475,13 @@ public class ActivityMessages extends Activity {
      */
     private class AsyncGetAllMessagesToThread extends AsyncTask<Void, Void, List<BlubbMessage>> {
         /**
+         * Exception caught while executing doInBackground.
+         */
+        BlubbException blubbException;
+        /**
          * The thread id for the messages.
          */
         private String threadId;
-
-        /**
-         * Exception caught while executing doInBackground.
-         */
-        private Exception e;
 
         /**
          * Constructor for the AsyncTask. Starts the spinner and sets the threadId for the AT.
@@ -493,8 +505,8 @@ public class ActivityMessages extends Activity {
             try {
                 return MessageManager.getInstance().getAllMessagesForThread(
                         ActivityMessages.this.getApplicationContext(), this.threadId);
-            } catch (Exception e) {
-                this.e = e;
+            } catch (BlubbException e) {
+                blubbException = e;
                 return null;
             }
         }
@@ -506,7 +518,7 @@ public class ActivityMessages extends Activity {
          */
         @Override
         protected void onPostExecute(final List<BlubbMessage> response) {
-            getApp().handleException(e);
+            getApp().handleException(blubbException);
             fillListWithMessages(response);
             spinnerOff();
         }
@@ -520,7 +532,7 @@ public class ActivityMessages extends Activity {
         /**
          * Exception caught while executing doInBackground.
          */
-        private Exception exception;
+        BlubbException blubbException;
 
         /**
          * Executes the create message at the MessageManager.String parameter for the new message:
@@ -534,8 +546,8 @@ public class ActivityMessages extends Activity {
                 return MessageManager.getInstance().createMsg(
                         ActivityMessages.this.getApplicationContext(),
                         parameter);
-            } catch (Exception e) {
-                this.exception = e;
+            } catch (BlubbException e) {
+                blubbException = e;
                 return false;
             }
         }
@@ -547,7 +559,7 @@ public class ActivityMessages extends Activity {
          */
         @Override
         protected void onPostExecute(Boolean isCreated) {
-            getApp().handleException(exception);
+            getApp().handleException(blubbException);
             if (isCreated) {
                 String msg = getResources().getString(R.string.create_message_confirmation_toast);
                 Log.i(NAME, msg);
@@ -566,7 +578,7 @@ public class ActivityMessages extends Activity {
         /**
          * Exception caught while executing doInBackground.
          */
-        private Exception exception;
+        BlubbException blubbException;
 
         /**
          * Executes the setMsg(..) at the MessageManager.
@@ -578,8 +590,8 @@ public class ActivityMessages extends Activity {
         protected Boolean doInBackground(BlubbMessage... parameter) {
             try {
                 return MessageManager.getInstance().setMsg(ActivityMessages.this, parameter[0]);
-            } catch (Exception e) {
-                this.exception = e;
+            } catch (BlubbException e) {
+                blubbException = e;
                 return false;
             }
         }
@@ -590,7 +602,7 @@ public class ActivityMessages extends Activity {
          * @param wasModified Indicates whether the message could be modified.
          */
         protected void onPostExecute(Boolean wasModified) {
-            getApp().handleException(exception);
+            getApp().handleException(blubbException);
             if (wasModified) {
                 String msg = getResources().getString(R.string.modify_message_confirmation_toast);
                 Log.i(NAME, msg);

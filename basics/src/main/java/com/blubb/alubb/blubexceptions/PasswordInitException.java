@@ -6,7 +6,7 @@ package com.blubb.alubb.blubexceptions;
  * <p/>
  * Created by Benjamin Richter on 19.06.2014.
  */
-public class PasswordInitException extends Exception {
+public class PasswordInitException extends BlubbException {
     private static final String MESSAGE = "Password is still 'init' and must be initialized.";
 
     /**

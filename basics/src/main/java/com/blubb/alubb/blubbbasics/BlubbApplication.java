@@ -11,6 +11,7 @@ import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.ThreadManager;
 import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
 import com.blubb.alubb.blubexceptions.BlubbDBException;
+import com.blubb.alubb.blubexceptions.BlubbException;
 import com.blubb.alubb.blubexceptions.BlubbNullException;
 import com.blubb.alubb.blubexceptions.InvalidParameterException;
 import com.blubb.alubb.blubexceptions.PasswordInitException;
@@ -76,11 +77,11 @@ public class BlubbApplication extends Application {
      * Handles the different exceptions that occur at the execution of the app and toasts a
      * message for the user according to the type of Exception.
      *
-     * @param e Exception that will be handled, only if it's not null:
+     * @param blubbException Exception that will be handled, only if it's not null:
      */
-    public void handleException(Exception e) {
-        if (e != null) {
-            Class exClass = e.getClass();
+    public void handleException(BlubbException blubbException) {
+        if (blubbException != null) {
+            Class exClass = blubbException.getClass();
             String toastMessage;
             if (exClass.equals(BlubbDBConnectionException.class)) {
                 toastMessage = this.getResources().getString(
@@ -101,6 +102,8 @@ public class BlubbApplication extends Application {
                 toastMessage = this.getResources().getString(
                         R.string.session_exception_message);
             } else {
+                // Can't reach this point if all BlubbExceptions are listed
+                // but ... better safe than sorry.
                 toastMessage = this.getResources().getString(
                         R.string.unknown_exception_message);
             }

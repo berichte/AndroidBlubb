@@ -5,7 +5,7 @@ package com.blubb.alubb.blubexceptions;
  * Exception thrown if there is some error response
  * from the beapDB.
  */
-public class BlubbDBException extends Exception {
+public class BlubbDBException extends BlubbException {
 
     /**
      * Constructs a BlubbDBException containing the message.

@@ -56,7 +56,7 @@ public class BlubbRequestManager {
      * @param password String containing the password corresponding to the username.
      * @return A BlubbResponse from the executed request.
      */
-    public static BlubbResponse login(String username, String password) {
+    public BlubbResponse login(String username, String password) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGIN + BLUBB_AND
@@ -74,7 +74,7 @@ public class BlubbRequestManager {
      * @param sessionId String with the session id of the session to be refreshed.
      * @return BlubbResponse from the executed request.
      */
-    public static BlubbResponse checkSession(String sessionId) {
+    public BlubbResponse checkSession(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_CHECK + BLUBB_AND
@@ -90,7 +90,7 @@ public class BlubbRequestManager {
      * @param sessionId String with the session id of the session to be refreshed.
      * @return BlubbResponse from the executed request.
      */
-    public static BlubbResponse refreshSession(String sessionId) {
+    public BlubbResponse refreshSession(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_REFRESH + BLUBB_AND
@@ -105,7 +105,7 @@ public class BlubbRequestManager {
      * @param sessionId String with the session id of the session to be refreshed.
      * @return BlubbResponse from the executed request.
      */
-    public static BlubbResponse logout(String sessionId) {
+    public BlubbResponse logout(String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
                 + BEAP_ACTION + BEAP_ACTION_LOGOUT + BLUBB_AND
@@ -124,7 +124,7 @@ public class BlubbRequestManager {
      *                  whether the passwords are equal.
      * @return BlubbResponse from the executed request.
      */
-    public static BlubbResponse resetPassword(
+    public BlubbResponse resetPassword(
             String username, String oldPw, String newPw, String confirmPw) {
         String url = URL
                 + BEAP_ID + BEAP_ID_SESSION + BLUBB_AND
@@ -155,7 +155,7 @@ public class BlubbRequestManager {
      * @param sessionId String with the sessionId of the session which executes the query on beapDB.
      * @return BlubbResponse from the executed request containing a result for the executed query.
      */
-    public static BlubbResponse query(String query, String sessionId) {
+    public BlubbResponse query(String query, String sessionId) {
         String url = URL
                 + BEAP_ID + BEAP_ID_DB + BLUBB_AND
                 + getParameter(BEAP_SESSION_ID, sessionId) + BLUBB_AND
@@ -175,7 +175,7 @@ public class BlubbRequestManager {
      * @return String containing key and encoded value, e.g.
      * "uName=" + "Der-Blubb" => "uName=Der-Blubb".
      */
-    public static String getParameter(String para, String value) {
+    public String getParameter(String para, String value) {
         return para + encode(value);
     }
 
@@ -185,7 +185,7 @@ public class BlubbRequestManager {
      * @param s String which will be encoded.
      * @return Encoded string.
      */
-    private static String encode(String s) {
+    private String encode(String s) {
         try {
             String enc = URLEncoder.encode(s, ENCODING);
             Log.v("urlEncoding", "Encoding " + s + " to\n" + enc);
@@ -202,10 +202,10 @@ public class BlubbRequestManager {
      * @param url Url which will be send with the request
      * @return BlubbResponse object build from the http response if it contains a valid json object.
      */
-    private static BlubbResponse executeRequest(String url) {
+    private BlubbResponse executeRequest(String url) {
         Log.v(NAME, "Executing http-request:\n" + url);
         // request via http
-        String httpResponse = BlubbHttpRequest.request(url);
+        String httpResponse = new BlubbHttpRequest().request(url);
         //parse the response to an object
         return new BlubbResponse(httpResponse);
     }

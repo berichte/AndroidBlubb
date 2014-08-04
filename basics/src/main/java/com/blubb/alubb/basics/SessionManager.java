@@ -102,7 +102,7 @@ public class SessionManager {
      *                                    server is offline.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
      */
-    public String getSessionID(Context context) throws
+    public synchronized String getSessionID(Context context) throws
             SessionException, BlubbDBConnectionException, PasswordInitException {
         return getSession(context).getSessionId();
     }
@@ -154,7 +154,7 @@ public class SessionManager {
             PasswordInitException {
         Log.v(NAME, "refreshSession(context)");
         //execute a refresh with beap
-        BlubbResponse blubbResponse = BlubbRequestManager
+        BlubbResponse blubbResponse = new BlubbRequestManager()
                 .refreshSession(this.session.getSessionId());
         //
         BeapReplyStatus status = blubbResponse.getStatus();
@@ -198,7 +198,7 @@ public class SessionManager {
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "checkSession(context)");
         BlubbResponse blubbResponse =
-                BlubbRequestManager.checkSession(this.session.getSessionId());
+                new BlubbRequestManager().checkSession(this.session.getSessionId());
         switch (blubbResponse.getStatus()) {
             case OK:
                 return (Integer) blubbResponse.getResultObj();
@@ -228,7 +228,7 @@ public class SessionManager {
      *                                    server is offline.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
      */
-    public boolean login(String username, String password)
+    public synchronized boolean login(String username, String password)
             throws SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "login(username = " + username +
                 ", passwordLength = " + password.length() + ")");
@@ -291,7 +291,7 @@ public class SessionManager {
             SessionException, BlubbDBConnectionException, PasswordInitException {
         Log.v(NAME, "sessionLogin(username = " + username +
                 ", password.length = " + password.length());
-        BlubbResponse blubbResponse = BlubbRequestManager.login(username, password);
+        BlubbResponse blubbResponse = new BlubbRequestManager().login(username, password);
         switch (blubbResponse.getStatus()) {
             case OK:
                 // if it's ok the username and password will be stored temporarily for
@@ -333,15 +333,16 @@ public class SessionManager {
      * @throws SessionException           if it was not possible to log in, probably the username or password
      *                                    is wrong.
      * @throws BlubbDBException           if the BeapReplyStatus was not 'OK' or the received json was not
-     *                                    the kind expected.
+     *                                    the kind expected or
+     *                                    if the value of the json array for messages within the blubbResponse
+     *                                    from the beap server doesn't exist or is not a {@code JSONObject}.
      * @throws BlubbDBConnectionException if it's not possible to get a connection to the server.
      *                                    Probably there's no wifi or network connection or the
      *                                    server is offline.
-     * @throws JSONException              if a thread could not be parsed from the result objects array.
      * @throws PasswordInitException      if the password is 'init' and the user must set his own pw.
      */
-    public QuickCheck quickCheck(Context context) throws SessionException,
-            BlubbDBException, BlubbDBConnectionException, JSONException,
+    public synchronized QuickCheck quickCheck(Context context) throws SessionException,
+            BlubbDBException, BlubbDBConnectionException,
             PasswordInitException {
         loadCounter(context);
         Log.v(NAME, "quickCheck(context)");
@@ -417,7 +418,7 @@ public class SessionManager {
         try {
             String query = "tree.functions.quickCheck(self)";
             BlubbResponse blubbResponse =
-                    BlubbRequestManager.query(query, getSessionID(context));
+                    new BlubbRequestManager().query(query, getSessionID(context));
             switch (blubbResponse.getStatus()) {
                 case OK:
                     // with status ok result object will be a json array.
@@ -450,10 +451,10 @@ public class SessionManager {
      *                                    server is offline.
      * @throws InvalidParameterException  if there was a parameter error.
      */
-    public boolean resetPassword(String username, String oldPassword, String newPassword,
-                                 String confirmNewPassword)
+    public synchronized boolean resetPassword(String username, String oldPassword, String newPassword,
+                                              String confirmNewPassword)
             throws BlubbDBConnectionException, InvalidParameterException {
-        BlubbResponse response = BlubbRequestManager.resetPassword(
+        BlubbResponse response = new BlubbRequestManager().resetPassword(
                 username, oldPassword, newPassword, confirmNewPassword);
         Log.v(NAME, "resetPassword(un, oldPW, newPW, confirmPW)");
         switch (response.getStatus()) {
@@ -474,7 +475,7 @@ public class SessionManager {
      * @param context The applications context.
      * @return String with the users unique id from the current SessionInfo or the stored username.
      */
-    public String getUserId(Context context) {
+    public synchronized String getUserId(Context context) {
         if (this.session != null) return this.session.getBlubbUser();
         else {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -489,7 +490,7 @@ public class SessionManager {
      *
      * @param context The applications context.
      */
-    public void logout(Context context) {
+    public synchronized void logout(Context context) {
         SharedPreferences prefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
         prefs.edit().remove(context.getString(R.string.pref_password)).commit();
@@ -506,7 +507,7 @@ public class SessionManager {
 
         @Override
         protected BlubbResponse doInBackground(String... params) {
-            return BlubbRequestManager.logout(params[0]);
+            return new BlubbRequestManager().logout(params[0]);
         }
     }
 }

@@ -16,20 +16,22 @@ import com.blubb.alubb.basics.BlubbMessage;
 import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.QuickCheck;
 import com.blubb.alubb.basics.SessionManager;
+import com.blubb.alubb.blubexceptions.BlubbDBConnectionException;
+import com.blubb.alubb.blubexceptions.BlubbException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The MessagePullService extends the android.app.Service and performs a quickCheck at the
+ * The PullService extends the android.app.Service and performs a quickCheck at the
  * beapDB server. If there are new messages or threads available it will post a notification.
  */
-public class MessagePullService extends Service {
+public class PullService extends Service {
 
     /**
      * Name for Logging purposes.
      */
-    public static final String NAME = MessagePullService.class.getName();
+    public static final String NAME = PullService.class.getName();
     /**
      * The id for the notifications.
      */
@@ -166,7 +168,7 @@ public class MessagePullService extends Service {
         /**
          * Exception caught while executing doInBackground.
          */
-        Exception e;
+        BlubbException blubbException;
 
         /**
          * Performs the quickCheck at the SessionManager.
@@ -179,9 +181,13 @@ public class MessagePullService extends Service {
             Log.i(NAME, "try to pull msgs from server.");
             SessionManager sManager = SessionManager.getInstance();
             try {
-                return sManager.quickCheck(MessagePullService.this);
-            } catch (Exception e) {
-                this.e = e;
+                return sManager.quickCheck(PullService.this);
+            } catch (BlubbDBConnectionException e) {
+                // User must not be notified if service has no connection.
+                Log.e(NAME, e.getClass().getName() + ": " + e.getMessage());
+                return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
+            } catch (BlubbException e) {
+                blubbException = e;
                 return new QuickCheck(new ArrayList<BlubbThread>(), new ArrayList<BlubbMessage>());
             }
         }
@@ -195,7 +201,7 @@ public class MessagePullService extends Service {
          */
         @Override
         public void onPostExecute(QuickCheck quickCheck) {
-            //getApp().handleException(e);
+            getApp().handleException(blubbException);
             if (quickCheck.hasResult()) {
                 mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 if (quickCheck.messages.size() > 0) {
@@ -206,7 +212,7 @@ public class MessagePullService extends Service {
                 }
                 mNotificationManager.cancel(R.string.alarm_service_started);
             }
-            MessagePullService.this.stopSelf();
+            PullService.this.stopSelf();
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.blubb.alubb.blubbbasics;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -16,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
@@ -27,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -42,6 +41,7 @@ import com.blubb.alubb.basics.BlubbThread;
 import com.blubb.alubb.basics.DatabaseHandler;
 import com.blubb.alubb.basics.SessionManager;
 import com.blubb.alubb.basics.ThreadManager;
+import com.blubb.alubb.blubexceptions.BlubbException;
 import com.blubb.alubb.blubexceptions.SessionException;
 
 import java.util.HashMap;
@@ -88,6 +88,8 @@ public class ActivityThreads extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_PROGRESS);
+        setContentView(R.layout.threads_activity_layout);
+        checkForLogin();
         start();
     }
 
@@ -96,8 +98,6 @@ public class ActivityThreads extends Activity {
      * Set the content view, check for login, load the threads and start the message pull service.
      */
     private void start() {
-        setContentView(R.layout.threads_activity_layout);
-        checkForLogin();
         showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(this));
         AsyncGetAllThreadsFromBeap asyncGetAllThreadsFromBeap = new AsyncGetAllThreadsFromBeap();
         this.showSpinnerForGetAllBeapThreads = true;
@@ -132,7 +132,7 @@ public class ActivityThreads extends Activity {
         Log.v(NAME, "startMessagePullService()");
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         PendingIntent mAlarmSender = PendingIntent.getService(ActivityThreads.this,
-                0, new Intent(ActivityThreads.this, MessagePullService.class), 0);
+                0, new Intent(ActivityThreads.this, PullService.class), 0);
         am.cancel(mAlarmSender);
         SharedPreferences sharedPrefs;
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -157,7 +157,6 @@ public class ActivityThreads extends Activity {
         super.onResume();
         Log.v(NAME, "onResume()");
         start();
-        startMessagePullService();
         if (shouldSpinn()) {
             spinnerOn();
         } else {
@@ -167,14 +166,14 @@ public class ActivityThreads extends Activity {
     }
 
     /**
-     * Set the menu of thread_overview_actions.
+     * Set the menu of activity_threads_menu.
      *
      * @param menu The menu for this activity.
      * @return True if the menu could be set.
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.thread_overview_actions, menu);
+        getMenuInflater().inflate(R.menu.activity_threads_menu, menu);
         return true;
     }
 
@@ -230,7 +229,7 @@ public class ActivityThreads extends Activity {
                                 PendingIntent mAlarmSender = PendingIntent.getService(
                                         ActivityThreads.this, 0,
                                         new Intent(ActivityThreads.this,
-                                                MessagePullService.class), 0
+                                                PullService.class), 0
                                 );
                                 am.cancel(mAlarmSender);
                                 SessionManager.getInstance().logout(ActivityThreads.this);
@@ -253,22 +252,14 @@ public class ActivityThreads extends Activity {
      * Shows a new thread dialog. The user can set the title and the description of a new thread.
      * If the user clicks the y-Button a AsyncNewThread will be started.
      */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void newThreadDialog() {
-        final Dialog dialog = new Dialog(ActivityThreads.this);
+        final Dialog dialog = new Dialog(this);
 
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.create_thread_dialog, null);
         dialog.setContentView(dialogLayout);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        View divider = dialog.findViewById(
-                dialog.getContext().getResources()
-                        .getIdentifier("android:id/titleDivider", null, null)
-        );
-        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-        // builder.setView(dialogLayout);
-
-        //builder.setInverseBackgroundForced(true);
         assert dialogLayout != null;
         final EditText title = (EditText) dialogLayout.findViewById(
                 R.id.create_thread_dialog_title_et),
@@ -356,24 +347,16 @@ public class ActivityThreads extends Activity {
     /**
      * Shows a edit thread dialog. The user can alter either the title and the description for a
      * thread. If the user clicks the y-Button a AsyncSetThread will be started.
-     * TODO add the thread status
      *
      * @param thread The BlubbThread which will be modified.
      */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void editThreadDialog(final BlubbThread thread) {
         final Dialog dialog = new Dialog(ActivityThreads.this);
-
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LayoutInflater inflater = getLayoutInflater();
         View dialogLayout = inflater.inflate(R.layout.edit_thread_dialog, null);
         dialog.setContentView(dialogLayout);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        View divider = dialog.findViewById(
-                dialog.getContext().getResources()
-                        .getIdentifier("android:id/titleDivider", null, null)
-        );
-        divider.setBackground(new ColorDrawable(Color.TRANSPARENT));
-
         assert dialogLayout != null;
         final EditText titleET = (EditText) dialogLayout.findViewById(
                 R.id.edit_thread_dialog_title_et),
@@ -703,11 +686,10 @@ public class ActivityThreads extends Activity {
      * AsyncTask to create a new thread at beapDB and if successful at the local sqlite database.
      */
     private class AsyncNewThread extends AsyncTask<String, Void, BlubbThread> {
-
         /**
          * Exception field for the exception handling.
          */
-        Exception exception;
+        BlubbException blubbException;
 
         /**
          * Executes the creation of a new BlubbThread on a background java.lang.Thread.
@@ -723,8 +705,8 @@ public class ActivityThreads extends Activity {
             try {
                 return ThreadManager.getInstance().createThread(
                         ActivityThreads.this.getApplicationContext(), title, description);
-            } catch (Exception e) {
-                this.exception = e;
+            } catch (BlubbException e) {
+                blubbException = e;
             }
             return null;
         }
@@ -736,7 +718,7 @@ public class ActivityThreads extends Activity {
          */
         @Override
         protected void onPostExecute(BlubbThread thread) {
-            getApp().handleException(exception);
+            getApp().handleException(blubbException);
             if (thread != null) {
                 String msg = "Created new Thread:\n" +
                         "tId: " + thread.gettId() + "\n" +
@@ -762,7 +744,7 @@ public class ActivityThreads extends Activity {
         /**
          * Exception field for the exception handling.
          */
-        Exception e;
+        BlubbException blubbException;
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -770,8 +752,8 @@ public class ActivityThreads extends Activity {
             try {
                 return ThreadManager.getInstance().updateAllThreadsFromBeap(
                         ActivityThreads.this.getApplicationContext());
-            } catch (Exception e) {
-                this.e = e;
+            } catch (BlubbException e) {
+                blubbException = e;
                 return false;
             }
         }
@@ -783,7 +765,7 @@ public class ActivityThreads extends Activity {
          */
         @Override
         protected void onPostExecute(Boolean response) {
-            getApp().handleException(e);
+            getApp().handleException(blubbException);
             if (response) {
                 showThreadsInList(ThreadManager.getInstance().getAllThreadsFromSqlite(
                         ActivityThreads.this));
@@ -799,9 +781,13 @@ public class ActivityThreads extends Activity {
      */
     private class AsyncCheckLogin extends AsyncTask<Void, Void, Boolean> {
         /**
-         * In case an e is thrown while executing doInBackground(..).
+         * In case an exception is thrown while executing doInBackground(..).
          */
-        private Exception e;
+        BlubbException blubbException;
+        /**
+         * If a session exception is thrown catch it and don't let the user perform a manual login.
+         */
+        SessionException sessionException;
 
         @Override
         protected Boolean doInBackground(Void... params) {
@@ -810,19 +796,21 @@ public class ActivityThreads extends Activity {
                 SessionManager.getInstance().getSessionID(
                         ActivityThreads.this.getApplicationContext());
                 return true;
-            } catch (Exception e) {
-                this.e = e;
+            } catch (SessionException e) {
+                sessionException = e;
+            } catch (BlubbException e) {
+                blubbException = e;
             }
             return false;
         }
 
         @Override
         protected void onPostExecute(Boolean isLoggedIn) {
-            getApp().handleException(e);
-            // if there was no e toast will be null - everything is alright.
+            getApp().handleException(blubbException);
+            // if there was no exception toast will be null - everything is alright.
             if (!isLoggedIn) {
-                // if the e is a ConnectionException don't let user perform manual login
-                if (e.getClass().equals(SessionException.class)) {
+                // if there is no SessionException let user perform manual login.
+                if (sessionException != null) {
                     DatabaseHandler db = new DatabaseHandler(ActivityThreads.this);
                     int counter = db.getThreadCount();
                     if (counter == 0) {
@@ -846,7 +834,7 @@ public class ActivityThreads extends Activity {
         /**
          * In case an e is thrown while executing doInBackground(..).
          */
-        private Exception e;
+        BlubbException blubbException;
 
         /**
          * BlubbThread that will be modified.
@@ -867,15 +855,15 @@ public class ActivityThreads extends Activity {
             try {
                 return ThreadManager.getInstance()
                         .setThread(ActivityThreads.this, thread);
-            } catch (Exception e) {
-                this.e = e;
+            } catch (BlubbException e) {
+                blubbException = e;
             }
             return false;
         }
 
         @Override
         protected void onPostExecute(Boolean response) {
-            getApp().handleException(e);
+            getApp().handleException(blubbException);
             showSpinnerForCreateThread = false;
             if (response) {
                 onResume();

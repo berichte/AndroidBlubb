@@ -5,7 +5,7 @@ package com.blubb.alubb.blubexceptions;
  * <p/>
  * Exception thrown if a parameter is not valid.
  */
-public class InvalidParameterException extends Exception {
+public class InvalidParameterException extends BlubbException {
 
     private static final String EXCEPTION_MESSAGE = "The given Parameter is not valid.";
 

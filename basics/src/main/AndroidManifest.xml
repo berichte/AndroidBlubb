@@ -36,7 +36,7 @@
             android:label="@string/activity_settings_title_text" />
 
         <service
-            android:name=".blubbbasics.MessagePullService"
+            android:name=".blubbbasics.PullService"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/blubb_logo"
