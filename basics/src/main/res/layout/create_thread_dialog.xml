@@ -24,6 +24,7 @@
         android:layout_height="wrap_content"
         android:hint="@string/create_thread_dialog_title_hint"
         android:imeOptions="actionNext"
+        android:inputType="textCapSentences"
         android:textColor="@color/beap_dark_blue"
         android:textColorHint="@color/beap_blue" />
 
@@ -33,7 +34,7 @@
         android:layout_height="wrap_content"
         android:gravity="top"
         android:hint="@string/create_thread_dialog_description_hint"
-        android:inputType="textMultiLine"
+        android:inputType="textMultiLine|textCapSentences"
         android:lines="3"
         android:maxLines="3"
         android:textColor="@color/beap_dark_blue"

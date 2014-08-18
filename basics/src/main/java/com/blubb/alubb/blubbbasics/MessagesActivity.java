@@ -45,7 +45,7 @@ import java.util.Set;
  * Activity that shows BlubbMessages to a thread.
  * The user can read messages, write, modify and reply to existing messages.
  */
-public class ActivityMessages extends Activity {
+public class MessagesActivity extends Activity {
 
     /**
      * Name for Logging purposes.
@@ -184,7 +184,7 @@ public class ActivityMessages extends Activity {
                 EditText inputET = (EditText) findViewById(R.id.message_activity_input_et);
                 inputET.requestFocus();
                 startInputView();
-                InputMethodManager imm = (InputMethodManager) ActivityMessages.this
+                InputMethodManager imm = (InputMethodManager) MessagesActivity.this
                         .getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(inputET, 0);
                 break;
@@ -214,7 +214,7 @@ public class ActivityMessages extends Activity {
 
     /**
      * Activates the spinner indicating that messages are loading from  the beapDB.
-     *  solved by Dralangus http://stackoverflow.com/a/7414659/294884
+     * solved by Dralangus http://stackoverflow.com/a/7414659/294884
      */
     public void spinnerOn() {
         ProgressBar pb = (ProgressBar) findViewById(R.id.messages_activity_pb);
@@ -335,7 +335,7 @@ public class ActivityMessages extends Activity {
      *             soft keyboard input.
      */
     private void showInput(boolean show, View view) {
-        InputMethodManager imm = (InputMethodManager) ActivityMessages.this
+        InputMethodManager imm = (InputMethodManager) MessagesActivity.this
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         if (show) {
             imm.showSoftInput(view, 0);
@@ -355,7 +355,7 @@ public class ActivityMessages extends Activity {
             ListView lv = (ListView) findViewById(R.id.messages_activity_lv);
             Collections.reverse(messages);
             final MessageArrayAdapter adapter = new MessageArrayAdapter(
-                    ActivityMessages.this, R.layout.message_layout, messages);
+                    MessagesActivity.this, R.layout.message_layout, messages);
             lv.setAdapter(adapter);
             messageListView.smoothScrollToPosition(lastPosition + 1);
         }
@@ -413,7 +413,7 @@ public class ActivityMessages extends Activity {
         @Override
         public View getView(final int position, View convertView, final ViewGroup parent) {
             final BlubbMessage message = getItem(position);
-            View msg = message.getView(ActivityMessages.this, parent, thread.gettCreator(),
+            View msg = message.getView(MessagesActivity.this, parent, thread.gettCreator(),
                     new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -457,7 +457,7 @@ public class ActivityMessages extends Activity {
         }
 
         public void squeezeMsg(String msgId) {
-            getMessage(msgId).squeeze(ActivityMessages.this);
+            getMessage(msgId).squeeze(MessagesActivity.this);
         }
 
         public BlubbMessage getMessage(String msgId) {
@@ -504,7 +504,7 @@ public class ActivityMessages extends Activity {
             Log.v(NAME, "AsyncGetAllMessagesToThread.execute(thread = " + threadId + ")");
             try {
                 return MessageManager.getInstance().getAllMessagesForThread(
-                        ActivityMessages.this.getApplicationContext(), this.threadId);
+                        MessagesActivity.this.getApplicationContext(), this.threadId);
             } catch (BlubbException e) {
                 blubbException = e;
                 return null;
@@ -544,7 +544,7 @@ public class ActivityMessages extends Activity {
         protected Boolean doInBackground(String... parameter) {
             try {
                 return MessageManager.getInstance().createMsg(
-                        ActivityMessages.this.getApplicationContext(),
+                        MessagesActivity.this.getApplicationContext(),
                         parameter);
             } catch (BlubbException e) {
                 blubbException = e;
@@ -564,8 +564,8 @@ public class ActivityMessages extends Activity {
                 String msg = getResources().getString(R.string.create_message_confirmation_toast);
                 Log.i(NAME, msg);
                 fillListWithMessages(MessageManager.getInstance()
-                        .getAllMessagesForThreadFromSqlite(ActivityMessages.this, threadId));
-                Toast.makeText(ActivityMessages.this, msg, Toast.LENGTH_SHORT).show();
+                        .getAllMessagesForThreadFromSqlite(MessagesActivity.this, threadId));
+                Toast.makeText(MessagesActivity.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }
@@ -589,7 +589,7 @@ public class ActivityMessages extends Activity {
         @Override
         protected Boolean doInBackground(BlubbMessage... parameter) {
             try {
-                return MessageManager.getInstance().setMsg(ActivityMessages.this, parameter[0]);
+                return MessageManager.getInstance().setMsg(MessagesActivity.this, parameter[0]);
             } catch (BlubbException e) {
                 blubbException = e;
                 return false;
@@ -607,8 +607,8 @@ public class ActivityMessages extends Activity {
                 String msg = getResources().getString(R.string.modify_message_confirmation_toast);
                 Log.i(NAME, msg);
                 fillListWithMessages(MessageManager.getInstance()
-                        .getAllMessagesForThreadFromSqlite(ActivityMessages.this, threadId));
-                Toast.makeText(ActivityMessages.this, msg, Toast.LENGTH_SHORT).show();
+                        .getAllMessagesForThreadFromSqlite(MessagesActivity.this, threadId));
+                Toast.makeText(MessagesActivity.this, msg, Toast.LENGTH_SHORT).show();
 
             }
         }

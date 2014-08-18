@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:paddingLeft="@dimen/cards_separation_space"
     android:paddingRight="@dimen/cards_separation_space"
-    tools:context="com.blubb.alubb.blubbbasics.ActivityMessages"
+    tools:context="com.blubb.alubb.blubbbasics.MessagesActivity"
     tools:ignore="Overdraw">
 
     <Space

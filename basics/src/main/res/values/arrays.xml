@@ -18,8 +18,8 @@
     </string-array>
     <!-- Array for the entries of the edit_thread_dialogs spinner for the threads status.-->
     <string-array name="thread_status_entries">
-        <item>OPEN</item>
-        <item>SOLVED</item>
-        <item>CANCELED</item>
+        <item>Open</item>
+        <item>Solved</item>
+        <item>Canceled</item>
     </string-array>
 </resources>

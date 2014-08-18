@@ -7,11 +7,11 @@ import com.blubb.alubb.R;
 
 /**
  * Activity to display the settings for the BlubbApplication.
- * Now it's just the pull interval of the MessagePullService but can be extended.
+ * Now it's just the pull interval of the PullService but can be extended.
  * <p/>
  * Created by Benjamin Richter
  */
-public class ActivitySettings extends PreferenceActivity {
+public class SettingsActivity extends PreferenceActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

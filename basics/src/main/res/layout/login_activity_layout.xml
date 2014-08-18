@@ -7,7 +7,7 @@ Created by Benjamin Richter -->
     android:orientation="vertical"
     android:padding="@dimen/cards_separation_space"
     android:weightSum="1"
-    tools:context="com.blubb.alubb.blubbbasics.ActivityLogin">
+    tools:context="com.blubb.alubb.blubbbasics.LoginActivity">
     <!-- Progressbar indicating a background process in progress. -->
     <ProgressBar
         android:id="@+id/login_activity_pb"

@@ -13,11 +13,11 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".blubbbasics.ActivityLogin"
+            android:name=".blubbbasics.LoginActivity"
             android:label="@string/activity_login_title_text"
             android:screenOrientation="nosensor" />
         <activity
-            android:name=".blubbbasics.ActivityThreads"
+            android:name=".blubbbasics.ThreadsActivity"
             android:label="@string/activity_threads_title_text"
             android:screenOrientation="nosensor">
             <intent-filter>
@@ -27,12 +27,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".blubbbasics.ActivityMessages"
+            android:name=".blubbbasics.MessagesActivity"
             android:label="@string/activity_messages_title_text"
             android:screenOrientation="nosensor"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".blubbbasics.ActivitySettings"
+            android:name=".blubbbasics.SettingsActivity"
             android:label="@string/activity_settings_title_text" />
 
         <service

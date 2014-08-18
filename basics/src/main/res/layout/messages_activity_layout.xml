@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     android:background="@drawable/blubb_background2"
     android:orientation="vertical"
-    tools:context="com.blubb.alubb.blubbbasics.ActivityMessages"
+    tools:context="com.blubb.alubb.blubbbasics.MessagesActivity"
     tools:ignore="Overdraw">
     <!-- Progressbar indicating a background process in progress. -->
     <ProgressBar
@@ -36,12 +37,13 @@
             android:layout_weight="100"
             android:background="@drawable/content_rc_transpgray_bg"
             android:hint="@string/messages_activity_input_create_message_hint"
+            android:inputType="textCapSentences|textMultiLine"
             android:maxLines="10"
             android:padding="10dp"
             android:scrollbars="vertical"
             android:textColor="@color/beap_dark_blue"
             android:textColorHint="@color/beap_blue"
-            android:textSize="@dimen/blubb_text_size_small" />
+            android:textSize="@dimen/blubb_text_size_medium" />
         <!-- Button to send messages to the beapDB server.-->
         <Button
             android:id="@+id/messages_activity_send_btn"

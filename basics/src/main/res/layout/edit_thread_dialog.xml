@@ -21,21 +21,23 @@ Created by Benjamin Richter -->
         android:id="@+id/edit_thread_dialog_title_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/edit_thread_dialog_head_tv"
         android:hint="@string/create_thread_dialog_title_hint"
-        android:textSize="@dimen/blubb_text_size_large" />
+        android:imeOptions="actionNext"
+        android:inputType="textCapSentences"
+        android:textColor="@color/beap_dark_blue"
+        android:textColorHint="@color/beap_blue" />
 
     <EditText
         android:id="@+id/edit_thread_dialog_description_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/edit_thread_dialog_title_et"
+        android:gravity="top"
         android:hint="@string/create_thread_dialog_description_hint"
-        android:paddingBottom="10dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingTop="5dp"
-        android:textSize="@dimen/blubb_text_size_small" />
+        android:inputType="textMultiLine|textCapSentences"
+        android:lines="3"
+        android:maxLines="3"
+        android:textColor="@color/beap_dark_blue"
+        android:textColorHint="@color/beap_blue" />
 
 
     <LinearLayout

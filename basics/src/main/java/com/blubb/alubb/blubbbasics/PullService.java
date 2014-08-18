@@ -56,7 +56,7 @@ public class PullService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        new AsyncMessagePull().execute();
+        new AsyncQuickCheck().execute();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -83,7 +83,7 @@ public class PullService extends Service {
     private void createMessageNotification(List<BlubbMessage> messages) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setAutoCancel(true);
-        builder.setSmallIcon(R.drawable.blubb_logo);
+        builder.setSmallIcon(R.drawable.blubb_notification_icon);
         Intent resultIntent;
         if (messages.size() > 1) {
             String nTitle = "You received " + messages.size() + " new messages";
@@ -96,16 +96,16 @@ public class PullService extends Service {
             builder.setContentText(nContent);
             builder.setStyle(new NotificationCompat.BigTextStyle().bigText(nContent));
 
-            resultIntent = new Intent(this, ActivityThreads.class);
+            resultIntent = new Intent(this, ThreadsActivity.class);
         } else if (messages.size() == 1) {
             BlubbMessage message = messages.get(0);
             builder.setContentTitle(message.getmCreator() + "\n" + message.getmTitle());
             builder.setContentText(message.getmContent().getStringRepresentation());
 
-            resultIntent = new Intent(this, ActivityMessages.class);
+            resultIntent = new Intent(this, MessagesActivity.class);
 
             String threadId = message.getmThread();
-            resultIntent.putExtra(ActivityMessages.EXTRA_THREAD_ID, threadId);
+            resultIntent.putExtra(MessagesActivity.EXTRA_THREAD_ID, threadId);
 
         } else return;
 
@@ -126,7 +126,7 @@ public class PullService extends Service {
      */
     private void createThreadNotification(List<BlubbThread> threads) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.blubb_logo);
+        builder.setSmallIcon(R.drawable.blubb_notification_icon);
         if (threads.size() > 1) {
 
             String nTitle = "You received " + threads.size() + " new threads";
@@ -143,7 +143,7 @@ public class PullService extends Service {
             builder.setContentTitle(thread.getThreadTitle());
             builder.setContentText(thread.gettDesc());
         } else return;
-        Intent resultIntent = new Intent(this, ActivityThreads.class);
+        Intent resultIntent = new Intent(this, ThreadsActivity.class);
         PendingIntent resultPendingIntent = PendingIntent.getActivity(
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(resultPendingIntent);
@@ -164,7 +164,7 @@ public class PullService extends Service {
      * AsyncTask which performs a quickCheck at the blubbDB and triggers the notification building
      * if there are new threads or messages.
      */
-    private class AsyncMessagePull extends AsyncTask<Void, Void, QuickCheck> {
+    private class AsyncQuickCheck extends AsyncTask<Void, Void, QuickCheck> {
         /**
          * Exception caught while executing doInBackground.
          */

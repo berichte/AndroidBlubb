@@ -34,7 +34,7 @@ import com.blubb.alubb.blubexceptions.PasswordInitException;
  * <p/>
  * Created by Benjamin Richter
  */
-public class ActivityLogin extends Activity {
+public class LoginActivity extends Activity {
 
     /**
      * Name for Logging purposes.
@@ -212,8 +212,8 @@ public class ActivityLogin extends Activity {
                 confirmPassword = (EditText) dialogLayout.findViewById(
                         R.id.password_init_dialog_confirm_password_et);
 
-        username.setText(ActivityLogin.this.username);
-        oldPassword.setText(ActivityLogin.this.password);
+        username.setText(LoginActivity.this.username);
+        oldPassword.setText(LoginActivity.this.password);
         final Button yBtn;
         yBtn = (Button) dialogLayout.findViewById(
                 R.id.password_init_dialog_y_btn);
@@ -339,7 +339,7 @@ public class ActivityLogin extends Activity {
             try {
                 if (SessionManager.getInstance().login(username, password)) {
                     return SessionManager.getInstance()
-                            .getSessionID(ActivityLogin.this.getApplicationContext());
+                            .getSessionID(LoginActivity.this.getApplicationContext());
                 }
             } catch (PasswordInitException e) {
                 this.passwordInitException = e;
@@ -362,7 +362,7 @@ public class ActivityLogin extends Activity {
                 CheckBox stayLogged = (CheckBox) findViewById(R.id.login_activity_stayloggedin_cb);
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(
-                                ActivityLogin.this.getApplicationContext());
+                                LoginActivity.this.getApplicationContext());
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 String unPref = "", pwPref = "";
                 if (stayLogged.isChecked()) {
@@ -372,9 +372,9 @@ public class ActivityLogin extends Activity {
                     pwPref = password;
                 }
                 editor.putString(
-                        ActivityLogin.this.getString(R.string.pref_username), unPref);
+                        LoginActivity.this.getString(R.string.pref_username), unPref);
                 editor.putString(
-                        ActivityLogin.this.getString(R.string.pref_password), pwPref);
+                        LoginActivity.this.getString(R.string.pref_password), pwPref);
                 editor.commit();
                 onBackPressed();
             }
@@ -410,10 +410,10 @@ public class ActivityLogin extends Activity {
             spinnerOff();
             if (response) {
                 String toastText = getString(R.string.login_pw_reset_ok_toast);
-                Toast.makeText(ActivityLogin.this, toastText, Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, toastText, Toast.LENGTH_SHORT).show();
                 loginType = LoginType.LOGIN;
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(
-                        ActivityLogin.this);
+                        LoginActivity.this);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString(USERNAME_PREFAB, "");
                 editor.putString(PASSWORD_PREFAB, "");
@@ -423,12 +423,12 @@ public class ActivityLogin extends Activity {
                     initDialog = null;
                 }
             } else {
-                Toast.makeText(ActivityLogin.this,
+                Toast.makeText(LoginActivity.this,
                         getResources().getString(R.string.unknown_exception_message),
                         Toast.LENGTH_LONG).show();
                 loginType = LoginType.RESET;
             }
-            ActivityLogin.this.onResume();
+            LoginActivity.this.onResume();
         }
     }
 }

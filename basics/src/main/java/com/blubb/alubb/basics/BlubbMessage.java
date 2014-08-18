@@ -15,8 +15,8 @@ import android.widget.TextView;
 
 import com.blubb.alubb.R;
 import com.blubb.alubb.beapcom.BPC;
-import com.blubb.alubb.blubbbasics.ActivityMessages;
 import com.blubb.alubb.blubbbasics.BlubbApplication;
+import com.blubb.alubb.blubbbasics.MessagesActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -330,7 +330,7 @@ public class BlubbMessage {
     public View createView(Context context, final ViewGroup parent,
                            String tCreator, View.OnClickListener replyClickListener,
                            View.OnClickListener editMsgClickListener,
-                           final ActivityMessages.MessageArrayAdapter adapter) {
+                           final MessagesActivity.MessageArrayAdapter adapter) {
         Log.i(NAME, "parentType: " + parent.getClass().getName());
         View messageView;
         LayoutInflater inflater = (LayoutInflater) context
@@ -424,7 +424,7 @@ public class BlubbMessage {
     public View getView(Context context, final ViewGroup parent,
                         String tCreator, View.OnClickListener replyClickListener,
                         View.OnClickListener editMsgClickListener,
-                        final ActivityMessages.MessageArrayAdapter adapter) {
+                        final MessagesActivity.MessageArrayAdapter adapter) {
         if (msgView == null) {
             linkPos = adapter.getMsgPosition(mLink);
             msgView = createView(context, parent, tCreator, replyClickListener,
