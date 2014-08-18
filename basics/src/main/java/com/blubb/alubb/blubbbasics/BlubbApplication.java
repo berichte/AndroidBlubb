@@ -87,8 +87,10 @@ public class BlubbApplication extends Application {
                 toastMessage = this.getResources().getString(
                         R.string.blubb_db_connection_exception_message);
             } else if (exClass.equals(BlubbDBException.class)) {
-                toastMessage = this.getResources().getString(
-                        R.string.blubb_db_exception_message);
+                if (blubbException.getMessage() == null) {
+                    toastMessage = this.getResources().getString(
+                            R.string.blubb_db_exception_message);
+                } else toastMessage = blubbException.getMessage();
             } else if (exClass.equals(BlubbNullException.class)) {
                 toastMessage = this.getResources().getString(
                         R.string.blubb_null_exception_message);

@@ -85,9 +85,9 @@
     <string name="logout_dialog_title_text">
         Do you really want to logout?</string>
     <string name="logout_dialog_positive_btn_text">
-        Jupp</string>
+        Yes</string>
     <string name="logout_dialog_negative_btn_text">
-        Nooooo!</string>
+        No</string>
 
     <!-- Toast to the user to confirm certain actions.-->
     <string name="set_thread_successfully_toast">
@@ -107,7 +107,7 @@
         The given parameter is not valid.\n
         Please enter again and ensure it is not empty.</string>
     <string name="blubb_db_exception_message">
-        There went something terribly wrong. Run, run as fast as you can! 8-o </string>
+        An error occurred. Please contact your admin.</string>
     <string name="blubb_null_exception_message">
         A parameter must not be null.\nPlease enter again and ensure it is not empty.</string>
     <string name="blubb_db_connection_exception_message">

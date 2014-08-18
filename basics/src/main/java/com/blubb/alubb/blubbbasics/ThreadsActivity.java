@@ -790,8 +790,6 @@ public class ThreadsActivity extends Activity {
 
         @Override
         protected void onPostExecute(Boolean isLoggedIn) {
-            getApp().handleException(blubbException);
-            // if there was no exception toast will be null - everything is alright.
             if (!isLoggedIn) {
                 // if there is no SessionException let user perform manual login.
                 if (sessionException != null) {
@@ -803,8 +801,11 @@ public class ThreadsActivity extends Activity {
                         intent.putExtra(LoginActivity.EXTRA_LOGIN_TYPE,
                                 LoginActivity.LoginType.LOGIN);
                         ThreadsActivity.this.startActivity(intent);
+                    } else {
+                        // getApp().handleException(blubbException);
                     }
                 }
+
             }
             showSpinnerForLogin = false;
             spinnerOff();
